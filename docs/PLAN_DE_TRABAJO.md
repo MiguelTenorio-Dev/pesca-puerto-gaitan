@@ -17,8 +17,8 @@
 > Claude Code actualiza esta sección cada vez que se cierra una sesión (prompt "Cierre de sesión").
 
 - **Última actualización:** 13 nov 2026
-- **Fase actual:** 0 (lista, falta el commit y el push)
-- **Qué quedó a medias:** crear el repo en GitHub y hacer el primer push
+- **Fase actual:** 0 cerrada (commit 2c5840c, en GitHub)
+- **Qué quedó a medias:** —
 - **Siguiente paso concreto:** corregir las coordenadas en Google Earth y empezar la Fase 1
 - **Datos pendientes del equipo:** KML de M01–M04; coordenadas de A02, A03, X01 y C01; ubicación del desembarque de la señora
 
@@ -68,7 +68,7 @@
 - [x] `pip install -e ".[dev]"` funciona en Python 3.12.
 - [x] `pytest -q` pasa.
 - [x] `pesca-gaitan` abre la app.
-- [ ] Hay primer push al repo público.
+- [x] Hay primer push al repo público.
 - [x] Las decisiones abiertas están en el registro.
 
 ---
