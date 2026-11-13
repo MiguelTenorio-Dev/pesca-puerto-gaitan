@@ -1,0 +1,5 @@
+id,origen,destino,modo,distancia_km,herramienta,sentido_rio_origen_a_destino,fuente,evidencia,notas
+M01,yucao_pueblo,puerto_gaitan,via,15.14,Google Earth - Medir,,medido por el equipo,docs/evidencias/M01_yucao_pgaitan_via_15.14km.png,Fecha de la imagen satelital 14/9/2024
+M02,yucao_pueblo,puerto_gaitan,rio,17.38,Google Earth - Medir,mixto,medido por el equipo,docs/evidencias/M02_yucao_pgaitan_rio_17.38km.png,"Meta aguas abajo hasta la boca del Manacacias, luego Manacacias aguas arriba hasta Puerto Gaitan. Reparto de km entre los dos tramos [CONFIRMAR]"
+M03,san_miguel,puerto_gaitan,via,38.9,Google Earth - Ruta,,medido por el equipo,docs/evidencias/M03_sanmiguel_pgaitan_via_38.9km.png,"Leido del eje del perfil de elevacion; la herramienta no mostro el campo Longitud [CONFIRMAR]"
+M04,san_miguel,puerto_gaitan,rio,41.65,Google Earth - Medir,aguas_arriba,medido por el equipo,docs/evidencias/M04_sanmiguel_pgaitan_rio_41.65km.png,"Manacacias hasta el Meta y Meta hasta San Miguel. De San Miguel a Puerto Gaitan todo el trayecto es contra corriente"

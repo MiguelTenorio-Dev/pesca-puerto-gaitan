@@ -1,0 +1,12 @@
+sitio,periodo,toneladas,fuente,nota
+malecon_puerto_gaitan,2022-01,5.4,"AUNAP-UniMagdalena, Estadisticas de desembarco y esfuerzo de las pesquerias artesanales de Colombia (2025), Tabla 12",
+malecon_puerto_gaitan,2022-02,2.2,"AUNAP-UniMagdalena (2025), Tabla 12",
+malecon_puerto_gaitan,2022-03,2.9,"AUNAP-UniMagdalena (2025), Tabla 12",
+malecon_puerto_gaitan,2022-04,4.1,"AUNAP-UniMagdalena (2025), Tabla 12",
+malecon_puerto_gaitan,2022-05,0.1,"AUNAP-UniMagdalena (2025), Tabla 12",veda
+malecon_puerto_gaitan,2022-06,1.0,"AUNAP-UniMagdalena (2025), Tabla 12",veda
+malecon_puerto_gaitan,2022-07,1.9,"AUNAP-UniMagdalena (2025), Tabla 12",veda
+malecon_puerto_gaitan,2022-08,2.7,"AUNAP-UniMagdalena (2025), Tabla 12",
+malecon_puerto_gaitan,2022-09,2.4,"AUNAP-UniMagdalena (2025), Tabla 12",
+malecon_puerto_gaitan,2022-10,1.5,"AUNAP-UniMagdalena (2025), Tabla 12",
+san_miguel_puerto_gaitan,2022-01_a_2022-10,5.5,"AUNAP-UniMagdalena (2025), Tabla 12","Total ene-oct. La fuente muestra solo 9 valores mensuales legibles (0.5, 1.4, 1.0, 0.2, 0.5, 0.4, 0.5, 0.5, 0.4) sin poder asignarlos a un mes con certeza"
