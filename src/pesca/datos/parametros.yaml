@@ -1,0 +1,282 @@
+# Parametros del modelo (especificacion §5, §6 y §10).
+# Cada parametro hoja tiene:
+#   valor     numero, texto, lista o {min, max} si es una distribucion uniforme
+#   rango     [min, max] para Monte Carlo (opcional)
+#   etiqueta  MEDIDO | DATO | OFICIAL | CALIBRADO | SIMULADO | CONFIRMAR
+#   nota      explicacion corta (opcional)
+# Unidades: km, h, kg, COP, °C.
+
+general:
+  semilla:
+    valor: 42
+    etiqueta: SIMULADO
+    nota: Semilla fija para todo lo aleatorio
+
+rio:
+  corriente_aguas_altas_kmh:
+    valor: 4.0
+    rango: [3.0, 6.0]
+    etiqueta: CONFIRMAR
+  corriente_aguas_bajas_kmh:
+    valor: 2.0
+    rango: [1.0, 3.0]
+    etiqueta: CONFIRMAR
+    nota: Escenario base
+  v_minima_kmh:
+    valor: 1.0
+    etiqueta: SIMULADO
+    nota: Si la velocidad efectiva es menor o igual, el tramo es infactible
+  variacion_sinuosidad:
+    valor: 0.20
+    etiqueta: CALIBRADO
+    nota: La sinuosidad se calibra con M02 y M04 y varia ±20 % en Monte Carlo
+  tiempo_transbordo_h:
+    valor: 0.5
+    rango: [0.25, 1.5]
+    etiqueta: SIMULADO
+  separacion_candidatos_km:
+    valor: 5.0
+    etiqueta: SIMULADO
+    nota: Separacion entre punto_rio (candidatos de R4)
+
+embarcaciones:
+  madera_remo:
+    valor: 4.0
+    rango: [3.0, 5.0]
+    etiqueta: SIMULADO
+    nota: km/h en agua quieta, eslora 9 m
+  madera_motor:
+    valor: 15.0
+    rango: [12.0, 18.0]
+    etiqueta: SIMULADO
+    nota: km/h en agua quieta
+  aluminio_remo:
+    valor: 5.0
+    rango: [4.0, 6.0]
+    etiqueta: SIMULADO
+    nota: km/h en agua quieta
+  aluminio_motor:
+    valor: 28.0
+    rango: [22.0, 35.0]
+    etiqueta: SIMULADO
+    nota: km/h en agua quieta
+
+vehiculos:
+  comprador_carro:
+    valor: 30.0
+    rango: [20.0, 40.0]
+    etiqueta: CONFIRMAR
+    nota: km/h. Se asume que el comprador viaja en carro
+  camion_refrigerado:
+    valor: 35.0
+    rango: [25.0, 45.0]
+    etiqueta: SIMULADO
+    nota: km/h, pescado a 4 °C
+
+degradacion:
+  vu0_h:
+    valor: 360.0
+    rango: [288.0, 432.0]
+    etiqueta: DATO
+    nota: Vida util en hielo de la cachama (15 dias)
+  t_ambiente_c:
+    valor: 32.0
+    rango: [28.0, 38.0]
+    etiqueta: SIMULADO
+    nota: Canoa o carretera sin frio
+  t_frio_c:
+    valor: 4.0
+    rango: [2.0, 8.0]
+    etiqueta: SIMULADO
+    nota: Con hielo o refrigeracion
+  t_congelado_c:
+    valor: -18.0
+    etiqueta: DATO
+    nota: Congelador horizontal; RRS = 0 por debajo de -10 °C
+  t_corte_rrs_c:
+    valor: -10.0
+    etiqueta: DATO
+    nota: Por debajo de esta temperatura RRS = 0
+  horas_faena:
+    valor: 4.0
+    rango: [2.0, 8.0]
+    etiqueta: SIMULADO
+  horas_hielo_nevera_nueva:
+    valor: 48.0
+    rango: [24.0, 72.0]
+    etiqueta: SIMULADO
+  horas_hielo_nevera_deteriorada:
+    valor: 12.0
+    rango: [4.0, 24.0]
+    etiqueta: SIMULADO
+  factor_precio_congelado:
+    valor: 0.85
+    rango: [0.75, 0.95]
+    etiqueta: SIMULADO
+    nota: Penaliza una sola vez la congelacion lenta
+
+precio_calidad:
+  escalones:
+    valor:
+      - {calidad_min: 0.75, factor: 1.00}
+      - {calidad_min: 0.50, factor: 0.70}
+      - {calidad_min: 0.25, factor: 0.40}
+      - {calidad_min: 0.00, factor: 0.00}
+    etiqueta: SIMULADO
+    nota: Factor de precio segun la calidad Q al vender (por debajo de 0,25 hay rechazo)
+
+cadena_actual:
+  ciclo_comprador_dias:
+    valor: {min: 7, max: 15}
+    etiqueta: DATO
+    nota: Uniforme. Estimado por el equipo
+  n_congeladores:
+    valor: 2
+    rango: [1, 3]
+    etiqueta: CONFIRMAR
+  kg_por_congelador:
+    valor: 150.0
+    rango: [100.0, 200.0]
+    etiqueta: CONFIRMAR
+    nota: kg utiles por congelador horizontal
+  p_corte_dia:
+    valor: 0.10
+    rango: [0.02, 0.25]
+    etiqueta: CONFIRMAR
+    nota: Probabilidad diaria de corte de luz
+  horas_corte:
+    valor: {min: 2.0, max: 12.0}
+    etiqueta: SIMULADO
+    nota: Uniforme
+  horas_descongelacion:
+    valor: 6.0
+    etiqueta: SIMULADO
+    nota: Un corte mas largo descongela el lote
+  fraccion_nevera_buena:
+    valor: 0.30
+    rango: [0.10, 0.50]
+    etiqueta: SIMULADO
+    nota: Pescadores con nevera de icopor en buen estado
+  candidatas_desembarque_senora:
+    valor: [D01a, D01b, D01c, D01d]
+    etiqueta: CONFIRMAR
+    nota: Ubicacion real desconocida (D10). Se reporta la sensibilidad
+
+precios:
+  cachama_cop_kg:
+    valor: 11833.0
+    rango: [8875.0, 14791.0]
+    etiqueta: OFICIAL
+    nota: SIPSA, Central de Abastos de Villavicencio, jul 2026 (±25 %)
+  bagre_rayado_cop_kg:
+    valor: 14000.0
+    rango: [10500.0, 17500.0]
+    etiqueta: OFICIAL
+    nota: SIPSA, Central de Abastos de Villavicencio, jul 2026 (±25 %)
+  mezcla_cachama:
+    valor: 0.5
+    rango: [0.3, 0.7]
+    etiqueta: SIMULADO
+    nota: Fraccion de cachama en la captura; el resto es bagre rayado. Da un precio base ponderado
+  factor_precio_local:
+    valor: 0.8
+    rango: [0.6, 1.0]
+    etiqueta: SIMULADO
+    nota: Plaza de Puerto Gaitan frente a Villavicencio
+
+volumen:
+  factor_subregistro:
+    valor: 2.0
+    rango: [1.3, 3.0]
+    etiqueta: SIMULADO
+    nota: Volumen real = SEPEC × factor. La parte (factor - 1) pasa por desembarques informales
+  variacion_pescadores:
+    valor: 0.30
+    etiqueta: SIMULADO
+    nota: ±30 % en pescadores por zona y kg por faena
+  dias_pesca_anio:
+    valor: 270
+    etiqueta: DATO
+    nota: Veda del 1 de mayo al 31 de julio. Se usa para el VPN anual
+
+flota:
+  mezcla:
+    valor: {madera_remo: 0.60, madera_motor: 0.30, aluminio_motor: 0.10}
+    etiqueta: SIMULADO
+    nota: Mezcla por zona, ±15 puntos porcentuales en Monte Carlo
+  variacion_pp:
+    valor: 0.15
+    etiqueta: SIMULADO
+
+acopios:
+  capacidad_plaza_kg_dia:
+    valor: 1500.0
+    rango: [800.0, 2400.0]
+    etiqueta: SIMULADO
+    nota: ~8 negocios con refrigeracion [DATO]
+  kg_por_m3:
+    valor: 400.0
+    rango: [300.0, 500.0]
+    etiqueta: SIMULADO
+    nota: kg utiles por m³ de cuarto frio
+  capacidad_san_miguel_kg:
+    valor: 1600.0
+    etiqueta: DATO
+    nota: Cuarto frio de 4 m³ × 400 kg/m³
+  capacidad_puente_arimena_kg:
+    valor: 400.0
+    etiqueta: CONFIRMAR
+    nota: Tamaño del cuarto frio sin confirmar
+
+economia:
+  rehabilitacion_san_miguel_cop:
+    valor: 40000000.0
+    rango: [25000000.0, 70000000.0]
+    etiqueta: SIMULADO
+  operacion_anual_san_miguel_cop:
+    valor: 24000000.0
+    rango: [15000000.0, 40000000.0]
+    etiqueta: SIMULADO
+  tasa_descuento:
+    valor: 0.12
+    etiqueta: SIMULADO
+  horizonte_anios:
+    valor: 5
+    etiqueta: SIMULADO
+  umbral_vpn_positivo:
+    valor: 0.70
+    etiqueta: SIMULADO
+    nota: Vale la pena si VPN > 0 en al menos esta fraccion de corridas
+  costos_inversion:
+    valor: null
+    etiqueta: SIMULADO
+    nota: Costos de I1 a I7. Se definen en la Fase 5
+
+montecarlo:
+  corridas_r2:
+    valor: 500
+    etiqueta: SIMULADO
+  corridas_r4:
+    valor: 500
+    etiqueta: SIMULADO
+  corridas_r5:
+    valor: 100
+    etiqueta: SIMULADO
+
+escenario_base:
+  acopios_activos:
+    valor: [A01]
+    etiqueta: SIMULADO
+    nota: Hoy solo funciona la plaza de Puerto Gaitan
+  desembarque_senora:
+    valor: D01a
+    etiqueta: CONFIRMAR
+  temporada:
+    valor: aguas_bajas
+    etiqueta: CONFIRMAR
+  hielo_a_bordo:
+    valor: false
+    etiqueta: SIMULADO
+  camion_refrigerado:
+    valor: false
+    etiqueta: SIMULADO

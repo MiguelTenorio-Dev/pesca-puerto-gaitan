@@ -1,0 +1,45 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pesca-puerto-gaitan"
+version = "0.1.0"
+description = "Transporte y cadena de frio del pescado en Puerto Gaitan (Meta): diagnostico, optimizacion y app web"
+readme = "README.md"
+requires-python = ">=3.12"
+license = { text = "MIT" }
+authors = [{ name = "MiguelTenorio-Dev" }]
+dependencies = [
+    "networkx>=3.2",
+    "pandas>=2.1",
+    "numpy>=1.26",
+    "matplotlib>=3.8",
+    "folium>=0.15",
+    "streamlit>=1.46",
+    "streamlit-folium>=0.20",
+    "pulp>=2.8",
+    "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0"]
+
+[project.scripts]
+pesca-gaitan = "pesca.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+pesca = [
+    "datos/*.yaml",
+    "datos/*.csv",
+    "datos/precalculado/*",
+    "datos/rutas_kml/*",
+    "app/*.py",
+    "app/pages/*.py",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

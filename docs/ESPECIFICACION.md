@@ -447,12 +447,14 @@ Van en `src/pesca/datos/parametros.yaml`. Son **[SIMULADO]** salvo que diga otra
 | horas de faena | 4 | 2–8 | |
 | ciclo de recogida del comprador (días) | uniforme(7, 15) | — | [DATO, estimado por el equipo] |
 | congeladores de la señora | 2 × 150 kg útiles | 1–3 × 100–200 kg | [CONFIRMAR] |
+| candidatas del desembarque de la señora | D01a (base), D01b, D01c, D01d | — | [CONFIRMAR], D10 |
 | `p_corte_dia` (probabilidad diaria de corte de luz) | 0,10 | 0,02–0,25 | [CONFIRMAR] |
 | `horas_corte` / `horas_descongelacion` | uniforme(2, 12) / 6 | | |
 | `factor_precio_congelado` | 0,85 | 0,75–0,95 | penaliza la congelación lenta |
 | horas que dura el hielo en icopor (nevera nueva / deteriorada) | 48 / 12 | 24–72 / 4–24 | |
 | pescadores con nevera de icopor en buen estado hoy | 30 % | 10–50 % | las neveras se deterioran rápido [DATO] |
 | precio de referencia (COP/kg) | 11 833 (cachama) · 14 000 (bagre rayado) | ±25 % | [OFICIAL] SIPSA, Villavicencio, jul 2026 |
+| `mezcla_cachama` (fracción de cachama; el resto es bagre) | 0,5 | 0,3–0,7 | da el precio base ponderado |
 | `factor_precio_local` (plaza de Puerto Gaitán vs Villavicencio) | 0,8 | 0,6–1,0 | |
 | volumen desembarcado | calibrado al SEPEC 2022 (§4.7) | | [OFICIAL] |
 | `factor_subregistro` | 2,0 | 1,3–3,0 | desembarques informales que no registra el SEPEC |

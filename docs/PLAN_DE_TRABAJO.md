@@ -16,11 +16,11 @@
 
 > Claude Code actualiza esta sección cada vez que se cierra una sesión (prompt "Cierre de sesión").
 
-- **Última actualización:** —
-- **Fase actual:** 0 (sin empezar)
-- **Qué quedó a medias:** —
-- **Siguiente paso concreto:** seguir la guía de terminal y pegar el prompt de la Fase 0
-- **Datos pendientes del equipo:** coordenadas o KML de los puntos; ubicación del desembarque de la señora
+- **Última actualización:** 13 nov 2026
+- **Fase actual:** 0 (lista, falta el commit y el push)
+- **Qué quedó a medias:** crear el repo en GitHub y hacer el primer push
+- **Siguiente paso concreto:** corregir las coordenadas en Google Earth y empezar la Fase 1
+- **Datos pendientes del equipo:** KML de M01–M04; coordenadas de A02, A03, X01 y C01; ubicación del desembarque de la señora
 
 ---
 
@@ -65,11 +65,11 @@
 - Tests de configuración.
 
 **Hecho cuando:**
-- [ ] `pip install -e ".[dev]"` funciona en Python 3.12.
-- [ ] `pytest -q` pasa.
-- [ ] `pesca-gaitan` abre la app.
+- [x] `pip install -e ".[dev]"` funciona en Python 3.12.
+- [x] `pytest -q` pasa.
+- [x] `pesca-gaitan` abre la app.
 - [ ] Hay primer push al repo público.
-- [ ] Las decisiones abiertas están en el registro.
+- [x] Las decisiones abiertas están en el registro.
 
 ---
 
@@ -233,7 +233,14 @@ El núcleo (`red`, `busqueda`, `transporte`, `degradacion`, `asignacion`, `escen
 | 13 nov | D8 | Alcance: transporte + frío + inversión. Criaderos = trabajo futuro | equipo |
 | 13 nov | D9 | Algoritmos: Dijkstra, A\*, BFS, transporte, p-mediana | equipo |
 | 13 nov | D1 | Todo funcional el domingo 15; presentación el lunes 16 en la mañana | equipo |
-| | D4 | | |
-| | D5 | | |
-| | D6 | | |
+| 13 nov | D4 | Sigue abierta, pero no bloquea: todas las coordenadas de `nodos.csv` van con `validado = no` (estimadas por Claude o leídas de las capturas M02/M04). Se pidió exportar el KML de M01–M04 desde Google Earth. Prioridad para corregir: A02, X01 (boca del Manacacías), C01 (Yucao) y A03 | Claude (Fase 0) |
+| 13 nov | D5 | Por defecto, los caños P08–P12 son de la cuenca del Meta (al Meta o al Manacacías), con posición de relleno [CONFIRMAR] | Claude (Fase 0) |
+| 13 nov | D6 | Individual, en `main`, hasta la Fase 3. Si se suma alguien, se usa la división R4/R5/informe | Claude (Fase 0), pendiente de que el usuario lo confirme |
 | 13 nov | D10 | El desembarque de la señora está a la orilla del río, ubicación exacta desconocida: se usan candidatas con sensibilidad | equipo |
+| 13 nov | D10 | Candidatas: D01a boca del Manacacías (base), D01b Meta bajo (La Virginia), D01c orilla de Yucao, D01d Manacacías arriba de Puerto Gaitán | Claude (Fase 0) |
+| 13 nov | — | Malecón de Puerto Gaitán (SEPEC) = nodo `D_MALECON` (desembarque formal), unido a A01 por un transbordo | Claude (Fase 0) |
+| 13 nov | — | `factor_subregistro`: volumen real = SEPEC × factor; la parte (factor − 1) × SEPEC pasa por desembarques informales (la señora y los D02) | Claude (Fase 0) |
+| 13 nov | — | Veda: la calibración mensual reproduce el SEPEC tal como está (con mayo–julio). Los 270 días de pesca se usan solo para el VPN anual | Claude (Fase 0) |
+| 13 nov | — | San Miguel: se calibra solo el total de 5,5 t, repartido por mes con el perfil del Malecón | Claude (Fase 0) |
+| 13 nov | — | Precio base = mezcla cachama/bagre (`precios.mezcla_cachama` = 0,5) [SIMULADO] | Claude (Fase 0) |
+| 13 nov | — | Las capturas siguen en `docs/evidencias/`. Si el paquete se instala sin el repo, la app dice "captura disponible en el repositorio" | Claude (Fase 0) |
