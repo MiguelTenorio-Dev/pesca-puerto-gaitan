@@ -490,7 +490,7 @@ Van en `src/pesca/datos/parametros.yaml`. Son **[SIMULADO]** salvo que diga otra
 | D3 | "Embalses u ornamentación" en la inversión de la alcaldía | **resuelta:** se interpreta como infraestructura de cadena de frío (I1–I7) |
 | D4 | Coordenadas exactas de los acopios y del desembarque | **abierta** (§4.6) |
 | D5 | ¿A qué cuenca pertenece cada caño menor? | abierta. Por defecto: Meta o Manacacías [CONFIRMAR] |
-| D6 | ¿Individual o en equipo? | **abierta** |
+| D6 | ¿Individual o en equipo? | **resuelta:** individual, en `main` |
 | D7 | Acopios del proyecto | **resuelta:** Puerto Gaitán, San Miguel y Puente Arimena. Yucao es una comunidad pescadora |
 | D8 | Alcance | **resuelta:** transporte + cadena de frío + inversión. Criaderos, trabajo futuro |
 | D9 | Algoritmos | **resuelta:** Dijkstra, A\*, BFS (comparados), problema de transporte, p-mediana |

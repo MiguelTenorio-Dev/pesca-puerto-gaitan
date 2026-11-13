@@ -235,7 +235,7 @@ El núcleo (`red`, `busqueda`, `transporte`, `degradacion`, `asignacion`, `escen
 | 13 nov | D1 | Todo funcional el domingo 15; presentación el lunes 16 en la mañana | equipo |
 | 13 nov | D4 | Sigue abierta, pero no bloquea: todas las coordenadas de `nodos.csv` van con `validado = no` (estimadas por Claude o leídas de las capturas M02/M04). Se pidió exportar el KML de M01–M04 desde Google Earth. Prioridad para corregir: A02, X01 (boca del Manacacías), C01 (Yucao) y A03 | Claude (Fase 0) |
 | 13 nov | D5 | Por defecto, los caños P08–P12 son de la cuenca del Meta (al Meta o al Manacacías), con posición de relleno [CONFIRMAR] | Claude (Fase 0) |
-| 13 nov | D6 | Individual, en `main`, hasta la Fase 3. Si se suma alguien, se usa la división R4/R5/informe | Claude (Fase 0), pendiente de que el usuario lo confirme |
+| 13 nov | D6 | Individual, en `main`, hasta la Fase 3. Si se suma alguien, se usa la división R4/R5/informe | confirmado por el usuario |
 | 13 nov | D10 | El desembarque de la señora está a la orilla del río, ubicación exacta desconocida: se usan candidatas con sensibilidad | equipo |
 | 13 nov | D10 | Candidatas: D01a boca del Manacacías (base), D01b Meta bajo (La Virginia), D01c orilla de Yucao, D01d Manacacías arriba de Puerto Gaitán | Claude (Fase 0) |
 | 13 nov | — | Malecón de Puerto Gaitán (SEPEC) = nodo `D_MALECON` (desembarque formal), unido a A01 por un transbordo | Claude (Fase 0) |
