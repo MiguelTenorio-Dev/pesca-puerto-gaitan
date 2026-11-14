@@ -39,6 +39,26 @@ rio:
     etiqueta: SIMULADO
     nota: Separacion entre punto_rio (candidatos de R4)
 
+red:
+  tolerancia_calibracion:
+    valor: 0.01
+    etiqueta: DATO
+    nota: El grafo debe reproducir M01–M04 con este error relativo (criterio de R1)
+
+busqueda:
+  pares_comparacion:
+    valor:
+      - [P02@rio, A01@via]
+      - [P01@rio, A01@via]
+      - [P04@rio, A01@via]
+      - [P12@rio, A01@via]
+      - [P03@rio, A02@rio]
+      - [A02@rio, D_MALECON@rio]
+      - [P06@rio, A01@via]
+      - [P07@rio, A03@via]
+    etiqueta: SIMULADO
+    nota: Pares origen → destino de la tabla Dijkstra vs A* vs BFS (nodo@capa)
+
 embarcaciones:
   madera_remo:
     valor: 4.0
@@ -97,6 +117,10 @@ degradacion:
     valor: -10.0
     etiqueta: DATO
     nota: Por debajo de esta temperatura RRS = 0
+  coef_ratkowsky:
+    valor: 0.1
+    etiqueta: DATO
+    nota: RRS(T) = (1 + coef·T)², modelo de Ratkowsky / Spencer–Baines
   horas_faena:
     valor: 4.0
     rango: [2.0, 8.0]

@@ -16,11 +16,11 @@
 
 > Claude Code actualiza esta sección cada vez que se cierra una sesión (prompt "Cierre de sesión").
 
-- **Última actualización:** 13 nov 2026
-- **Fase actual:** 0 cerrada (commit 2c5840c, en GitHub)
-- **Qué quedó a medias:** —
-- **Siguiente paso concreto:** corregir las coordenadas en Google Earth y empezar la Fase 1
-- **Datos pendientes del equipo:** KML de M01–M04; coordenadas de A02, A03, X01 y C01; ubicación del desembarque de la señora
+- **Última actualización:** 14 nov 2026
+- **Fase actual:** 1 cerrada (pendiente commit y push)
+- **Qué quedó a medias:** usar la geometría del KML (no solo su longitud) para reemplazar las trazas
+- **Siguiente paso concreto:** Fase 2 (diagnóstico)
+- **Datos pendientes del equipo:** KML de M01–M04; coordenadas de A02, A03, X01 y C01 (el tramo Yucao → boca del Manacacías necesita ×1,86 y la vía a Puente Arimena da 91 km frente al km 68 de la ANI); ubicación del desembarque de la señora
 
 ---
 
@@ -84,9 +84,9 @@
 **Tú:** ¿los ríos y la carretera se ven bien? ¿Los acopios quedan donde son? ¿La comparación de algoritmos se entiende para presentarla?
 
 **Hecho cuando:**
-- [ ] Tests: el grafo reproduce M01–M04 (±1 %); aguas abajo < aguas arriba; motor < remo; sin río entre cuencas.
-- [ ] Dijkstra propio = `networkx`; A\* da el mismo costo con igual o menos nodos explorados.
-- [ ] Existe la tabla Dijkstra vs A\* vs BFS.
+- [x] Tests: el grafo reproduce M01–M04 (±1 %); aguas abajo < aguas arriba; motor < remo; sin río entre cuencas.
+- [x] Dijkstra propio = `networkx`; A\* da el mismo costo con igual o menos nodos explorados.
+- [x] Existe la tabla Dijkstra vs A\* vs BFS.
 - [ ] Commit y push `fase 1: red multimodal y busqueda (R1)`.
 
 ---
@@ -244,3 +244,9 @@ El núcleo (`red`, `busqueda`, `transporte`, `degradacion`, `asignacion`, `escen
 | 13 nov | — | San Miguel: se calibra solo el total de 5,5 t, repartido por mes con el perfil del Malecón | Claude (Fase 0) |
 | 13 nov | — | Precio base = mezcla cachama/bagre (`precios.mezcla_cachama` = 0,5) [SIMULADO] | Claude (Fase 0) |
 | 13 nov | — | Las capturas siguen en `docs/evidencias/`. Si el paquete se instala sin el repo, la app dice "captura disponible en el repositorio" | Claude (Fase 0) |
+| 14 nov | D4 | Sin KML todavía: las trazas de ríos y vías (`rios.csv`, `vias.csv`) las estimó Claude (`validado = no`). Si llega un KML M0x, su longitud reemplaza a la del CSV; la geometría se integra con "datos nuevos" | Claude (Fase 1) |
+| 14 nov | — | Vichada simplificado: A03 sobre el Muco; el Planas y el Guarrojo salen a la vía por V01 y V02 [CONFIRMAR] | Claude (Fase 1) |
+| 14 nov | — | Calibración: sinuosidad por modo = km medidos / línea recta; los tramos compartidos (Manacacías malecón → boca) usan esa sinuosidad y los exclusivos se escalan para reproducir la ruta exacta. Ningún factor < 1 (garantiza la heurística admisible de A\*) | Claude (Fase 1) |
+| 14 nov | — | Puerto Gaitán por río = malecón (`D_MALECON`), con acceso vial a la plaza A01. Desembarques sin vía: acceso en línea recta × sinuosidad vial [SIMULADO] | Claude (Fase 1) |
+| 14 nov | — | La calidad de la matriz origen × acopio de R1 cuenta solo el viaje; la Fase 2 suma faena y espera | Claude (Fase 1) |
+| 14 nov | — | Mapas con teselas OpenStreetMap: CartoDB ahora pide clave | Claude (Fase 1) |

@@ -35,7 +35,9 @@ TEMPORADAS = {"aguas_bajas", "aguas_altas"}
 
 COLUMNAS_NODOS = ["id", "nombre", "tipo", "cuenca", "lat", "lon", "validado", "fuente", "notas"]
 COLUMNAS_DISTANCIAS = ["id", "origen", "destino", "modo", "distancia_km", "sentido_rio_origen_a_destino", "fuente", "evidencia"]
-COLUMNAS_SEPEC = ["sitio", "periodo", "toneladas", "fuente"]
+COLUMNAS_RIOS = ["traza", "nombre", "cuenca", "orden", "id_nodo", "lat", "lon", "fuente"]
+COLUMNAS_VIAS = ["traza", "nombre", "orden", "id_nodo", "lat", "lon", "fuente"]
+COLUMNAS_SEPEC =["sitio", "periodo", "toneladas", "fuente"]
 COLUMNAS_PRECIOS = ["producto", "mercado", "fecha", "cop_por_kg", "fuente"]
 
 
@@ -100,6 +102,20 @@ def cargar_nodos() -> pd.DataFrame:
 def cargar_distancias_medidas() -> pd.DataFrame:
     df = pd.read_csv(DIR_DATOS / "distancias_medidas.csv")
     return _validar_columnas(df, COLUMNAS_DISTANCIAS, "distancias_medidas.csv")
+
+
+@cache
+def cargar_rios() -> pd.DataFrame:
+    """Trazas de rios y caños, un vertice por fila, de aguas arriba a aguas abajo."""
+    df = pd.read_csv(DIR_DATOS / "rios.csv", dtype={"id_nodo": str})
+    return _validar_columnas(df, COLUMNAS_RIOS, "rios.csv").sort_values(["traza", "orden"], kind="stable")
+
+
+@cache
+def cargar_vias() -> pd.DataFrame:
+    """Trazas de las carreteras, un vertice por fila."""
+    df = pd.read_csv(DIR_DATOS / "vias.csv", dtype={"id_nodo": str})
+    return _validar_columnas(df, COLUMNAS_VIAS, "vias.csv").sort_values(["traza", "orden"], kind="stable")
 
 
 @cache

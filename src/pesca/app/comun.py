@@ -9,6 +9,25 @@ from pesca.escenario import Escenario
 
 TEXTO_TEMPORADA = {"aguas_bajas": "Aguas bajas (verano)", "aguas_altas": "Aguas altas (invierno)"}
 
+TEXTO_EMBARCACION = {
+    "madera_remo": "Madera, a remo",
+    "madera_motor": "Madera, con motor",
+    "aluminio_remo": "Aluminio, a remo",
+    "aluminio_motor": "Aluminio, con motor",
+}
+
+TEXTO_CRITERIO = {
+    "perdida": "Menor pérdida de calidad",
+    "tiempo": "Menor tiempo",
+    "distancia": "Menor distancia",
+}
+
+TEXTO_ALGORITMO = {"dijkstra": "Dijkstra", "a_estrella": "A*", "bfs": "BFS (menos tramos)"}
+
+TEXTO_MODO = {"rio": "río", "via": "carretera", "transbordo": "transbordo"}
+
+TEXTO_SENTIDO = {"aguas_abajo": "a favor de la corriente", "aguas_arriba": "contra la corriente"}
+
 TEXTO_ETIQUETA = {
     "MEDIDO": "🟢 MEDIDO",
     "DATO": "🔵 DATO",

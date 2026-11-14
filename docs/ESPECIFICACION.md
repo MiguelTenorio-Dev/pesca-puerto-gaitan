@@ -157,9 +157,11 @@ Archivo: `src/pesca/datos/nodos.csv`. Columnas: `id, nombre, tipo, cuenca, lat, 
   - P04 Yucao;
   - P05–P07 Guarrojo, Muco y Planas (Vichada);
   - P08–P12 caños Canalete, Cañomorroco, Maiciana, Guiva y Chayva (cuenca [CONFIRMAR]);
-- `punto_rio` cada ~5 km (traza el río; son los candidatos de R4);
-- `confluencia`;
-- `punto_via` (carretera).
+- `punto_rio` cada ~5 km (se generan sobre la traza del río; son los candidatos de R4);
+- `confluencia`: X01 (boca del Manacacías) y K08–K12 (bocas de los caños, posición de relleno);
+- `punto_via` (carretera): V01 y V02, donde el Planas y el Guarrojo cruzan la vía a Puente Arimena [CONFIRMAR].
+
+Las trazas de ríos y vías están en `src/pesca/datos/rios.csv` y `vias.csv` (aproximadas, `validado = no`, hasta que llegue el KML).
 
 ### 4.5 Aristas
 
@@ -168,6 +170,8 @@ Archivo: `src/pesca/datos/nodos.csv`. Columnas: `id, nombre, tipo, cuenca, lat, 
   - Los demás usan `haversine × sinuosidad`, con la sinuosidad calibrada a partir de M02 y M04.
 - **Carretera.** Atributos: `distancia_km` (medida si existe: M01, M03), `fuente`.
 - **Transbordo** (río ↔ carretera) en los acopios y desembarques. Atributo: `tiempo_transbordo_h`.
+- **Acceso** por carretera de los desembarques que no están sobre una vía: línea recta × sinuosidad vial hasta el punto vial más cercano [SIMULADO].
+- Cada lugar tiene un nodo por capa (`<id>@rio`, `<id>@via`). Puerto Gaitán por río es el malecón (`D_MALECON`), que tiene acceso vial a la plaza (A01).
 
 ### 4.6 Datos que conviene recoger (en orden de impacto)
 
@@ -436,7 +440,7 @@ Van en `src/pesca/datos/parametros.yaml`. Son **[SIMULADO]** salvo que diga otra
 | parámetro | valor inicial | rango MC | nota |
 |---|---|---|---|
 | `semilla` | 42 | — | |
-| sinuosidad sin medir | se calibra con M02 y M04 | ±20 % | [CALIBRADO] |
+| sinuosidad sin medir | río 1,18 (M02 + M04) · vía 1,34 (M01 + M03) | ±20 % | [CALIBRADO] en la Fase 1. Los tramos exclusivos de cada ruta medida se escalan para reproducirla: M02 ×1,86, M04 ×1,07, M01 ×1,57, M03 ×1,27 |
 | corriente, aguas altas / bajas (km/h) | 4 / 2 | 3–6 / 1–3 | escenario base: aguas bajas [CONFIRMAR] |
 | `v_minima` (km/h) | 1 | — | |
 | velocidades de embarcación y de carretera | §5 | §5 | |
