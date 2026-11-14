@@ -67,8 +67,11 @@ c2.caption(f"90 %: {intervalo('pct_desborde_senora', '{:.0f} %')}")
 pct_espera = r.at["espera_mayor_que_rio", "media"]
 c3.metric("La espera pesa más que el río", f"en el {pct_espera:.0f} % de las corridas")
 c3.caption(f"Pérdida en la espera ÷ pérdida en el río: {r.at['razon_espera_rio', 'media']:.0f} veces (90 %: {intervalo('razon_espera_rio', '{:.1f}')})")
-if r.at["pct_no_remontan", "media"] > 0.5:
-    st.caption(f"⚠️ En promedio el {r.at['pct_no_remontan', 'media']:.1f} % del pescado no llega porque el bote no puede remontar la corriente.")
+if r.at["pct_desviados", "media"] > 0.5:
+    st.caption(
+        f"⚠️ En promedio el {r.at['pct_desviados', 'media']:.1f} % del pescado no puede remontar la corriente hasta su "
+        "desembarque habitual y se vende río abajo, en el centro más cercano."
+    )
 
 if pct_espera >= 50:
     st.success("**Hipótesis confirmada:** la mayor pérdida no ocurre en el río (horas) sino en la espera hasta que llega el comprador (días).")
@@ -91,7 +94,8 @@ st.markdown(
     "🟢 río a favor de la corriente · 🔴 río contra la corriente · ⚫ carretera (punteada). "
     "Círculos: 🔵 Malecón (venta directa) · 🟠 San Miguel · 🟢 la señora · 🟡 Vichada."
 )
-desembarques = dict(zip(corrida.poblacion["desembarque"], corrida.poblacion["sitio"]))
+vendieron = corrida.lotes.dropna(subset=["sitio_venta"])
+desembarques = dict(zip(vendieron["desembarque"], vendieron["sitio_venta"]))
 st_folium(visualizacion.mapa_recorridos(corrida.tiempos.grafo, flujos, desembarques), height=480,
           use_container_width=True, returned_objects=[])
 

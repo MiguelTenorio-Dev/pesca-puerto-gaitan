@@ -17,10 +17,10 @@
 > Claude Code actualiza esta sección cada vez que se cierra una sesión (prompt "Cierre de sesión").
 
 - **Última actualización:** 14 nov 2026
-- **Fase actual:** 2 cerrada (pendiente commit y push). Fase 1 en f53cf31
+- **Fase actual:** 2 cerrada (commit 4805a39, en GitHub) + ajuste: venta río abajo cuando el bote no remonta (pendiente commit)
 - **Qué quedó a medias:** geometría del KML para las trazas. El usuario tiene en mente cambios a la Fase 1 y decide al final del proyecto
 - **Siguiente paso concreto:** Fase 3 (recomendador)
-- **Datos pendientes del equipo:** KML de M01–M04; coordenadas de A02, A03, X01 y C01 (el tramo Yucao → boca del Manacacías necesita ×1,86 y la vía a Puente Arimena da 91 km frente al km 68 de la ANI); ubicación del desembarque de la señora
+- **Datos pendientes del equipo:** KML de M01–M04; coordenadas de A02, A03, X01 y C01 (el tramo Yucao → boca del Manacacías necesita ×1,86 y la vía a Puente Arimena da 91 km frente al km 68 de la ANI); a qué río desembocan los caños P08–P12 (D5); si Puente Arimena está sobre el Muco y si el Planas y el Guarrojo cruzan la vía. **No habrá datos** de la ubicación real de la señora ni del comprador: quedan simulados
 
 ---
 
@@ -117,7 +117,7 @@
 - [x] El volumen simulado reproduce el SEPEC 2022 × `factor_subregistro`.
 - [x] El inventario del congelador nunca supera su capacidad: el exceso aparece como desborde a icopor.
 - [x] Las cifras tienen intervalo y se distingue lo medido de lo simulado.
-- [ ] Commit y push `fase 2: diagnostico (R2)`.
+- [x] Commit y push `fase 2: diagnostico (R2)`.
 
 > **Hito del viernes:** el problema queda demostrado con números y mapa.
 
@@ -256,5 +256,8 @@ El núcleo (`red`, `busqueda`, `transporte`, `degradacion`, `asignacion`, `escen
 | 14 nov | — | Vichada incluido en el diagnóstico con el 15 % del volumen informal | usuario (Fase 2) |
 | 14 nov | — | Diagnóstico = un ciclo del comprador en un mes típico fuera de veda; los indicadores se ponderan por el volumen mensual de cada sitio. Monte Carlo: 500 corridas por candidata y temporada, uniforme en el `rango` de cada parámetro | Claude (Fase 2) |
 | 14 nov | — | COP perdidos por etapa: la congelación lenta es etapa propia; el resto se reparte en proporción a la pérdida de calidad de cada etapa (así suman el total aunque el precio sea escalonado) | Claude (Fase 2) |
-| 14 nov | — | Bote que no puede remontar: el lote se pierde y se cuenta en el río. En aguas altas esto invierte la hipótesis en 3 de 4 candidatas; en aguas bajas (base) la espera pesa más en el 92–98 % de las corridas [CONFIRMAR qué hacen hoy los pescadores a remo en aguas altas] | Claude (Fase 2) |
+| 14 nov | — | ~~Bote que no puede remontar: el lote se pierde~~ Reemplazada por la siguiente | Claude (Fase 2) |
+| 14 nov | — | Bote que no puede remontar: vende río abajo, en el centro más cercano que alcanza por río (Malecón, San Miguel, la señora o un cruce del Vichada). Con esto la espera pesa más que el río en el 99,6–100 % de las corridas, en las dos temporadas y con las 4 candidatas | usuario (supuesto) |
+| 14 nov | D10 | Resuelta: la ubicación real de la señora no se conocerá; las 4 candidatas quedan como SIMULADO definitivo con su sensibilidad | usuario |
+| 14 nov | — | Datos del comprador (ciclo en San Miguel, si trae hielo): no habrá; quedan como SIMULADO definitivo | usuario |
 | 14 nov | — | Gráficos del diagnóstico con Altair (`st.altair_chart`) para tener tooltips; paleta de referencia azul/naranja | Claude (Fase 2) |

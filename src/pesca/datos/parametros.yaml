@@ -193,16 +193,16 @@ cadena_actual:
     nota: Hielo que se pone en las neveras de icopor al recibir el pescado que no cabe en el congelador (o donde no hay congelador)
   ciclo_comprador_san_miguel_dias:
     valor: {min: 7, max: 15}
-    etiqueta: CONFIRMAR
+    etiqueta: SIMULADO
     nota: Uniforme. El cuarto frio se dejo de usar porque no se podia pagar la luz; hoy el pescado espera en icopor
   comprador_trae_hielo:
     valor: false
-    etiqueta: CONFIRMAR
+    etiqueta: SIMULADO
     nota: Si el comprador lleva el pescado en icopor con hielo por la carretera
   candidatas_desembarque_senora:
     valor: [D01a, D01b, D01c, D01d]
-    etiqueta: CONFIRMAR
-    nota: Ubicacion real desconocida (D10). Se reporta la sensibilidad
+    etiqueta: SIMULADO
+    nota: La ubicacion real no se conocera (D10). Se usan estas candidatas y se reporta la sensibilidad
 
 precios:
   cachama_cop_kg:
@@ -345,7 +345,7 @@ escenario_base:
     nota: Hoy solo funciona la plaza de Puerto Gaitan
   desembarque_senora:
     valor: D01a
-    etiqueta: CONFIRMAR
+    etiqueta: SIMULADO
   temporada:
     valor: aguas_bajas
     etiqueta: CONFIRMAR

@@ -19,8 +19,8 @@ def test_el_congelador_nunca_supera_la_capacidad():
         assert (c.inventario["kg_congelado"] <= c.capacidad_kg + 1e-9).all()
     c = _corrida()
     assert c.inventario["kg_icopor"].iloc[-1] > 0  # con el volumen base hay desborde
-    congelado = c.lotes[(c.lotes["sitio"] == "senora") & (c.lotes["almacen"] == "congelador")]["kg"].sum()
-    assert congelado == pytest.approx(min(c.capacidad_kg, c.lotes.loc[c.lotes["sitio"] == "senora", "kg"].sum()))
+    congelado = c.lotes[c.lotes["almacen"] == "congelador"]["kg"].sum()
+    assert congelado == pytest.approx(min(c.capacidad_kg, c.lotes.loc[c.lotes["sitio_venta"] == "senora", "kg"].sum()))
 
 
 def test_sin_cortes_no_hay_falla():
@@ -36,7 +36,7 @@ def test_con_cortes_largos_hay_falla():
 
 
 def test_el_malecon_no_espera():
-    malecon = _corrida().lotes.query("sitio == 'malecon'")
+    malecon = _corrida().lotes.query("sitio_venta == 'malecon'")
     assert len(malecon)
     assert set(malecon["almacen"]) <= {"directo", "no_llego"}
     assert (malecon["horas_espera"] == 0).all()
@@ -48,7 +48,7 @@ def test_misma_semilla_mismo_resultado():
 
 def test_sin_subregistro_no_llega_nada_a_la_senora():
     c = _corrida(**{"volumen.factor_subregistro": 1.0})
-    assert not (c.lotes["sitio"] == "senora").any()
+    assert not (c.lotes["sitio_venta"] == "senora").any()
 
 
 def test_etapas_suman_el_total_por_lote():
@@ -113,3 +113,19 @@ def test_precalculado_completo():
     assert set(c["candidata"]) == set(config.parametro("cadena_actual.candidatas_desembarque_senora"))
     assert set(c["temporada"]) == config.TEMPORADAS
     assert c.groupby(["temporada", "candidata"]).size().eq(datos["meta"]["corridas"]).all()
+
+
+def test_si_no_puede_remontar_vende_rio_abajo():
+    # Aguas altas al maximo y todos a remo: nadie remonta, todos venden en un centro alcanzable
+    valores = {"rio.corriente_aguas_altas_kmh": 6.0, "flota.mezcla": {"madera_remo": 1.0}}
+    with config.sobrescribir(valores):
+        c = ca.simular_corrida(np.random.default_rng(1), BASE.con(temporada="aguas_altas"))
+    L = c.lotes
+    assert L["desviado"].any()
+    assert not L["no_llego"].any()
+    desviados = L[L["desviado"]]
+    for fila in desviados.itertuples():
+        viaje = c.tiempos.rio(c.poblacion.set_index("id").at[fila.pescador, "ubicacion"], fila.desembarque, "madera_remo")
+        assert viaje.alcanzable
+        sentidos = {c.tiempos.grafo.edges[u, v]["sentido"] for u, v in zip(viaje.ruta, viaje.ruta[1:])}
+        assert sentidos <= {"aguas_abajo"}

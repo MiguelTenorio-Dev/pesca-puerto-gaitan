@@ -451,7 +451,7 @@ Van en `src/pesca/datos/parametros.yaml`. Son **[SIMULADO]** salvo que diga otra
 | horas de faena | 4 | 2–8 | |
 | ciclo de recogida del comprador (días) | uniforme(7, 15) | — | [DATO, estimado por el equipo] |
 | congeladores de la señora | 2 × 150 kg útiles | 1–3 × 100–200 kg | [CONFIRMAR] |
-| candidatas del desembarque de la señora | D01a (base), D01b, D01c, D01d | — | [CONFIRMAR], D10 |
+| candidatas del desembarque de la señora | D01a (base), D01b, D01c, D01d | — | [SIMULADO] definitivo: la ubicación real no se conocerá (D10) |
 | `p_corte_dia` (probabilidad diaria de corte de luz) | 0,10 | 0,02–0,25 | [CONFIRMAR] |
 | `horas_corte` / `horas_descongelacion` | uniforme(2, 12) / 6 | | |
 | `factor_precio_congelado` | 0,85 | 0,75–0,95 | penaliza la congelación lenta |
@@ -465,9 +465,9 @@ Van en `src/pesca/datos/parametros.yaml`. Son **[SIMULADO]** salvo que diga otra
 | destino del volumen (Fase 2) | registrado: Malecón (venta directa) y San Miguel; no registrado: 85 % la señora, 15 % Vichada (cruces con la vía) | Vichada 5–30 % | decisión del usuario, 14 nov |
 | kg por faena / faenas por semana | 20 / 4 | 10–40 / 3–6 | el número de pescadores se deriva del volumen |
 | hielo que se pone al pescado que espera en icopor (h) | 24 | 12–48 | desborde de la señora, San Miguel y Vichada |
-| ciclo del comprador en San Miguel (días) | uniforme(7, 15) | — | [CONFIRMAR] |
-| el comprador trae hielo | no | — | [CONFIRMAR] |
-| bote que no puede remontar la corriente | el lote no llega y se cuenta como perdido en el río | — | pesa sobre todo en aguas altas con botes a remo |
+| ciclo del comprador en San Miguel (días) | uniforme(7, 15) | — | [SIMULADO] definitivo: no habrá datos del comprador |
+| el comprador trae hielo | no | — | [SIMULADO] definitivo: no habrá datos del comprador |
+| bote que no puede remontar la corriente | vende río abajo, en el centro más cercano que alcanza (Malecón, San Miguel, la señora o un cruce del Vichada) | — | [SIMULADO], indicado por el usuario. En aguas altas ≈ 31 % del pescado se desvía |
 | pescadores por zona y kg por faena | se derivan para reproducir el volumen calibrado | ±30 % | |
 | mezcla de flota | 60 % madera_remo, 30 % madera_motor, 10 % aluminio_motor | ±15 pp | |
 | capacidad de la plaza de Puerto Gaitán (kg/día) | 1 500 | 800–2 400 | ~8 negocios [DATO]; holgada frente a ~80 kg/día registrados |
@@ -504,4 +504,4 @@ Van en `src/pesca/datos/parametros.yaml`. Son **[SIMULADO]** salvo que diga otra
 | D7 | Acopios del proyecto | **resuelta:** Puerto Gaitán, San Miguel y Puente Arimena. Yucao es una comunidad pescadora |
 | D8 | Alcance | **resuelta:** transporte + cadena de frío + inversión. Criaderos, trabajo futuro |
 | D9 | Algoritmos | **resuelta:** Dijkstra, A\*, BFS (comparados), problema de transporte, p-mediana |
-| D10 | Ubicación del desembarque de la señora | **parcial:** está a la orilla del río y la ubicación exacta es desconocida. Se usan candidatas con análisis de sensibilidad (§3.4) |
+| D10 | Ubicación del desembarque de la señora | **resuelta:** la ubicación real no se conocerá. Se usan las 4 candidatas simuladas con análisis de sensibilidad (§3.4); en aguas bajas y altas la conclusión no cambia |

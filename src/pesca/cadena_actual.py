@@ -99,7 +99,12 @@ def _horas_falla(cortes: np.ndarray, desde: int) -> float:
 
 
 def simular_corrida(rng: np.random.Generator, escenario: Escenario) -> Corrida:
-    """Un ciclo de recogida en un mes tipico fuera de veda, con todos los pescadores."""
+    """Un ciclo de recogida de la señora en un mes tipico fuera de veda, con todos los pescadores.
+
+    Todos los sitios se muestrean en los mismos dias; cada sitio espera a su propio comprador.
+    Si el bote no puede remontar hasta su desembarque habitual, el pescador vende en el centro
+    mas cercano que si alcanza por rio (rio abajo).
+    """
     p = config.parametro
     esc = escenario_hoy(escenario)
     grafo = grafo_vigente()
@@ -113,61 +118,76 @@ def simular_corrida(rng: np.random.Generator, escenario: Escenario) -> Corrida:
         "vichada": int(rng.integers(ciclo["min"], ciclo["max"] + 1)),
         "san_miguel": int(rng.integers(ciclo_sm["min"], ciclo_sm["max"] + 1)),
     }
-    ciclos["malecon"] = ciclos["senora"]  # mismos dias de muestra; en el malecon se vende el mismo dia
     largo = ciclos["senora"]
     hay_corte = rng.random(largo) < p("cadena_actual.p_corte_dia")
     duracion = rng.uniform(p("cadena_actual.horas_corte")["min"], p("cadena_actual.horas_corte")["max"], size=largo)
     cortes = np.where(hay_corte, duracion, 0.0)
     capacidad = p("cadena_actual.n_congeladores") * p("cadena_actual.kg_por_congelador")
+    centros = _centros_de_venta(pob, esc.desembarque_senora)
+    probabilidad = pob["p_faena_pico"].to_numpy() * act
 
     filas, inventario = [], []
     kg_congelado = kg_icopor = 0.0
-    for sitio in poblacion.SITIOS:
-        grupo = pob[pob["sitio"] == sitio]
-        dias = ciclos[sitio]
-        for d in range(dias):
-            salen = grupo[rng.random(len(grupo)) < grupo["p_faena_pico"].to_numpy() * act]
-            for i in rng.permutation(len(salen)):
-                pesc = salen.iloc[i]
-                for lote, almacen in _llevar_al_desembarque(pesc, sitio, tiempos):
-                    if almacen == "pendiente":
-                        espera_h = (dias - d) * HORAS_DIA
-                        partes = _almacenar(lote, sitio, capacidad - kg_congelado)
-                        for parte, donde in partes:
-                            if donde == "congelador":
-                                kg_congelado += parte.kg
-                                falla = _horas_falla(cortes, d)
-                                dg.avanzar(parte, falla, "espera", dg.FALLA)
-                                dg.avanzar(parte, espera_h - falla, "espera", dg.CONGELADO)
-                            else:
-                                if sitio == "senora":
-                                    kg_icopor += parte.kg
-                                dg.avanzar(parte, espera_h, "espera", dg.ICOPOR_HIELO)
-                            _ir_a_la_plaza(parte, pesc["desembarque"], tiempos)
-                            filas.append(_fila(parte, pesc, sitio, d, donde))
-                    else:
-                        if almacen == "directo":
-                            _ir_a_la_plaza(lote, pesc["desembarque"], tiempos)
-                        filas.append(_fila(lote, pesc, sitio, d, almacen))
-            if sitio == "senora":
-                inventario.append(
-                    {"dia": d + 1, "kg_congelado": kg_congelado, "kg_icopor": kg_icopor, "capacidad_kg": capacidad, "corte_h": cortes[d]}
-                )
+    for d in range(largo):
+        salen = pob[rng.random(len(pob)) < probabilidad]
+        for i in rng.permutation(len(salen)):
+            pesc = salen.iloc[i]
+            lote, venta, desembarque = _llevar_al_desembarque(pesc, centros, tiempos)
+            if venta is None:
+                filas.append(_fila(lote, pesc, desembarque, None, d, "no_llego"))
+                continue
+            if venta == "malecon":
+                _ir_a_la_plaza(lote, desembarque, tiempos)
+                filas.append(_fila(lote, pesc, desembarque, venta, d, "directo"))
+                continue
+            dias_espera = ciclos[venta] - d % ciclos[venta]
+            for parte, donde in _almacenar(lote, venta, capacidad - kg_congelado):
+                if donde == "congelador":
+                    kg_congelado += parte.kg
+                    falla = _horas_falla(cortes, d)
+                    dg.avanzar(parte, falla, "espera", dg.FALLA)
+                    dg.avanzar(parte, dias_espera * HORAS_DIA - falla, "espera", dg.CONGELADO)
+                else:
+                    if venta == "senora":
+                        kg_icopor += parte.kg
+                    dg.avanzar(parte, dias_espera * HORAS_DIA, "espera", dg.ICOPOR_HIELO)
+                _ir_a_la_plaza(parte, desembarque, tiempos)
+                filas.append(_fila(parte, pesc, desembarque, venta, d, donde))
+        inventario.append(
+            {"dia": d + 1, "kg_congelado": kg_congelado, "kg_icopor": kg_icopor, "capacidad_kg": capacidad, "corte_h": cortes[d]}
+        )
 
     lotes = pd.DataFrame(filas)
     return Corrida(esc, pob, lotes, pd.DataFrame(inventario), ciclos, _kg_mes(pob), capacidad, tiempos)
 
 
-def _llevar_al_desembarque(pesc: pd.Series, sitio: str, tiempos: Tiempos) -> list[tuple[dg.Lote, str]]:
-    """Faena y viaje por rio. Devuelve el lote y si se vende directo, espera o no llego."""
+def _centros_de_venta(pob: pd.DataFrame, desembarque_senora: str) -> dict[str, str]:
+    """Lugares donde hoy se puede entregar pescado -> sitio que lo maneja."""
+    centros = {**{v: k for k, v in poblacion.DESEMBARQUE_FIJO.items()}, desembarque_senora: "senora"}
+    centros.update({d: "vichada" for d in config.parametro("poblacion.desembarque_vichada").values()})
+    return centros
+
+
+def _llevar_al_desembarque(pesc: pd.Series, centros: dict[str, str], tiempos: Tiempos) -> tuple[dg.Lote, str | None, str]:
+    """Faena y viaje por rio. Devuelve el lote, el sitio donde se vende y el desembarque.
+
+    Si el bote no puede remontar hasta su desembarque habitual, va al centro mas cercano (en
+    horas) que si alcanza. Si no alcanza ninguno, el lote no llega (sitio None).
+    """
     lote = dg.Lote(kg=pesc["kg_por_faena"], hielo_restante_h=pesc["horas_hielo"])
     dg.avanzar(lote, config.parametro("degradacion.horas_faena"), "faena", dg.ICOPOR_HIELO)
     viaje = tiempos.rio(pesc["ubicacion"], pesc["desembarque"], pesc["embarcacion"])
+    desembarque, venta = pesc["desembarque"], pesc["sitio"]
     if not viaje.alcanzable:
-        lote.no_llego = True
-        return [(lote, "no_llego")]
+        opciones = [(tiempos.rio(pesc["ubicacion"], c, pesc["embarcacion"]), c) for c in centros if c != desembarque]
+        opciones = [(v, c) for v, c in opciones if v.alcanzable]
+        if not opciones:
+            lote.no_llego = True
+            return lote, None, desembarque
+        viaje, desembarque = min(opciones, key=lambda x: x[0].costo)
+        venta = centros[desembarque]
     dg.avanzar(lote, viaje.costo, "rio", dg.ICOPOR_HIELO)
-    return [(lote, "directo" if sitio == "malecon" else "pendiente")]
+    return lote, venta, desembarque
 
 
 def _almacenar(lote: dg.Lote, sitio: str, libre_kg: float) -> list[tuple[dg.Lote, str]]:
@@ -195,12 +215,14 @@ def _ir_a_la_plaza(lote: dg.Lote, desembarque: str, tiempos: Tiempos) -> None:
         dg.avanzar(lote, viaje.costo, "carretera", dg.AMBIENTE)
 
 
-def _fila(lote: dg.Lote, pesc: pd.Series, sitio: str, dia: int, almacen: str) -> dict:
+def _fila(lote: dg.Lote, pesc: pd.Series, desembarque: str, venta: str | None, dia: int, almacen: str) -> dict:
     return {
         "pescador": pesc["id"],
-        "sitio": sitio,
+        "sitio": pesc["sitio"],  # sitio habitual: define el peso del lote en el volumen del mes
+        "sitio_venta": venta,
         "zona": pesc["zona"],
-        "desembarque": pesc["desembarque"],
+        "desembarque": desembarque,
+        "desviado": desembarque != pesc["desembarque"],
         "embarcacion": pesc["embarcacion"],
         "dia": dia + 1,
         "almacen": almacen,
@@ -226,7 +248,7 @@ def resumir_corrida(corrida: Corrida) -> tuple[dict, pd.DataFrame]:
     w = L["peso"]
     kg = (w * L["kg"]).sum()
     cop = {c: (w * L[c]).sum() for c in ["cop_posible", "cop_recibido", "cop_perdido", *[f"cop_{e}" for e in dg.ETAPAS_COP]]}
-    senora = L[L["sitio"] == "senora"]
+    senora = L[L["sitio_venta"] == "senora"]
     rio = cop["cop_rio"]
     espera = cop["cop_espera"] + cop[f"cop_{dg.CONGELACION_LENTA}"]
     llegaron = L[~L["no_llego"]]
@@ -238,6 +260,7 @@ def resumir_corrida(corrida: Corrida) -> tuple[dict, pd.DataFrame]:
         "kg_rechazados_mes": (w * L["kg"] * (L["factor_precio"] == 0)).sum(),
         "pct_desborde_senora": 100 * senora.loc[senora["almacen"] == "icopor", "kg"].sum() / senora["kg"].sum() if len(senora) else 0.0,
         "pct_no_remontan": 100 * (w * L["kg"] * L["no_llego"]).sum() / kg,
+        "pct_desviados": 100 * (w * L["kg"] * L["desviado"]).sum() / kg,
         "horas_rio_media": (llegaron["peso"] * llegaron["kg"] * llegaron["horas_rio"]).sum() / (llegaron["peso"] * llegaron["kg"]).sum(),
         "razon_espera_rio": espera / rio if rio > 0 else np.inf,
         "espera_mayor_que_rio": bool(espera > rio),
@@ -269,10 +292,12 @@ def por_pescador(corrida: Corrida) -> pd.DataFrame:
         mios = L[L["pescador"] == pesc.id]
         fila = {"pescador": pesc.id, "sitio": pesc.sitio, "zona": pesc.zona, "desembarque": pesc.desembarque,
                 "embarcacion": pesc.embarcacion, "nevera_buena": pesc.nevera_buena, "faenas": int(mios["dia"].nunique())}
-        viaje = corrida.tiempos.rio(pesc.ubicacion, pesc.desembarque, pesc.embarcacion)
+        destino = mios["desembarque"].mode().iloc[0] if len(mios) else pesc.desembarque
+        fila["vende_en"] = destino
+        viaje = corrida.tiempos.rio(pesc.ubicacion, destino, pesc.embarcacion)
         if viaje.alcanzable:
             rio = transporte.resumen_ruta(corrida.tiempos.grafo, viaje.ruta, corrida.tiempos.perfil(pesc.embarcacion))
-            via = transporte.resumen_ruta(corrida.tiempos.grafo, corrida.tiempos.carretera(pesc.desembarque).ruta,
+            via = transporte.resumen_ruta(corrida.tiempos.grafo, corrida.tiempos.carretera(destino).ruta,
                                           corrida.tiempos.perfil(pesc.embarcacion))
             fila.update(km_rio=rio["km"], km_carretera=via["km_via"], pct_contra_corriente=rio["pct_contra_corriente"])
         if len(mios):
@@ -291,16 +316,19 @@ def por_pescador(corrida: Corrida) -> pd.DataFrame:
 
 def flujos(corrida: Corrida) -> dict[tuple[str, str], float]:
     """kg por arista de los recorridos de hoy (rio de cada pescador y carretera del comprador)."""
-    kg_pesc = corrida.lotes.groupby("pescador")["kg"].sum()
-    kg_desemb = corrida.lotes.groupby("desembarque")["kg"].sum()
+    llegaron = corrida.lotes[~corrida.lotes["no_llego"]]
+    kg_viaje = llegaron.groupby(["pescador", "desembarque"])["kg"].sum()
+    kg_desemb = llegaron.groupby("desembarque")["kg"].sum()
+    pob = corrida.poblacion.set_index("id")
     salida: dict[tuple[str, str], float] = {}
 
     def sumar(ruta, kg):
         for u, v in zip(ruta, ruta[1:]):
             salida[(u, v)] = salida.get((u, v), 0.0) + kg
 
-    for pesc in corrida.poblacion.itertuples():
-        sumar(corrida.tiempos.rio(pesc.ubicacion, pesc.desembarque, pesc.embarcacion).ruta, kg_pesc.get(pesc.id, 0.0))
+    for (pescador, desembarque), kg in kg_viaje.items():
+        pesc = pob.loc[pescador]
+        sumar(corrida.tiempos.rio(pesc["ubicacion"], desembarque, pesc["embarcacion"]).ruta, kg)
     for desembarque, kg in kg_desemb.items():
         sumar(corrida.tiempos.carretera(desembarque).ruta, kg)
     return salida
@@ -329,7 +357,7 @@ def correr_montecarlo(escenario: Escenario, n: int | None = None, semilla: int |
 
 INDICADORES = (
     "calidad_media", "pct_valor_perdido", "cop_perdidos_mes", "kg_rechazados_mes", "pct_desborde_senora",
-    "pct_no_remontan", "horas_rio_media", "razon_espera_rio", "kg_mes", "precio_base",
+    "pct_no_remontan", "pct_desviados", "horas_rio_media", "razon_espera_rio", "kg_mes", "precio_base",
     *[f"cop_kg_{e}" for e in dg.ETAPAS_COP], "cop_kg_recibido",
 )
 
