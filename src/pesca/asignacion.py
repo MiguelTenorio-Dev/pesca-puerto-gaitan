@@ -5,7 +5,8 @@ Formas de vender que se comparan para un pescador:
 - desembarque: dejarlo donde la señora (o en San Miguel sin frio, o en el cruce del Vichada)
   y esperar al comprador, que lo lleva por carretera;
 - acopio activo (bimodal): por rio hasta el acopio, cuarto frio, transbordo y carretera hasta la plaza.
-Se recomienda la que deja mas plata (valor = kg × precio base × factor de precio, especificacion §1).
+Se recomienda la que deja mas plata neta: lo que le pagan (kg × precio base × factor de precio,
+especificacion §1) menos lo que le cuesta el viaje por rio (gasolina y tiempo, ida y vuelta).
 """
 
 from __future__ import annotations
@@ -67,6 +68,8 @@ class Opcion:
     cop_kg_congelador: float | None = None  # donde la señora: valor si cabe en el congelador
     cop_kg_icopor: float | None = None  # donde la señora: valor si se desborda a icopor
     vehiculo: str = ""
+    costo_viaje: float = 0.0  # gasolina + tiempo del pescador, ida y vuelta por rio (COP)
+    cop_neto: float = 0.0  # lo que le pagan menos el costo del viaje
 
 
 @dataclass(frozen=True, eq=False)
@@ -78,6 +81,13 @@ class Recomendacion:
     mejor: Opcion | None
     alternativas: tuple[Opcion, ...]
     explicacion: str
+
+
+def costo_viaje(km_rio: float, horas_rio: float, embarcacion: str) -> float:
+    """Lo que le cuesta al pescador ir y volver por rio: gasolina (solo con motor) y su tiempo."""
+    p = config.parametro
+    gasolina = km_rio * p("pescador.cop_por_km_motor") if embarcacion.endswith("_motor") else 0.0
+    return p("pescador.factor_regreso") * (gasolina + horas_rio * p("pescador.cop_por_hora"))
 
 
 def dias_espera_esperados() -> float:
@@ -217,6 +227,7 @@ def _evaluar(tipo: str, destino: str, origen: str, perfil: transporte.Perfil, kg
 
     km_rio = tramos.loc[tramos["modo"] == red.CAPA_RIO, "km"].sum()
     km_contra = tramos.loc[tramos["sentido"] == "aguas_arriba", "km"].sum()
+    gasto = costo_viaje(km_rio, horas_rio, perfil.embarcacion)
     return Opcion(
         tipo=tipo,
         destino=destino,
@@ -239,6 +250,8 @@ def _evaluar(tipo: str, destino: str, origen: str, perfil: transporte.Perfil, kg
         cop_kg_congelador=cop_cong,
         cop_kg_icopor=cop_icop,
         vehiculo=vehiculo,
+        costo_viaje=gasto,
+        cop_neto=esperado("cop_recibido") - gasto,
     )
 
 
@@ -252,7 +265,7 @@ def recomendar(origen: str, embarcacion: str, kg: float, escenario: Escenario, n
     perfil = transporte.Perfil.desde_escenario(escenario, embarcacion)
     hielo_h = horas_hielo(nevera)
     opciones = [_evaluar(t, d, origen, perfil, kg, hielo_h, escenario, grafo) for t, d in _destinos(origen, escenario, grafo)]
-    factibles = sorted((o for o in opciones if o.factible), key=lambda o: (o.cop_total, o.calidad), reverse=True)
+    factibles = sorted((o for o in opciones if o.factible), key=lambda o: (o.cop_neto, o.calidad), reverse=True)
     orden = factibles + [o for o in opciones if not o.factible]
     mejor = factibles[0] if factibles else None
     rec = Recomendacion(origen, embarcacion, kg, nevera, mejor, tuple(orden), "")
@@ -286,6 +299,10 @@ def _horas_rio(o: Opcion) -> float:
     return o.tramos.loc[o.tramos["modo"] == red.CAPA_RIO, "horas"].sum()
 
 
+def _que_gastas(embarcacion: str) -> str:
+    return "en gasolina y tiempo" if embarcacion.endswith("_motor") else "en tiempo"
+
+
 def explicar(rec: Recomendacion) -> str:
     """Explicacion en lenguaje sencillo: a donde, por donde, corriente, transbordo, cuanto y por que no lo otro."""
     m = rec.mejor
@@ -314,7 +331,11 @@ def explicar(rec: Recomendacion) -> str:
         if m.prob_congelador is not None:
             partes.append(f"Hay espacio en el congelador en {round(10 * m.prob_congelador)} de cada 10 viajes; si no, va en icopor.")
     if m.cop_total > 0:
-        partes.append(f"Llega con calidad {numero(m.calidad, 2)} (de 0 a 1) y te pagan cerca de **{pesos(m.cop_total)}**.")
+        partes.append(
+            f"Llega con calidad {numero(m.calidad, 2)} (de 0 a 1) y te pagan cerca de **{pesos(m.cop_total)}**; "
+            f"el viaje ida y vuelta te cuesta unos {pesos(m.costo_viaje)} {_que_gastas(rec.embarcacion)}, "
+            f"así que te quedan **{pesos(m.cop_neto)}**."
+        )
     else:
         partes.append(f"Llega con calidad {numero(m.calidad, 2)} (de 0 a 1).")
 
@@ -391,7 +412,8 @@ def _nevera(pesc) -> str:
 def problema_transporte(escenario: Escenario) -> dict:
     """Reparto optimo de toda la flota entre las formas de vender, con capacidades y sin_destino.
 
-    Devuelve flujos (pescador, destino, kg_dia, cop_kg), uso de cada destino, costo optimo y costo de hoy.
+    El costo de cada opcion por kg = valor perdido + costo del viaje del pescador repartido en los kg de su faena.
+    Devuelve flujos (pescador, destino, kg_dia, costo_kg), uso de cada destino, costo optimo y costo de hoy.
     """
     p = config.parametro
     p0 = dg.precio_base()
@@ -401,10 +423,11 @@ def problema_transporte(escenario: Escenario) -> dict:
     )
     costos, capacidades, opciones, nombres = {}, {}, {}, {}
     for pesc in pob.itertuples():
-        rec = recomendar(pesc.ubicacion, pesc.embarcacion, 1.0, escenario, _nevera(pesc))
+        rec = recomendar(pesc.ubicacion, pesc.embarcacion, pesc.kg_por_faena, escenario, _nevera(pesc))
         for o in rec.alternativas:
             if not o.factible:
                 continue
+            viaje_kg = o.costo_viaje / pesc.kg_por_faena
             if o.prob_congelador is not None:  # la señora: congelador (con capacidad) o icopor
                 partes = {":congelador": (o.cop_kg_congelador, capacidad_congelador), ":icopor": (o.cop_kg_icopor, None)}
             elif o.tipo == "acopio":
@@ -416,7 +439,7 @@ def problema_transporte(escenario: Escenario) -> dict:
                 partes = {"": (o.cop_kg, None)}
             for sufijo, (cop_kg, cap) in partes.items():
                 d = _clave_destino(o, sufijo)
-                costos[(pesc.id, d)] = p0 - cop_kg
+                costos[(pesc.id, d)] = p0 - cop_kg + viaje_kg
                 capacidades[d] = cap
                 opciones[(pesc.id, d)] = o
                 nombres[d] = o.nombre + {":congelador": " (congelador)", ":icopor": " (icopor)"}.get(sufijo, "")
@@ -430,7 +453,7 @@ def problema_transporte(escenario: Escenario) -> dict:
             "destino": d,
             "destino_nombre": nombres.get(d, "Sin destino (se pierde)"),
             "kg_dia": kg,
-            "cop_perdidos_kg": costos.get((pescador, d), p0),
+            "costo_kg": costos.get((pescador, d), p0),
             "ruta": o.ruta if o else (),
         })
     tabla = pd.DataFrame(filas).merge(pob[["id", "zona", "embarcacion", "sitio"]], left_on="pescador", right_on="id").drop(columns="id")
@@ -454,18 +477,18 @@ def asignacion_hoy(escenario: Escenario) -> pd.DataFrame:
     pob, oferta = _poblacion_y_oferta(escenario)
     filas = []
     for pesc in pob.itertuples():
-        rec = recomendar(pesc.ubicacion, pesc.embarcacion, 1.0, hoy, _nevera(pesc))
+        rec = recomendar(pesc.ubicacion, pesc.embarcacion, pesc.kg_por_faena, hoy, _nevera(pesc))
         habitual = next((o for o in rec.alternativas if o.destino == pesc.desembarque and o.factible), None)
         o = habitual if habitual is not None else rec.mejor
         filas.append({"pescador": pesc.id, "destino": o.destino if o else SIN_DESTINO, "kg_dia": oferta[pesc.id],
-                      "cop_kg": o.cop_kg if o else 0.0})
+                      "cop_kg": o.cop_kg if o else 0.0, "viaje_kg": o.costo_viaje / pesc.kg_por_faena if o else 0.0})
     return pd.DataFrame(filas)
 
 
 def costo_hoy(escenario: Escenario) -> float:
-    """COP perdidos por dia con la asignacion de hoy."""
+    """COP perdidos por dia con la asignacion de hoy (valor perdido + costo del viaje)."""
     hoy = asignacion_hoy(escenario)
-    return float((hoy["kg_dia"] * (dg.precio_base() - hoy["cop_kg"])).sum())
+    return float((hoy["kg_dia"] * (dg.precio_base() - hoy["cop_kg"] + hoy["viaje_kg"])).sum())
 
 
 def flujos_por_arista(tabla: pd.DataFrame) -> dict[tuple[str, str], float]:

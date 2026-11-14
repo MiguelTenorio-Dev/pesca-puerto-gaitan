@@ -64,7 +64,7 @@ def test_opciones_coherentes(origen):
     rec = asg.recomendar(origen, "madera_motor", 30, CON_SAN_MIGUEL, "deteriorada")
     factibles = [o for o in rec.alternativas if o.factible]
     assert factibles
-    assert [o.cop_total for o in factibles] == sorted((o.cop_total for o in factibles), reverse=True)
+    assert [o.cop_neto for o in factibles] == sorted((o.cop_neto for o in factibles), reverse=True)
     horas_faena = config.parametro("degradacion.horas_faena")
     for o in factibles:
         assert 0 <= o.calidad <= 1
@@ -73,6 +73,8 @@ def test_opciones_coherentes(origen):
         assert o.horas_hasta_venta == pytest.approx(o.horas_viaje + o.horas_espera)
         assert o.ruta[0] == origen and o.ruta[-1] == asg.PLAZA
         assert o.cop_total + sum(o.cop_perdidos_por_etapa.values()) == pytest.approx(30 * asg.dg.precio_base())
+        assert o.cop_neto == pytest.approx(o.cop_total - o.costo_viaje)
+        assert o.costo_viaje > 0
 
 
 def test_acopio_y_camion_no_empeoran():
@@ -80,8 +82,8 @@ def test_acopio_y_camion_no_empeoran():
     hoy = asg.recomendar(origen, emb, 20, BASE, "deteriorada").mejor
     sm = asg.recomendar(origen, emb, 20, CON_SAN_MIGUEL, "deteriorada")
     camion = asg.recomendar(origen, emb, 20, CON_SAN_MIGUEL.con(camion_refrigerado=True), "deteriorada")
-    assert sm.mejor.cop_total >= hoy.cop_total
-    assert camion.mejor.cop_total >= sm.mejor.cop_total
+    assert sm.mejor.cop_neto >= hoy.cop_neto
+    assert camion.mejor.cop_neto >= sm.mejor.cop_neto
     acopio_sm = next(o for o in sm.alternativas if o.tipo == "acopio")
     acopio_camion = next(o for o in camion.alternativas if o.tipo == "acopio")
     assert acopio_camion.calidad > acopio_sm.calidad
@@ -150,3 +152,21 @@ def test_capacidades_en_cero():
     usados = set(r["flujos"].loc[r["flujos"]["kg_dia"] > 0, "destino"])
     assert not any(d.startswith(("plaza:", "acopio:A02")) or d.endswith(":congelador") for d in usados)
     assert r["flujos"]["kg_dia"].sum() == pytest.approx(r["kg_dia"], abs=1)
+
+
+def test_costo_del_viaje():
+    p = config.parametro
+    remo = asg.costo_viaje(10, 4, "madera_remo")
+    motor = asg.costo_viaje(10, 1, "madera_motor")
+    assert remo == pytest.approx(p("pescador.factor_regreso") * 4 * p("pescador.cop_por_hora"))
+    assert motor == pytest.approx(p("pescador.factor_regreso") * (10 * p("pescador.cop_por_km_motor") + p("pescador.cop_por_hora")))
+    assert asg.costo_viaje(0, 0, "madera_motor") == 0
+
+
+def test_el_viaje_largo_puede_no_convenir():
+    # Si el tiempo del pescador valiera muchisimo, ganaria la opcion con menos horas de rio
+    with config.sobrescribir({"pescador.cop_por_hora": 1e7}):
+        rec = asg.recomendar("P02@rio", "madera_remo", 20, BASE, "buena")
+    horas = [o.tramos.loc[o.tramos["modo"] == red.CAPA_RIO, "horas"].sum() for o in rec.alternativas if o.factible]
+    mejor = rec.mejor.tramos.loc[rec.mejor.tramos["modo"] == red.CAPA_RIO, "horas"].sum()
+    assert mejor == pytest.approx(min(horas))

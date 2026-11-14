@@ -241,6 +241,22 @@ volumen:
     etiqueta: DATO
     nota: Veda del 1 de mayo al 31 de julio. Se usa para el VPN anual
 
+pescador:
+  cop_por_km_motor:
+    valor: 1800.0
+    rango: [1000.0, 3000.0]
+    etiqueta: SIMULADO
+    nota: Gasolina por km de un bote con motor (≈ 0,1 galones/km × ≈ 16 000 COP/galón). A remo no gasta combustible
+  cop_por_hora:
+    valor: 7500.0
+    rango: [4000.0, 12000.0]
+    etiqueta: SIMULADO
+    nota: Valor del tiempo del pescador (un jornal rural de ≈ 60 000 COP en 8 h)
+  factor_regreso:
+    valor: 2.0
+    etiqueta: SIMULADO
+    nota: El pescador vuelve a su zona; el viaje por rio se cuenta ida y vuelta
+
 poblacion:
   kg_por_faena:
     valor: 20.0

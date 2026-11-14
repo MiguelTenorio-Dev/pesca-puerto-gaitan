@@ -474,6 +474,9 @@ Van en `src/pesca/datos/parametros.yaml`. Son **[SIMULADO]** salvo que diga otra
 | kg útiles por m³ de cuarto frío | 400 | 300–500 | |
 | capacidad de San Miguel / Puente Arimena (kg) | 1 600 / 400 | | 4 m³ [DATO] / tamaño [CONFIRMAR] |
 | horas en el cuarto frío de un acopio activo antes de salir a la plaza | 24 | 12–72 | Fase 3, recomendador |
+| gasolina de un bote con motor (COP/km) | 1 800 | 1 000–3 000 | ≈ 0,1 gal/km × ≈ 16 000 COP/gal; a remo, 0 |
+| valor del tiempo del pescador (COP/h) | 7 500 | 4 000–12 000 | jornal rural ≈ 60 000 COP / 8 h |
+| viaje por río del pescador | ida y vuelta (× 2) | — | el recomendador compara la plata neta: lo que le pagan − gasolina − tiempo |
 | espera esperada en un desembarque (días) | (E[ciclo] + 1) / 2 ≈ 6 | — | Fase 3: el lote llega en cualquier día del ciclo del comprador |
 | rehabilitación + operación anual de San Miguel (COP) | 40 M + 24 M | 25–70 M / 15–40 M | |
 | tasa de descuento | 12 % | — | VPN a 5 años |

@@ -53,7 +53,8 @@ with st.container(border=True):
         c1.metric("Horas hasta vender", asignacion.numero(m.horas_hasta_venta),
                   help="Faena + viaje + espera hasta que lo compran")
         c2.metric("Calidad al vender", asignacion.numero(m.calidad, 2), help="1 = recién pescado; por debajo de 0,25 lo rechazan")
-        c3.metric("Te pagan", asignacion.pesos(m.cop_total))
+        c3.metric("Te quedan", asignacion.pesos(m.cop_neto),
+                  help=f"Te pagan {asignacion.pesos(m.cop_total)} y el viaje ida y vuelta cuesta {asignacion.pesos(m.costo_viaje)}")
         st.markdown(rec.explicacion)
 
 st.markdown("**Tu ruta** — toca el río para cambiar dónde estás")
@@ -76,6 +77,8 @@ filas = [
         "horas hasta vender": o.horas_hasta_venta if o.factible else None,
         "calidad": o.calidad if o.factible else None,
         "te pagan": asignacion.pesos(o.cop_total) if o.factible else "—",
+        "gasto del viaje": asignacion.pesos(o.costo_viaje) if o.factible else "—",
+        "te quedan": asignacion.pesos(o.cop_neto) if o.factible else "—",
         "río contra corriente": f"{o.pct_contra_corriente:.0f} %" if o.factible else "—",
         "por qué no": o.motivo,
     }
@@ -85,7 +88,8 @@ st.dataframe(pd.DataFrame(filas), hide_index=True, width="stretch",
              column_config={"horas hasta vender": st.column_config.NumberColumn(format="%.1f"),
                             "calidad": st.column_config.NumberColumn(format="%.2f")})
 st.caption(
-    f"{comun.etiqueta('SIMULADO')}: velocidades, corriente, espera del comprador y precio según la calidad. "
+    f"{comun.etiqueta('SIMULADO')}: velocidades, corriente, espera del comprador, precio según la calidad y gasto del viaje "
+    "(gasolina con motor y el tiempo del pescador, ida y vuelta). "
     "La probabilidad de que haya espacio en el congelador de la señora sale del Monte Carlo del diagnóstico. "
     "Activa acopios, el camión refrigerado o el hielo a bordo en la barra lateral para ver cómo cambia la recomendación."
 )

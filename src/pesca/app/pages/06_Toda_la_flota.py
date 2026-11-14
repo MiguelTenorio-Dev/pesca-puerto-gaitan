@@ -20,15 +20,16 @@ SITIO_DESTINO = {"plaza": "malecon", "acopio": "san_miguel", "desembarque": "vic
 st.title("Toda la flota: ¿cómo repartir el pescado?")
 st.markdown(
     "Si todos los pescadores se pusieran de acuerdo, ¿a dónde debería ir el pescado de cada uno para que se pierda lo menos posible? "
-    "Es un **problema de transporte** (flujo de costo mínimo): cada destino tiene su capacidad y lo que no cabe en ninguna parte "
-    "queda *sin destino* y se pierde."
+    "Es un **problema de transporte** (flujo de costo mínimo). El costo de cada opción es el valor que pierde el pescado "
+    "más lo que le cuesta al pescador el viaje (gasolina y tiempo). Cada destino tiene su capacidad y lo que no cabe en "
+    "ninguna parte queda *sin destino* y se pierde."
 )
 
 r = resolver(escenario)
 ahorro = r["costo_hoy_dia"] - r["costo_optimo_dia"]
 c1, c2, c3 = st.columns(3)
-c1.metric("Plata perdida hoy", f"{asignacion.pesos(r['costo_hoy_dia'])}/día",
-          help="Cada pescador en su desembarque habitual de hoy")
+c1.metric("Costo hoy", f"{asignacion.pesos(r['costo_hoy_dia'])}/día",
+          help="Valor perdido del pescado + gasto del viaje, con cada pescador en su desembarque habitual de hoy")
 c2.metric("Con el mejor reparto", f"{asignacion.pesos(r['costo_optimo_dia'])}/día",
           delta=f"-{asignacion.pesos(ahorro)}/día", delta_color="inverse")
 c3.metric("Pescado sin destino", f"{r['kg_sin_destino']:.0f} kg/día", help="Lo que no cabe en ninguna parte")
@@ -57,15 +58,16 @@ st.caption("Grosor proporcional a los kg/día. 🟢 a favor de la corriente · �
 st.subheader("Pescador por pescador")
 tabla = flujos.assign(embarcacion=flujos["embarcacion"].map(comun.TEXTO_EMBARCACION))
 st.dataframe(
-    tabla[["pescador", "zona", "embarcacion", "destino_nombre", "kg_dia", "cop_perdidos_kg"]],
+    tabla[["pescador", "zona", "embarcacion", "destino_nombre", "kg_dia", "costo_kg"]],
     hide_index=True, width="stretch",
     column_config={
         "destino_nombre": "destino",
         "kg_dia": st.column_config.NumberColumn("kg al día", format="%.1f"),
-        "cop_perdidos_kg": st.column_config.NumberColumn("COP perdidos por kg", format="%.0f"),
+        "costo_kg": st.column_config.NumberColumn("costo por kg (pérdida + viaje)", format="%.0f"),
     },
 )
 st.caption(
     f"{comun.etiqueta('SIMULADO')}: la flota es la población sintética del diagnóstico. "
-    "El modelo no cobra el combustible ni el tiempo del pescador: solo mira cuánto vale el pescado al venderlo."
+    "El costo de cada opción suma el valor que pierde el pescado y lo que le cuesta al pescador ir y volver "
+    "(gasolina con motor y su tiempo)."
 )
