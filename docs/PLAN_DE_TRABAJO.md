@@ -17,8 +17,8 @@
 > Claude Code actualiza esta sección cada vez que se cierra una sesión (prompt "Cierre de sesión").
 
 - **Última actualización:** 14 nov 2026
-- **Fase actual:** 1 cerrada (pendiente commit y push)
-- **Qué quedó a medias:** usar la geometría del KML (no solo su longitud) para reemplazar las trazas
+- **Fase actual:** 1 cerrada (commit f53cf31, en GitHub). El usuario revisó los mapas: se ven bien y cambian según la ruta y el algoritmo
+- **Qué quedó a medias:** usar la geometría del KML (no solo su longitud) para reemplazar las trazas. El usuario tiene en mente unos cambios a la Fase 1; decide si los hace cuando todo el proyecto esté terminado
 - **Siguiente paso concreto:** Fase 2 (diagnóstico)
 - **Datos pendientes del equipo:** KML de M01–M04; coordenadas de A02, A03, X01 y C01 (el tramo Yucao → boca del Manacacías necesita ×1,86 y la vía a Puente Arimena da 91 km frente al km 68 de la ANI); ubicación del desembarque de la señora
 
@@ -87,7 +87,8 @@
 - [x] Tests: el grafo reproduce M01–M04 (±1 %); aguas abajo < aguas arriba; motor < remo; sin río entre cuencas.
 - [x] Dijkstra propio = `networkx`; A\* da el mismo costo con igual o menos nodos explorados.
 - [x] Existe la tabla Dijkstra vs A\* vs BFS.
-- [ ] Commit y push `fase 1: red multimodal y busqueda (R1)`.
+- [x] Commit y push `fase 1: red multimodal y busqueda (R1)`.
+- [x] Revisión del usuario: los mapas se ven bien y se actualizan con la ruta y el algoritmo elegidos.
 
 ---
 
