@@ -373,3 +373,21 @@ def nodo_rio_mas_cercano(lat: float, lon: float, g: nx.DiGraph | None = None) ->
         (n for n, a in g.nodes(data=True) if a["capa"] == CAPA_RIO),
         key=lambda n: haversine_km(lat, lon, g.nodes[n]["lat"], g.nodes[n]["lon"]),
     )
+
+
+def acceso_vial(nodo: str, g: nx.DiGraph | None = None) -> tuple[str, float]:
+    """Punto vial mas cercano a un nodo de rio y los km del acceso (linea recta × sinuosidad de las vias).
+
+    Si el lugar ya tiene nodo vial (acopio, desembarque, cruce), es ese mismo con 0 km.
+    """
+    g = g if g is not None else construir_red()
+    propio = clave(g.nodes[nodo]["lugar"], CAPA_VIA)
+    if propio in g:
+        return propio, 0.0
+    a = g.nodes[nodo]
+    cercano = min(
+        (n for n, b in g.nodes(data=True) if b["capa"] == CAPA_VIA),
+        key=lambda n: haversine_km(a["lat"], a["lon"], g.nodes[n]["lat"], g.nodes[n]["lon"]),
+    )
+    b = g.nodes[cercano]
+    return cercano, haversine_km(a["lat"], a["lon"], b["lat"], b["lon"]) * g.graph["sinuosidad"][CAPA_VIA]

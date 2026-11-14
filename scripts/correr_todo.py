@@ -8,10 +8,10 @@ from __future__ import annotations
 import argparse
 import time
 
-from pesca import cadena_actual
+from pesca import cadena_actual, ubicacion
 
 # Cada fase registra aqui su funcion de precalculo (r2, r4, r5, resumen).
-TAREAS: dict[str, callable] = {"r2": cadena_actual.precalcular}
+TAREAS: dict[str, callable] = {"r2": cadena_actual.precalcular, "r4": ubicacion.precalcular}
 
 
 def main() -> None:

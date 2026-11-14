@@ -134,6 +134,7 @@ def _destinos(origen: str, escenario: Escenario, grafo: nx.DiGraph) -> list[tupl
         if cruce not in activos:
             candidatos.append(("desembarque", cruce))
     candidatos += [("acopio", a) for a in sorted(activos) if a != ACOPIO_PLAZA]
+    candidatos += [("acopio", a) for a in sorted(escenario.acopios_nuevos)]
     cuenca = grafo.nodes[origen]["cuenca"]
     # La plaza se muestra siempre (aunque sea de otra cuenca); lo demas, solo en la misma cuenca
     return [(t, l) for t, l in candidatos if t == "plaza" or grafo.nodes[red.clave(l, red.CAPA_RIO)]["cuenca"] == cuenca]
@@ -153,18 +154,56 @@ def _avanzar_rio(lote: dg.Lote, horas: float, escenario: Escenario, etapa: str =
     dg.avanzar(lote, horas, etapa, dg.REFRIGERADO if escenario.hielo_a_bordo else dg.ICOPOR_HIELO)
 
 
+def _dijkstra(memo: dict | None, g: nx.DiGraph, origen: str, destino: str, perfil: transporte.Perfil,
+              criterio: str) -> busqueda.ResultadoBusqueda:
+    """Dijkstra propio con memoria opcional (una por corrida de Monte Carlo: los parametros no cambian dentro)."""
+    clave = (id(g), origen, destino, perfil, criterio)
+    if memo is not None and clave in memo:
+        return memo[clave]
+    r = busqueda.dijkstra(g, origen, destino, transporte.peso(perfil, criterio))
+    if memo is not None:
+        memo[clave] = r
+    return r
+
+
+def _pierna_carretera(destino_rio: str, perfil_via: transporte.Perfil, grafo: nx.DiGraph,
+                      memo: dict | None) -> tuple[tuple[str, ...], pd.DataFrame]:
+    """Del desembarque o acopio hasta la plaza por carretera.
+
+    Si el lugar no tiene nodo vial (acopio nuevo en un punto del rio), se agrega un transbordo y
+    un acceso estimado hasta el punto vial mas cercano.
+    """
+    via_g = red.subgrafo_modo(grafo, red.CAPA_VIA, "transbordo")
+    if red.clave(grafo.nodes[destino_rio]["lugar"], red.CAPA_VIA) in grafo:
+        viaje = _dijkstra(memo, via_g, destino_rio, PLAZA, perfil_via, "tiempo")
+        return viaje.ruta, transporte.tramos_ruta(grafo, viaje.ruta, perfil_via)
+    cercano, km = red.acceso_vial(destino_rio, grafo)
+    viaje = _dijkstra(memo, via_g, cercano, PLAZA, perfil_via, "tiempo")
+    nombre = grafo.nodes[destino_rio]["nombre"]
+    estimados = []
+    for datos, hasta in (({"modo": "transbordo", "distancia_km": 0.0, "sentido": None}, nombre),
+                         ({"modo": red.CAPA_VIA, "distancia_km": km, "sentido": None}, grafo.nodes[cercano]["nombre"])):
+        estimados.append({"desde": nombre, "hasta": hasta, "modo": datos["modo"], "sentido": None, "km": datos["distancia_km"],
+                          "horas": transporte.tiempo_h(datos, perfil_via), "perdida": transporte.perdida(datos, perfil_via),
+                          "fuente": red.FUENTE_ACCESO})
+    tramos = pd.concat([pd.DataFrame(estimados), transporte.tramos_ruta(grafo, viaje.ruta, perfil_via)], ignore_index=True)
+    return (destino_rio, *viaje.ruta), tramos
+
+
 def _evaluar(tipo: str, destino: str, origen: str, perfil: transporte.Perfil, kg: float, hielo_h: float,
-             escenario: Escenario, grafo: nx.DiGraph) -> Opcion:
+             escenario: Escenario, grafo: nx.DiGraph, memo: dict | None = None) -> Opcion:
     p = config.parametro
     nombre = grafo.nodes[red.clave(destino, red.CAPA_RIO)]["nombre"]
     if tipo == "plaza":
         nombre = grafo.nodes[PLAZA]["nombre"]
+    elif destino in escenario.acopios_nuevos:
+        nombre = f"Acopio nuevo ({nombre})"
     destino_rio = red.clave(destino, red.CAPA_RIO)
     if grafo.nodes[origen]["cuenca"] != grafo.nodes[destino_rio]["cuenca"]:
         return Opcion(tipo, destino, nombre, False, "No hay paso por agua: está en otra cuenca")
 
     rio_g = red.subgrafo_modo(grafo, red.CAPA_RIO)
-    viaje_rio = busqueda.dijkstra(rio_g, origen, destino_rio, transporte.peso(perfil, "perdida"))
+    viaje_rio = _dijkstra(memo, rio_g, origen, destino_rio, perfil, "perdida")
     if not viaje_rio.alcanzable:
         return Opcion(tipo, destino, nombre, False, transporte.motivo_infactible(rio_g, origen, destino_rio, perfil))
 
@@ -172,13 +211,8 @@ def _evaluar(tipo: str, destino: str, origen: str, perfil: transporte.Perfil, kg
     refrigerado = tipo == "acopio" and escenario.camion_refrigerado
     vehiculo = "camion_refrigerado" if refrigerado else "comprador_carro"
     perfil_via = dataclasses.replace(perfil, vehiculo=vehiculo)
-    via_g = red.subgrafo_modo(grafo, red.CAPA_VIA, "transbordo")
-    viaje_via = busqueda.dijkstra(via_g, destino_rio, PLAZA, transporte.peso(perfil_via, "tiempo"))
-
-    tramos = pd.concat(
-        [transporte.tramos_ruta(grafo, viaje_rio.ruta, perfil), transporte.tramos_ruta(grafo, viaje_via.ruta, perfil_via)],
-        ignore_index=True,
-    )
+    ruta_via, tramos_via = _pierna_carretera(destino_rio, perfil_via, grafo, memo)
+    tramos = pd.concat([transporte.tramos_ruta(grafo, viaje_rio.ruta, perfil), tramos_via], ignore_index=True)
     horas_rio = tramos.loc[tramos["modo"] == red.CAPA_RIO, "horas"].sum()
     horas_via = tramos.loc[tramos["modo"] != red.CAPA_RIO, "horas"].sum()
     horas_faena = p("degradacion.horas_faena")
@@ -233,7 +267,7 @@ def _evaluar(tipo: str, destino: str, origen: str, perfil: transporte.Perfil, kg
         destino=destino,
         nombre=nombre,
         factible=True,
-        ruta=viaje_rio.ruta + viaje_via.ruta[1:],
+        ruta=viaje_rio.ruta + ruta_via[1:],
         tramos=tramos,
         km_rio=km_rio,
         km_via=tramos.loc[tramos["modo"] == red.CAPA_VIA, "km"].sum(),
@@ -255,8 +289,12 @@ def _evaluar(tipo: str, destino: str, origen: str, perfil: transporte.Perfil, kg
     )
 
 
-def recomendar(origen: str, embarcacion: str, kg: float, escenario: Escenario, nevera: str = "deteriorada") -> Recomendacion:
-    """Compara todas las formas de vender desde `origen` (nodo@rio) y recomienda la que deja mas plata."""
+def recomendar(origen: str, embarcacion: str, kg: float, escenario: Escenario, nevera: str = "deteriorada",
+               memo: dict | None = None) -> Recomendacion:
+    """Compara todas las formas de vender desde `origen` (nodo@rio) y recomienda la que deja mas plata.
+
+    `memo` guarda las rutas ya calculadas (util para repetir muchas recomendaciones con los mismos parametros).
+    """
     grafo = red.construir_red()
     if origen not in grafo or grafo.nodes[origen]["capa"] != red.CAPA_RIO:
         raise ValueError(f"El origen debe ser un nodo de río: {origen}")
@@ -264,7 +302,7 @@ def recomendar(origen: str, embarcacion: str, kg: float, escenario: Escenario, n
         raise ValueError("Los kg deben ser positivos")
     perfil = transporte.Perfil.desde_escenario(escenario, embarcacion)
     hielo_h = horas_hielo(nevera)
-    opciones = [_evaluar(t, d, origen, perfil, kg, hielo_h, escenario, grafo) for t, d in _destinos(origen, escenario, grafo)]
+    opciones = [_evaluar(t, d, origen, perfil, kg, hielo_h, escenario, grafo, memo) for t, d in _destinos(origen, escenario, grafo)]
     factibles = sorted((o for o in opciones if o.factible), key=lambda o: (o.cop_neto, o.calidad), reverse=True)
     orden = factibles + [o for o in opciones if not o.factible]
     mejor = factibles[0] if factibles else None
@@ -276,8 +314,9 @@ def recomendar(origen: str, embarcacion: str, kg: float, escenario: Escenario, n
 
 
 def pesos(cop: float) -> str:
-    """$145.000 (separador de miles con punto, como en Colombia)."""
-    return "$" + f"{cop:,.0f}".replace(",", ".")
+    """$145.000 (separador de miles con punto, como en Colombia); -$28.066 si es negativo."""
+    signo = "-" if round(cop) < 0 else ""
+    return f"{signo}$" + f"{abs(cop):,.0f}".replace(",", ".")
 
 
 def numero(x: float, decimales: int = 1) -> str:
@@ -398,8 +437,9 @@ def _clave_destino(o: Opcion, parte: str = "") -> str:
     return f"{o.tipo}:{o.destino}{parte}"
 
 
-def _poblacion_y_oferta(escenario: Escenario) -> tuple[pd.DataFrame, dict[str, float]]:
-    pob = cadena_actual.corrida_ejemplo(escenario).poblacion
+def _poblacion_y_oferta(escenario: Escenario, pob: pd.DataFrame | None = None) -> tuple[pd.DataFrame, dict[str, float]]:
+    if pob is None:
+        pob = cadena_actual.corrida_ejemplo(escenario).poblacion
     act = poblacion.actividad_diagnostico()
     oferta = dict(zip(pob["id"], pob["kg_por_faena"] * pob["p_faena_pico"] * act))
     return pob, oferta
@@ -409,21 +449,30 @@ def _nevera(pesc) -> str:
     return "buena" if pesc.nevera_buena else "deteriorada"
 
 
-def problema_transporte(escenario: Escenario) -> dict:
+def capacidad_acopio_kg_dia(acopio: str) -> float:
+    """kg por dia que pasan por el cuarto frio de un acopio (capacidad / dias que se queda el pescado)."""
+    p = config.parametro
+    kg = p(CAPACIDAD_ACOPIO[acopio]) if acopio in CAPACIDAD_ACOPIO else p("acopios.capacidad_nuevo_kg")
+    return kg / (p("acopios.horas_espera_acopio") / 24)
+
+
+def problema_transporte(escenario: Escenario, pob: pd.DataFrame | None = None, memo: dict | None = None,
+                        con_hoy: bool = True) -> dict:
     """Reparto optimo de toda la flota entre las formas de vender, con capacidades y sin_destino.
 
     El costo de cada opcion por kg = valor perdido + costo del viaje del pescador repartido en los kg de su faena.
-    Devuelve flujos (pescador, destino, kg_dia, costo_kg), uso de cada destino, costo optimo y costo de hoy.
+    Devuelve flujos (pescador, destino, kg_dia, costo_kg, cop_kg), uso de cada destino, costo optimo y costo de hoy.
+    `pob` permite usar otra poblacion (Monte Carlo) y `memo` reutilizar rutas entre escenarios.
     """
     p = config.parametro
     p0 = dg.precio_base()
-    pob, oferta = _poblacion_y_oferta(escenario)
+    pob, oferta = _poblacion_y_oferta(escenario, pob)
     capacidad_congelador = p("cadena_actual.n_congeladores") * p("cadena_actual.kg_por_congelador") / (
         sum(p("cadena_actual.ciclo_comprador_dias").values()) / 2
     )
-    costos, capacidades, opciones, nombres = {}, {}, {}, {}
+    costos, capacidades, opciones, nombres, valores = {}, {}, {}, {}, {}
     for pesc in pob.itertuples():
-        rec = recomendar(pesc.ubicacion, pesc.embarcacion, pesc.kg_por_faena, escenario, _nevera(pesc))
+        rec = recomendar(pesc.ubicacion, pesc.embarcacion, pesc.kg_por_faena, escenario, _nevera(pesc), memo)
         for o in rec.alternativas:
             if not o.factible:
                 continue
@@ -431,8 +480,7 @@ def problema_transporte(escenario: Escenario) -> dict:
             if o.prob_congelador is not None:  # la señora: congelador (con capacidad) o icopor
                 partes = {":congelador": (o.cop_kg_congelador, capacidad_congelador), ":icopor": (o.cop_kg_icopor, None)}
             elif o.tipo == "acopio":
-                cap = p(CAPACIDAD_ACOPIO[o.destino]) / (p("acopios.horas_espera_acopio") / 24) if o.destino in CAPACIDAD_ACOPIO else None
-                partes = {"": (o.cop_kg, cap)}
+                partes = {"": (o.cop_kg, capacidad_acopio_kg_dia(o.destino))}
             elif o.tipo == "plaza":
                 partes = {"": (o.cop_kg, p("acopios.capacidad_plaza_kg_dia"))}
             else:
@@ -440,6 +488,7 @@ def problema_transporte(escenario: Escenario) -> dict:
             for sufijo, (cop_kg, cap) in partes.items():
                 d = _clave_destino(o, sufijo)
                 costos[(pesc.id, d)] = p0 - cop_kg + viaje_kg
+                valores[(pesc.id, d)] = cop_kg
                 capacidades[d] = cap
                 opciones[(pesc.id, d)] = o
                 nombres[d] = o.nombre + {":congelador": " (congelador)", ":icopor": " (icopor)"}.get(sufijo, "")
@@ -454,6 +503,7 @@ def problema_transporte(escenario: Escenario) -> dict:
             "destino_nombre": nombres.get(d, "Sin destino (se pierde)"),
             "kg_dia": kg,
             "costo_kg": costos.get((pescador, d), p0),
+            "cop_kg": valores.get((pescador, d), 0.0),
             "ruta": o.ruta if o else (),
         })
     tabla = pd.DataFrame(filas).merge(pob[["id", "zona", "embarcacion", "sitio"]], left_on="pescador", right_on="id").drop(columns="id")
@@ -464,17 +514,17 @@ def problema_transporte(escenario: Escenario) -> dict:
         "flujos": tabla,
         "uso": uso,
         "costo_optimo_dia": costo,
-        "costo_hoy_dia": costo_hoy(escenario),
+        "costo_hoy_dia": costo_hoy(escenario, pob) if con_hoy else None,
         "kg_dia": sum(oferta.values()),
         "kg_sin_destino": tabla.loc[tabla["destino"] == SIN_DESTINO, "kg_dia"].sum(),
         "valor_posible_dia": p0 * sum(oferta.values()),
     }
 
 
-def asignacion_hoy(escenario: Escenario) -> pd.DataFrame:
+def asignacion_hoy(escenario: Escenario, pob: pd.DataFrame | None = None) -> pd.DataFrame:
     """Cada pescador en su desembarque habitual de hoy (si no puede remontar, el centro alcanzable mas cercano)."""
     hoy = Escenario.base().con(desembarque_senora=escenario.desembarque_senora, temporada=escenario.temporada)
-    pob, oferta = _poblacion_y_oferta(escenario)
+    pob, oferta = _poblacion_y_oferta(escenario, pob)
     filas = []
     for pesc in pob.itertuples():
         rec = recomendar(pesc.ubicacion, pesc.embarcacion, pesc.kg_por_faena, hoy, _nevera(pesc))
@@ -485,9 +535,9 @@ def asignacion_hoy(escenario: Escenario) -> pd.DataFrame:
     return pd.DataFrame(filas)
 
 
-def costo_hoy(escenario: Escenario) -> float:
+def costo_hoy(escenario: Escenario, pob: pd.DataFrame | None = None) -> float:
     """COP perdidos por dia con la asignacion de hoy (valor perdido + costo del viaje)."""
-    hoy = asignacion_hoy(escenario)
+    hoy = asignacion_hoy(escenario, pob)
     return float((hoy["kg_dia"] * (dg.precio_base() - hoy["cop_kg"] + hoy["viaje_kg"])).sum())
 
 

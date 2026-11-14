@@ -127,6 +127,11 @@ def _red_de_fondo(mapa: folium.Map, grafo: nx.DiGraph) -> None:
 def _dibujar_ruta(mapa: folium.Map, grafo: nx.DiGraph, ruta: tuple[str, ...]) -> None:
     """Ruta gruesa: verde a favor de la corriente, roja en contra, gris punteada por carretera, transbordo morado."""
     for u, v in zip(ruta, ruta[1:]):
+        if not grafo.has_edge(u, v):  # acceso estimado de un acopio nuevo hasta la via
+            puntos = [[grafo.nodes[n]["lat"], grafo.nodes[n]["lon"]] for n in (u, v)]
+            folium.PolyLine(puntos, color=COLOR_SENTIDO[None], weight=5, dash_array=GUION_VIA, tooltip="Acceso estimado").add_to(mapa)
+            folium.CircleMarker(puntos[0], radius=10, color=COLOR_TRANSBORDO, weight=3, tooltip="Transbordo").add_to(mapa)
+            continue
         d = grafo.edges[u, v]
         if d["modo"] == "transbordo":
             folium.CircleMarker(d["geometria"][0], radius=10, color=COLOR_TRANSBORDO, weight=3, tooltip="Transbordo").add_to(mapa)
@@ -199,6 +204,11 @@ def mapa_recorridos(grafo: nx.DiGraph, flujos: dict[tuple[str, str], float], des
                             dash_array=None if d["modo"] == red.CAPA_RIO else GUION_VIA).add_to(mapa)
     maximo = max(flujos.values(), default=1.0)
     for (u, v), kg in sorted(flujos.items(), key=lambda x: x[1]):
+        if not grafo.has_edge(u, v):  # acceso estimado de un acopio nuevo
+            puntos = [[grafo.nodes[n]["lat"], grafo.nodes[n]["lon"]] for n in (u, v)]
+            folium.PolyLine(puntos, color=COLOR_SENTIDO[None], weight=2 + 10 * kg / maximo, opacity=0.8,
+                            dash_array=GUION_VIA, tooltip=f"{kg:.0f} kg · acceso estimado").add_to(mapa)
+            continue
         d = grafo.edges[u, v]
         if d["modo"] == "transbordo" or kg <= 0:
             continue
@@ -306,3 +316,58 @@ def grafico_uso_destinos(uso):
     tope = alt.Chart(con_capacidad).mark_tick(color=COLOR_TEXTO_SECUNDARIO, thickness=3, size=22).encode(
         x="capacidad_kg_dia:Q", y=y, tooltip=tooltip)
     return (barras + tope).properties(height=34 * len(uso) + 20)
+
+
+# ---------------------------------------------------------------- centros de acopio (Fase 4)
+
+
+def mapa_acopios(grafo: nx.DiGraph, actuales: list[str], propuestos: list[dict], asignacion: dict[str, str]) -> folium.Map:
+    """Acopios de hoy (rojo) vs propuestos (azul), con lineas finas de cada zona a su acopio."""
+    mapa = _mapa_vacio(grafo)
+    _red_de_fondo(mapa, grafo)
+    for i, j in asignacion.items():
+        puntos = [[grafo.nodes[n]["lat"], grafo.nodes[n]["lon"]] for n in (i, j)]
+        folium.PolyLine(puntos, color=COLOR_VALOR, weight=1.5, opacity=0.6).add_to(mapa)
+        folium.CircleMarker(puntos[0], radius=3, color=COLOR_VALOR, fill=True, fill_opacity=0.8,
+                            tooltip=grafo.nodes[i]["nombre"]).add_to(mapa)
+    for n in actuales:
+        a = grafo.nodes[n]
+        folium.Marker([a["lat"], a["lon"]], tooltip=f"Hoy: {a['nombre']}", icon=folium.Icon(color="red", icon="home")).add_to(mapa)
+    for p in propuestos:
+        folium.Marker([p["lat"], p["lon"]], tooltip=f"Propuesto: {p['nombre']} ({p['lat']:.4f}, {p['lon']:.4f})",
+                      icon=folium.Icon(color="blue", icon="star")).add_to(mapa)
+    return mapa
+
+
+def grafico_vpn(resumen):
+    """VPN a 5 años por acopio: media e IC 90 %, con la linea del cero."""
+    import altair as alt
+    import pandas as pd
+
+    datos = resumen.assign(media=resumen["vpn_media"] / 1e6, p5=resumen["vpn_p5"] / 1e6, p95=resumen["vpn_p95"] / 1e6)
+    y = alt.Y("nombre:N", title=None, axis=alt.Axis(labelLimit=260))
+    tooltip = [alt.Tooltip("nombre:N", title="acopio"), alt.Tooltip("media:Q", title="VPN medio (millones)", format=",.1f"),
+               alt.Tooltip("p5:Q", title="p5", format=",.1f"), alt.Tooltip("p95:Q", title="p95", format=",.1f"),
+               alt.Tooltip("pct_vpn_positivo:Q", title="% corridas con VPN > 0", format=".0f")]
+    intervalo = alt.Chart(datos).mark_rule(color=COLOR_TEXTO_SECUNDARIO, strokeWidth=3).encode(
+        x=alt.X("p5:Q", title="VPN a 5 años (millones de COP)"), x2="p95:Q", y=y, tooltip=tooltip)
+    punto = alt.Chart(datos).mark_point(filled=True, size=140, color=COLOR_VALOR).encode(x="media:Q", y=y, tooltip=tooltip)
+    cero = alt.Chart(pd.DataFrame({"x": [0]})).mark_rule(color=COLOR_PERDIDA, strokeDash=[6, 4], strokeWidth=2).encode(x="x:Q")
+    return (intervalo + punto + cero).properties(height=60 * len(datos) + 30)
+
+
+def grafico_codo(codo, costo_actuales: float, p_marcado: int):
+    """Costo por dia vs numero de acopios (p-mediana), con el costo de los acopios de hoy."""
+    import altair as alt
+    import pandas as pd
+
+    datos = codo.assign(millones=codo["costo_dia"] / 1e6, elegido=codo["p"] == p_marcado)
+    x = alt.X("p:O", title="número de acopios", axis=alt.Axis(labelAngle=0))
+    y = alt.Y("millones:Q", title="pérdida + viaje (millones COP/día)")
+    linea = alt.Chart(datos).mark_line(color=COLOR_VALOR, strokeWidth=2).encode(x=x, y=y)
+    puntos = alt.Chart(datos).mark_point(filled=True, size=90).encode(
+        x=x, y=y, color=alt.condition("datum.elegido", alt.value(COLOR_PERDIDA), alt.value(COLOR_VALOR)),
+        tooltip=[alt.Tooltip("p:O", title="acopios"), alt.Tooltip("millones:Q", title="millones COP/día", format=".2f")])
+    hoy = alt.Chart(pd.DataFrame({"y": [costo_actuales / 1e6], "t": ["los 3 acopios de hoy"]})).mark_rule(
+        color=COLOR_TEXTO_SECUNDARIO, strokeDash=[6, 4], strokeWidth=2).encode(y="y:Q", tooltip=alt.Tooltip("t:N", title=""))
+    return (linea + puntos + hoy).properties(height=300)

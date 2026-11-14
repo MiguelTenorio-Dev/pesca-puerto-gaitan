@@ -318,6 +318,10 @@ acopios:
     valor: 400.0
     etiqueta: CONFIRMAR
     nota: Tamaño del cuarto frio sin confirmar
+  capacidad_nuevo_kg:
+    valor: 1600.0
+    etiqueta: SIMULADO
+    nota: Capacidad de un acopio nuevo propuesto por la p-mediana (igual a San Miguel)
   horas_espera_acopio:
     valor: 24.0
     rango: [12.0, 72.0]
@@ -330,9 +334,38 @@ economia:
     rango: [25000000.0, 70000000.0]
     etiqueta: SIMULADO
   operacion_anual_san_miguel_cop:
-    valor: 24000000.0
-    rango: [15000000.0, 40000000.0]
+    valor: 15000000.0
+    rango: [10000000.0, 25000000.0]
     etiqueta: SIMULADO
+    nota: Personal y mantenimiento, sin la energia (va aparte)
+  kwh_dia_san_miguel:
+    valor: 15.0
+    rango: [8.0, 25.0]
+    etiqueta: SIMULADO
+    nota: Consumo del cuarto frio de 4 m³ (el cuarto frio no se apaga en todo el año)
+  rehabilitacion_puente_arimena_cop:
+    valor: 20000000.0
+    rango: [10000000.0, 40000000.0]
+    etiqueta: SIMULADO
+  operacion_anual_puente_arimena_cop:
+    valor: 8000000.0
+    rango: [5000000.0, 15000000.0]
+    etiqueta: SIMULADO
+    nota: Personal y mantenimiento, sin la energia
+  kwh_dia_puente_arimena:
+    valor: 6.0
+    rango: [3.0, 10.0]
+    etiqueta: SIMULADO
+    nota: Cuarto frio pequeño (tamaño por confirmar)
+  cop_kwh:
+    valor: 1000.0
+    rango: [800.0, 1300.0]
+    etiqueta: SIMULADO
+    nota: Tarifa de energia. La luz fue la razon por la que se abandono el cuarto frio de San Miguel [DATO]
+  fraccion_aguas_altas:
+    valor: 0.5
+    etiqueta: SIMULADO
+    nota: En Monte Carlo de R4 cada corrida es de aguas altas con esta probabilidad (el año completo)
   tasa_descuento:
     valor: 0.12
     etiqueta: SIMULADO
@@ -347,6 +380,16 @@ economia:
     valor: null
     etiqueta: SIMULADO
     nota: Costos de I1 a I7. Se definen en la Fase 5
+
+ubicacion:
+  k_max_agregar:
+    valor: 3
+    etiqueta: SIMULADO
+    nota: Modo "mantener los actuales y agregar k" (k = 1 a este valor)
+  p_max_codo:
+    valor: 6
+    etiqueta: SIMULADO
+    nota: Curva del codo de la p-mediana (p = 1 a este valor)
 
 montecarlo:
   corridas_r2:

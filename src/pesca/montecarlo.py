@@ -8,6 +8,7 @@ Uso:
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from typing import Any
 
 import numpy as np
@@ -45,6 +46,15 @@ def muestrear_mezcla(rng: np.random.Generator) -> dict[str, float]:
 def generadores(n: int, semilla: int) -> list[np.random.Generator]:
     """n generadores independientes y reproducibles a partir de una semilla."""
     return [np.random.default_rng(s) for s in np.random.SeedSequence(semilla).spawn(n)]
+
+
+def correr(funcion: Callable[[int, np.random.Generator], Any], n: int, semilla: int) -> list[Any]:
+    """Corre funcion(i, rng) n veces, cada una con su generador y su muestra de parametros."""
+    resultados = []
+    for i, rng in enumerate(generadores(n, semilla)):
+        with config.sobrescribir(muestrear(rng)):
+            resultados.append(funcion(i, rng))
+    return resultados
 
 
 def resumir(valores: pd.Series) -> dict[str, float]:

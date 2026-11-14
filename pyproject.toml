@@ -18,7 +18,7 @@ dependencies = [
     "folium>=0.15",
     "streamlit>=1.46",
     "streamlit-folium>=0.20",
-    "pulp>=2.8",
+    "pulp>=2.8,<3",  # PuLP 3+ ya no trae CBC integrado
     "pyyaml>=6.0",
 ]
 

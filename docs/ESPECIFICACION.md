@@ -478,7 +478,11 @@ Van en `src/pesca/datos/parametros.yaml`. Son **[SIMULADO]** salvo que diga otra
 | valor del tiempo del pescador (COP/h) | 7 500 | 4 000–12 000 | jornal rural ≈ 60 000 COP / 8 h |
 | viaje por río del pescador | ida y vuelta (× 2) | — | el recomendador compara la plata neta: lo que le pagan − gasolina − tiempo |
 | espera esperada en un desembarque (días) | (E[ciclo] + 1) / 2 ≈ 6 | — | Fase 3: el lote llega en cualquier día del ciclo del comprador |
-| rehabilitación + operación anual de San Miguel (COP) | 40 M + 24 M | 25–70 M / 15–40 M | |
+| rehabilitación + operación anual de San Miguel (COP) | 40 M + 15 M (sin energía) | 25–70 M / 10–25 M | la operación era 24 M con energía; ahora la energía va aparte (Fase 4) |
+| energía de los cuartos fríos | San Miguel 15 kWh/día · Puente Arimena 6 kWh/día · 1 000 COP/kWh | 8–25 / 3–10 / 800–1 300 | explícita porque la luz fue la causa del abandono de San Miguel [DATO] |
+| rehabilitación + operación anual de Puente Arimena (COP) | 20 M + 8 M | 10–40 M / 5–15 M | |
+| temporada en Monte Carlo de R4 | aguas altas con probabilidad 0,5 | — | el año completo |
+| capacidad de un acopio nuevo (kg) | 1 600 | — | igual a San Miguel |
 | tasa de descuento | 12 % | — | VPN a 5 años |
 | días de pesca al año | 270 | — | veda 1 may – 31 jul [DATO] |
 | separación entre candidatos (km) | 5 | — | |

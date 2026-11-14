@@ -19,7 +19,7 @@
 - **Última actualización:** 14 nov 2026
 - **Fase actual:** 2 cerrada (commit 4805a39, en GitHub) + ajuste: venta río abajo cuando el bote no remonta (pendiente commit)
 - **Qué quedó a medias:** geometría del KML para las trazas. El usuario tiene en mente cambios a la Fase 1 y decide al final del proyecto
-- **Siguiente paso concreto:** cerrar la Fase 3 (commit) y seguir con la Fase 4 (acopios)
+- **Siguiente paso concreto:** cerrar la Fase 4 (commit) y seguir con la Fase 5 (bimodal, frío e inversión)
 - **Datos pendientes del equipo:** KML de M01–M04; coordenadas de A02, A03, X01 y C01 (el tramo Yucao → boca del Manacacías necesita ×1,86 y la vía a Puente Arimena da 91 km frente al km 68 de la ANI); a qué río desembocan los caños P08–P12 (D5); si Puente Arimena está sobre el Muco y si el Planas y el Guarrojo cruzan la vía. **No habrá datos** de la ubicación real de la señora ni del comprador: quedan simulados
 
 ---
@@ -152,9 +152,9 @@
 - Pantalla "Centros de acopio": veredictos, mapa actuales vs propuestos, botón "activar en el escenario" y tabla descargable.
 
 **Hecho cuando:**
-- [ ] La regla de decisión es explícita.
-- [ ] Las ubicaciones caen sobre el río y la pérdida no aumenta con k.
-- [ ] La integración con el recomendador funciona.
+- [x] La regla de decisión es explícita.
+- [x] Las ubicaciones caen sobre el río y la pérdida no aumenta con k.
+- [x] La integración con el recomendador funciona.
 - [ ] Commit y push.
 
 ## Fase 5. Bimodal, cadena de frío e inversión (R5)
@@ -267,3 +267,7 @@ El núcleo (`red`, `busqueda`, `transporte`, `degradacion`, `asignacion`, `escen
 | 14 nov | — | Problema de transporte con `networkx.min_cost_flow` (décimas de kg y COP enteros); la señora se parte en congelador (con capacidad) e icopor; `sin_destino` garantiza factibilidad | Claude (Fase 3) |
 | 14 nov | — | ~~Limitación: el modelo no cobra combustible ni tiempo del pescador~~ Resuelta en la siguiente | Claude (Fase 3) |
 | 14 nov | — | El pescador le deja a la señora por tiempo, distancia y porque no todos tienen motor; además, el pescado que llega peor vale menos (ya modelado). Se agrega el costo del viaje: gasolina (1 800 COP/km con motor), tiempo (7 500 COP/h), ida y vuelta [SIMULADO]. El recomendador y el problema de transporte usan la plata neta | usuario + Claude (Fase 3) |
+| 14 nov | — | PuLP fijado a < 3: PuLP 4 ya no trae CBC; la 2.9 sí (CBC integrado, como pide la especificación) | Claude (Fase 4) |
+| 14 nov | — | Viabilidad: beneficio = costo evitado (valor perdido + viaje) en el reparto óptimo de la flota × 270 días; costos = rehabilitación + operación + energía explícita (365 días). VPN a 5 años al 12 %. Cada corrida usa su propia población y sortea la temporada | Claude (Fase 4) |
+| 14 nov | — | p-mediana sin capacidades sobre 30 puntos del río + los 3 acopios actuales; costo por kg igual al del recomendador (acopio = cuarto frío 24 h + transbordo + carretera en carro). "Mover los 3" puede dejar la plaza sin acopio en el malecón: la plaza sigue vendiendo lo que llega por carretera | Claude (Fase 4) |
+| 14 nov | — | Acopios nuevos en el escenario (`acopios_nuevos`): puntos del río con acceso vial estimado (línea recta × sinuosidad vial) | Claude (Fase 4) |

@@ -346,13 +346,13 @@ def correr_montecarlo(escenario: Escenario, n: int | None = None, semilla: int |
     """n corridas con parametros muestreados. Devuelve (indicadores por corrida, zonas por corrida)."""
     n = n if n is not None else config.parametro("montecarlo.corridas_r2")
     semilla = semilla if semilla is not None else config.parametro("general.semilla")
-    indicadores, zonas = [], []
-    for i, rng in enumerate(montecarlo.generadores(n, semilla)):
-        with config.sobrescribir(montecarlo.muestrear(rng)):
-            ind, zon = resumir_corrida(simular_corrida(rng, escenario))
-        indicadores.append({"corrida": i, **ind})
-        zonas.append(zon.assign(corrida=i))
-    return pd.DataFrame(indicadores), pd.concat(zonas, ignore_index=True)
+
+    def corrida(i: int, rng: np.random.Generator):
+        ind, zon = resumir_corrida(simular_corrida(rng, escenario))
+        return {"corrida": i, **ind}, zon.assign(corrida=i)
+
+    resultados = montecarlo.correr(corrida, n, semilla)
+    return pd.DataFrame([r[0] for r in resultados]), pd.concat([r[1] for r in resultados], ignore_index=True)
 
 
 INDICADORES = (

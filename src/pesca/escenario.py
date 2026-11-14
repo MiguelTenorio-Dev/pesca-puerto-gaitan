@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field, replace
 
-from pesca import config
+from pesca import config, red
 
 
 @dataclass(frozen=True)
@@ -16,6 +16,7 @@ class Escenario:
     camion_refrigerado: bool
     inversiones: frozenset[str] = field(default_factory=frozenset)
     semilla: int = 0
+    acopios_nuevos: frozenset[str] = field(default_factory=frozenset)  # puntos del rio (p-mediana de R4)
 
     def __post_init__(self) -> None:
         nodos = config.cargar_nodos().set_index("id")
@@ -30,9 +31,14 @@ class Escenario:
             raise ValueError(f"'{self.desembarque_senora}' no es una candidata del desembarque: {candidatas}")
         if self.temporada not in config.TEMPORADAS:
             raise ValueError(f"Temporada desconocida: {self.temporada}")
+        grafo = red.construir_red()
+        fuera = [a for a in self.acopios_nuevos if red.clave(a, red.CAPA_RIO) not in grafo]
+        if fuera:
+            raise ValueError(f"Los acopios nuevos deben ser puntos del río: {sorted(fuera)}")
         # Acepta listas o sets y los congela para que el escenario sea hashable
         object.__setattr__(self, "acopios_activos", frozenset(self.acopios_activos))
         object.__setattr__(self, "inversiones", frozenset(self.inversiones))
+        object.__setattr__(self, "acopios_nuevos", frozenset(self.acopios_nuevos))
 
     @classmethod
     def base(cls) -> Escenario:

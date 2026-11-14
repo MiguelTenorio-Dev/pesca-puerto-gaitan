@@ -35,3 +35,13 @@ def test_recomendador_cambia_la_nevera():
     for nevera in ("sin_hielo", "buena"):
         at.radio(key="nevera").set_value(nevera).run()
         assert not at.exception, at.exception
+
+
+def test_centros_de_acopio_activa_la_propuesta():
+    pagina = config.DIR_APP / "pages" / "07_Centros_de_acopio.py"
+    at = AppTest.from_file(str(pagina), default_timeout=60).run()
+    assert not at.exception, at.exception
+    at.radio(key="modo_pmediana").set_value("agregar").run()
+    at.button(key="activar_propuesta").click().run()
+    assert not at.exception, at.exception
+    assert at.session_state["escenario"].acopios_nuevos

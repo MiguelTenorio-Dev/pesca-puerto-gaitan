@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import streamlit as st
 
-from pesca import config
+from pesca import config, red
 from pesca.escenario import Escenario
 
 TEXTO_TEMPORADA = {"aguas_bajas": "Aguas bajas (verano)", "aguas_altas": "Aguas altas (invierno)"}
@@ -88,12 +88,21 @@ def barra_lateral() -> Escenario:
             st.warning("Debe quedar al menos un acopio activo. Se mantiene la selección anterior.")
             activos = sorted(actual.acopios_activos)
 
+        nuevos = actual.acopios_nuevos
+        if nuevos:
+            grafo = red.construir_red()
+            nombres = ", ".join(f"{grafo.nodes[red.clave(n, red.CAPA_RIO)]['nombre']} ({n})" for n in sorted(nuevos))
+            st.caption(f"Acopios nuevos activos: {nombres}")
+            if st.button("Quitar acopios nuevos"):
+                nuevos = frozenset()
+
     nuevo = actual.con(
         acopios_activos=frozenset(activos),
         desembarque_senora=senora,
         temporada=temporada,
         hielo_a_bordo=hielo,
         camion_refrigerado=camion,
+        acopios_nuevos=nuevos,
     )
     st.session_state["escenario"] = nuevo
     return nuevo
