@@ -16,11 +16,21 @@
 
 > Claude Code actualiza esta sección cada vez que se cierra una sesión (prompt "Cierre de sesión").
 
-- **Última actualización:** 14 nov 2026
-- **Fase actual:** 2 cerrada (commit 4805a39, en GitHub) + ajuste: venta río abajo cuando el bote no remonta (pendiente commit)
-- **Qué quedó a medias:** geometría del KML para las trazas. El usuario tiene en mente cambios a la Fase 1 y decide al final del proyecto
-- **Siguiente paso concreto:** cerrar la Fase 4 (commit) y seguir con la Fase 5 (bimodal, frío e inversión)
-- **Datos pendientes del equipo:** KML de M01–M04; coordenadas de A02, A03, X01 y C01 (el tramo Yucao → boca del Manacacías necesita ×1,86 y la vía a Puente Arimena da 91 km frente al km 68 de la ANI); a qué río desembocan los caños P08–P12 (D5); si Puente Arimena está sobre el Muco y si el Planas y el Guarrojo cruzan la vía. **No habrá datos** de la ubicación real de la señora ni del comprador: quedan simulados
+- **Última actualización:** sábado 14 nov 2026, 14:18 (Bogotá)
+- **Fase actual:** fases 0 a 4 cerradas y en GitHub (último commit de fase: d341147, `fase 4: acopios (R4)`). La Fase 5 no ha empezado. La app abre y `pytest -q` pasa (269 tests). No hay cambios rotos.
+- **Qué quedó a medias:**
+  - Fase 5 sin empezar: faltan los costos de las inversiones I1–I7.
+  - Geometría del KML para las trazas (solo se usa su longitud, y todavía no hay KML).
+  - El usuario tiene en mente cambios a la Fase 1 y decide al final del proyecto.
+  - Resultado de R4 para revisar: San Miguel queda en 66,6 % de corridas con VPN > 0, justo debajo de la regla del 70 %. Con datos reales de energía o de costos podría cambiar.
+- **Siguiente paso concreto:** abrir una sesión nueva (`/clear`) y correr el prompt de la Fase 5 de `docs/PROMPTS_POR_FASE.md`. Antes, definir con Claude los costos de I1–I7 (o aceptar valores SIMULADO).
+- **Datos pendientes del equipo:**
+  - KML de M01–M04.
+  - Coordenadas de A02, A03, X01 y C01: el tramo Yucao → boca del Manacacías necesita ×1,86, y la vía a Puente Arimena da 91 km frente al km 68 de la ANI.
+  - A qué río desembocan los caños P08–P12 (D5).
+  - Si Puente Arimena está sobre el Muco y si el Planas y el Guarrojo cruzan la vía.
+  - Si aparecen: factura o consumo de luz del cuarto frío de San Miguel, y precios reales de cajas térmicas, hielo y camión refrigerado.
+  - **No habrá datos** de la ubicación real de la señora ni del comprador: quedan simulados.
 
 ---
 
@@ -138,7 +148,7 @@
 **Hecho cuando:**
 - [x] Tests: conservación de flujo, capacidades, caso 2 × 2 a mano y **prueba de sentido**.
 - [x] La explicación menciona la corriente y el transbordo.
-- [ ] Commit y push `fase 3: recomendador (R3)`.
+- [x] Commit y push `fase 3: recomendador (R3)` (d454e94 + ajuste del costo del viaje 591d92c).
 
 ---
 
@@ -155,7 +165,7 @@
 - [x] La regla de decisión es explícita.
 - [x] Las ubicaciones caen sobre el río y la pérdida no aumenta con k.
 - [x] La integración con el recomendador funciona.
-- [ ] Commit y push.
+- [x] Commit y push (d341147).
 
 ## Fase 5. Bimodal, cadena de frío e inversión (R5)
 
