@@ -19,7 +19,7 @@
 - **Última actualización:** 14 nov 2026
 - **Fase actual:** 2 cerrada (commit 4805a39, en GitHub) + ajuste: venta río abajo cuando el bote no remonta (pendiente commit)
 - **Qué quedó a medias:** geometría del KML para las trazas. El usuario tiene en mente cambios a la Fase 1 y decide al final del proyecto
-- **Siguiente paso concreto:** Fase 3 (recomendador)
+- **Siguiente paso concreto:** cerrar la Fase 3 (commit) y seguir con la Fase 4 (acopios)
 - **Datos pendientes del equipo:** KML de M01–M04; coordenadas de A02, A03, X01 y C01 (el tramo Yucao → boca del Manacacías necesita ×1,86 y la vía a Puente Arimena da 91 km frente al km 68 de la ANI); a qué río desembocan los caños P08–P12 (D5); si Puente Arimena está sobre el Muco y si el Planas y el Guarrojo cruzan la vía. **No habrá datos** de la ubicación real de la señora ni del comprador: quedan simulados
 
 ---
@@ -31,7 +31,7 @@
 | Vie 11:00–13:00 | 0. Terminal, repo y esqueleto | `pesca-gaitan` abre la app de inicio; el repo existe en GitHub |
 | Vie 14:00–17:00 | 1. Red multimodal y algoritmos de búsqueda (R1) | "Mapa de la red" + "Laboratorio de algoritmos" |
 | Vie 17:30–21:30 | 2. **Diagnóstico de hoy** (R2) ★ | "Diagnóstico": **el problema queda demostrado** |
-| Sáb 08:00–11:30 | 3. **Recomendador y asignación óptima** (R3) ★ | "¿A dónde llevo mi pescado?" + **primer despliegue público** |
+| Sáb 08:00–11:30 | 3. **Recomendador y asignación óptima** (R3) ★ | "¿A dónde llevo mi pescado?" |
 | Sáb 12:00–16:00 | 4. Acopios: viabilidad y reubicación (R4) | "Centros de acopio" |
 | Sáb 16:30–20:00 | 5. Bimodal, cadena de frío e inversión (R5) | "Bimodal y cadena de frío" |
 | Sáb 20:00–22:00 | *colchón* | |
@@ -133,12 +133,11 @@
 
 **Tú:**
 - Pruébalo como si fueras pescador.
-- **Despliega en Streamlit Community Cloud** (guía, sección 5).
+- ~~Desplegar~~: el despliegue se hace al final, en la Fase 6.
 
 **Hecho cuando:**
-- [ ] Tests: conservación de flujo, capacidades, caso 2 × 2 a mano y **prueba de sentido**.
-- [ ] La explicación menciona la corriente y el transbordo.
-- [ ] **La app está pública con link.**
+- [x] Tests: conservación de flujo, capacidades, caso 2 × 2 a mano y **prueba de sentido**.
+- [x] La explicación menciona la corriente y el transbordo.
 - [ ] Commit y push `fase 3: recomendador (R3)`.
 
 ---
@@ -187,7 +186,7 @@
 **Hecho cuando:**
 - [ ] La pantalla "Hoy vs propuesta" está lista y la cartilla se descarga.
 - [ ] Se instala desde GitHub.
-- [ ] La app pública está actualizada.
+- [ ] El repo pasa a público y la app se despliega en Streamlit Community Cloud con link (decisión del 14 nov: solo al final).
 - [ ] Hay release `v1.0`.
 
 ## Fase 7. Informe, presentación y ensayo
@@ -261,3 +260,9 @@ El núcleo (`red`, `busqueda`, `transporte`, `degradacion`, `asignacion`, `escen
 | 14 nov | D10 | Resuelta: la ubicación real de la señora no se conocerá; las 4 candidatas quedan como SIMULADO definitivo con su sensibilidad | usuario |
 | 14 nov | — | Datos del comprador (ciclo en San Miguel, si trae hielo): no habrá; quedan como SIMULADO definitivo | usuario |
 | 14 nov | — | Gráficos del diagnóstico con Altair (`st.altair_chart`) para tener tooltips; paleta de referencia azul/naranja | Claude (Fase 2) |
+| 14 nov | — | El repo sigue privado y la app no se despliega hasta la Fase 6. El despliegue y el paso a público salen de la Fase 3 | usuario |
+| 14 nov | — | Recomendador: compara plaza por río, desembarques con espera (la señora, San Miguel sin frío, cruces del Vichada) y acopios activos (bimodal: cuarto frío + transbordo + carretera). Ordena por plata recibida (métrica §1); si todo es rechazo, por calidad | Claude (Fase 3) |
+| 14 nov | — | Espera esperada en un desembarque = (E[ciclo] + 1)/2 ≈ 6 días; donde la señora, probabilidad de congelador = 1 − desborde del Monte Carlo de la Fase 2 | Claude (Fase 3) |
+| 14 nov | — | Transbordo solo donde hay quién siga por carretera: acopio activo (vehículo del escenario), comprador en los desembarques (carro) o acceso a pie en el malecón | Claude (Fase 3) |
+| 14 nov | — | Problema de transporte con `networkx.min_cost_flow` (décimas de kg y COP enteros); la señora se parte en congelador (con capacidad) e icopor; `sin_destino` garantiza factibilidad | Claude (Fase 3) |
+| 14 nov | — | Limitación: el modelo no cobra combustible ni tiempo del pescador, y la plaza recibe hasta 1 500 kg/día. Por eso el reparto óptimo manda casi todo a la plaza por río [CONFIRMAR con el usuario] | Claude (Fase 3) |

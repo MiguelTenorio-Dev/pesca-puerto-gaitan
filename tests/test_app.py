@@ -27,3 +27,11 @@ def test_laboratorio_cambia_de_algoritmo():
     for algoritmo in ("a_estrella", "bfs"):
         at.radio(key="algoritmo").set_value(algoritmo).run()
         assert not at.exception, at.exception
+
+
+def test_recomendador_cambia_la_nevera():
+    pagina = config.DIR_APP / "pages" / "05_A_donde_llevo_mi_pescado.py"
+    at = AppTest.from_file(str(pagina), default_timeout=30).run()
+    for nevera in ("sin_hielo", "buena"):
+        at.radio(key="nevera").set_value(nevera).run()
+        assert not at.exception, at.exception

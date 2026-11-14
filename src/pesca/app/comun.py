@@ -22,6 +22,10 @@ TEXTO_CRITERIO = {
     "distancia": "Menor distancia",
 }
 
+TEXTO_NEVERA = {"sin_hielo": "Sin hielo", "deteriorada": "Nevera dañada (poco hielo)", "buena": "Nevera buena con hielo"}
+
+TEXTO_TIPO_OPCION = {"plaza": "por río a la plaza", "desembarque": "dejarlo y esperar al comprador", "acopio": "acopio con frío + carretera"}
+
 TEXTO_ALGORITMO = {"dijkstra": "Dijkstra", "a_estrella": "A*", "bfs": "BFS (menos tramos)"}
 
 TEXTO_MODO = {"rio": "río", "via": "carretera", "transbordo": "transbordo"}

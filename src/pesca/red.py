@@ -364,3 +364,12 @@ def opciones_lugares(g: nx.DiGraph) -> dict[str, str]:
 def subgrafo_modo(g: nx.DiGraph, *modos: str) -> nx.DiGraph:
     """Vista del grafo con solo las aristas de los modos dados (p. ej. solo rio)."""
     return g.edge_subgraph([(u, v) for u, v, d in g.edges(data=True) if d["modo"] in modos])
+
+
+def nodo_rio_mas_cercano(lat: float, lon: float, g: nx.DiGraph | None = None) -> str:
+    """Nodo de la capa de rio mas cercano a un punto (para el clic en el mapa)."""
+    g = g if g is not None else construir_red()
+    return min(
+        (n for n, a in g.nodes(data=True) if a["capa"] == CAPA_RIO),
+        key=lambda n: haversine_km(lat, lon, g.nodes[n]["lat"], g.nodes[n]["lon"]),
+    )

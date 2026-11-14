@@ -473,6 +473,8 @@ Van en `src/pesca/datos/parametros.yaml`. Son **[SIMULADO]** salvo que diga otra
 | capacidad de la plaza de Puerto Gaitán (kg/día) | 1 500 | 800–2 400 | ~8 negocios [DATO]; holgada frente a ~80 kg/día registrados |
 | kg útiles por m³ de cuarto frío | 400 | 300–500 | |
 | capacidad de San Miguel / Puente Arimena (kg) | 1 600 / 400 | | 4 m³ [DATO] / tamaño [CONFIRMAR] |
+| horas en el cuarto frío de un acopio activo antes de salir a la plaza | 24 | 12–72 | Fase 3, recomendador |
+| espera esperada en un desembarque (días) | (E[ciclo] + 1) / 2 ≈ 6 | — | Fase 3: el lote llega en cualquier día del ciclo del comprador |
 | rehabilitación + operación anual de San Miguel (COP) | 40 M + 24 M | 25–70 M / 15–40 M | |
 | tasa de descuento | 12 % | — | VPN a 5 años |
 | días de pesca al año | 270 | — | veda 1 may – 31 jul [DATO] |

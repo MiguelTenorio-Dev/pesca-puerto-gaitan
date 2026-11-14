@@ -302,6 +302,11 @@ acopios:
     valor: 400.0
     etiqueta: CONFIRMAR
     nota: Tamaño del cuarto frio sin confirmar
+  horas_espera_acopio:
+    valor: 24.0
+    rango: [12.0, 72.0]
+    etiqueta: SIMULADO
+    nota: Horas que el pescado espera en el cuarto frio de un acopio activo antes de salir a la plaza
 
 economia:
   rehabilitacion_san_miguel_cop:

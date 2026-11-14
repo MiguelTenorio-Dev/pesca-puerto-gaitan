@@ -115,9 +115,7 @@ def mapa_red(grafo: nx.DiGraph) -> folium.Map:
     return mapa
 
 
-def mapa_busqueda(grafo: nx.DiGraph, resultado: ResultadoBusqueda, paso: int | None = None) -> folium.Map:
-    """La red en gris, los primeros `paso` nodos explorados y la ruta coloreada por sentido."""
-    mapa = _mapa_vacio(grafo)
+def _red_de_fondo(mapa: folium.Map, grafo: nx.DiGraph) -> None:
     for _, _, d in _aristas_unicas(grafo):
         if d["modo"] != "transbordo":
             folium.PolyLine(
@@ -125,18 +123,39 @@ def mapa_busqueda(grafo: nx.DiGraph, resultado: ResultadoBusqueda, paso: int | N
                 dash_array=None if d["modo"] == red.CAPA_RIO else GUION_VIA,
             ).add_to(mapa)
 
+
+def _dibujar_ruta(mapa: folium.Map, grafo: nx.DiGraph, ruta: tuple[str, ...]) -> None:
+    """Ruta gruesa: verde a favor de la corriente, roja en contra, gris punteada por carretera, transbordo morado."""
+    for u, v in zip(ruta, ruta[1:]):
+        d = grafo.edges[u, v]
+        if d["modo"] == "transbordo":
+            folium.CircleMarker(d["geometria"][0], radius=10, color=COLOR_TRANSBORDO, weight=3, tooltip="Transbordo").add_to(mapa)
+            continue
+        folium.PolyLine(
+            d["geometria"], color=COLOR_SENTIDO[d["sentido"]], weight=7, opacity=0.85,
+            dash_array=None if d["modo"] == red.CAPA_RIO else GUION_VIA, tooltip=_texto_arista(d),
+        ).add_to(mapa)
+
+
+def mapa_recomendacion(grafo: nx.DiGraph, origen: str, ruta: tuple[str, ...]) -> folium.Map:
+    """La red en gris, la ruta recomendada y el punto donde esta el pescador."""
+    mapa = _mapa_vacio(grafo)
+    _red_de_fondo(mapa, grafo)
+    if ruta:
+        _dibujar_ruta(mapa, grafo, ruta)
+        fin = grafo.nodes[ruta[-1]]
+        folium.Marker([fin["lat"], fin["lon"]], tooltip=f"Destino: {fin['nombre']}", icon=folium.Icon(color="red")).add_to(mapa)
+    a = grafo.nodes[origen]
+    folium.Marker([a["lat"], a["lon"]], tooltip=f"Estás aquí: {a['nombre']}", icon=folium.Icon(color="green", icon="user")).add_to(mapa)
+    return mapa
+
+
+def mapa_busqueda(grafo: nx.DiGraph, resultado: ResultadoBusqueda, paso: int | None = None) -> folium.Map:
+    """La red en gris, los primeros `paso` nodos explorados y la ruta coloreada por sentido."""
+    mapa = _mapa_vacio(grafo)
+    _red_de_fondo(mapa, grafo)
     if resultado.alcanzable:
-        for u, v in zip(resultado.ruta, resultado.ruta[1:]):
-            d = grafo.edges[u, v]
-            if d["modo"] == "transbordo":
-                folium.CircleMarker(
-                    d["geometria"][0], radius=10, color=COLOR_TRANSBORDO, weight=3, tooltip="Transbordo"
-                ).add_to(mapa)
-                continue
-            folium.PolyLine(
-                d["geometria"], color=COLOR_SENTIDO[d["sentido"]], weight=7, opacity=0.85,
-                dash_array=None if d["modo"] == red.CAPA_RIO else GUION_VIA, tooltip=_texto_arista(d),
-            ).add_to(mapa)
+        _dibujar_ruta(mapa, grafo, resultado.ruta)
 
     explorados = resultado.explorados[: paso if paso is not None else len(resultado.explorados)]
     total = max(1, len(resultado.explorados) - 1)
@@ -271,3 +290,19 @@ def grafico_zonas(zonas):
     intervalo = alt.Chart(zonas).mark_rule(color=COLOR_TEXTO_SECUNDARIO, strokeWidth=2).encode(
         x="pct_valor_perdido_p5:Q", x2="pct_valor_perdido_p95:Q", y=y)
     return (barras + intervalo).properties(height=28 * len(zonas))
+
+
+def grafico_uso_destinos(uso):
+    """kg/dia que recibe cada destino en el reparto optimo, con su capacidad (si tiene)."""
+    import altair as alt
+
+    y = alt.Y("destino_nombre:N", sort="-x", title=None, axis=alt.Axis(labelLimit=240))
+    tooltip = [alt.Tooltip("destino_nombre:N", title="destino"), alt.Tooltip("kg_dia:Q", title="kg al día", format=",.0f"),
+               alt.Tooltip("capacidad_kg_dia:Q", title="capacidad (kg/día)", format=",.0f"),
+               alt.Tooltip("pct_uso:Q", title="% de la capacidad", format=".0f")]
+    barras = alt.Chart(uso).mark_bar(color=COLOR_VALOR, cornerRadiusTopRight=4, cornerRadiusBottomRight=4, height=16).encode(
+        x=alt.X("kg_dia:Q", title="kg al día"), y=y, tooltip=tooltip)
+    con_capacidad = uso.dropna(subset=["capacidad_kg_dia"])
+    tope = alt.Chart(con_capacidad).mark_tick(color=COLOR_TEXTO_SECUNDARIO, thickness=3, size=22).encode(
+        x="capacidad_kg_dia:Q", y=y, tooltip=tooltip)
+    return (barras + tope).properties(height=34 * len(uso) + 20)

@@ -6,7 +6,8 @@ Estados de conservacion de un lote:
 - ambiente: T ambiente;
 - icopor_hielo: T de frio mientras dure el hielo; despues el lote sigue a T ambiente;
 - congelado: RRS = 0. La congelacion lenta castiga el precio una sola vez;
-- falla: corte de luz mas largo que horas_descongelacion; el lote se deteriora a T ambiente.
+- falla: corte de luz mas largo que horas_descongelacion; el lote se deteriora a T ambiente;
+- refrigerado: T de frio constante (cuarto frio o camion refrigerado), sin hielo que se acabe.
 
 La perdida se lleva por etapa (faena, rio, espera, carretera) y es aditiva: sirve como
 peso del grafo y el diagnostico la reporta por etapa.
@@ -18,8 +19,8 @@ from dataclasses import dataclass, field
 
 from pesca import config
 
-AMBIENTE, ICOPOR_HIELO, CONGELADO, FALLA = "ambiente", "icopor_hielo", "congelado", "falla"
-ESTADOS = (AMBIENTE, ICOPOR_HIELO, CONGELADO, FALLA)
+AMBIENTE, ICOPOR_HIELO, CONGELADO, FALLA, REFRIGERADO = "ambiente", "icopor_hielo", "congelado", "falla", "refrigerado"
+ESTADOS = (AMBIENTE, ICOPOR_HIELO, CONGELADO, FALLA, REFRIGERADO)
 ETAPAS = ("faena", "rio", "espera", "carretera")
 CONGELACION_LENTA = "congelacion_lenta"
 ETAPAS_COP = (*ETAPAS, CONGELACION_LENTA)
@@ -35,7 +36,7 @@ def rrs(t_c: float) -> float:
 def temperatura(estado: str) -> float:
     if estado in (AMBIENTE, FALLA):
         return config.parametro("degradacion.t_ambiente_c")
-    if estado == ICOPOR_HIELO:
+    if estado in (ICOPOR_HIELO, REFRIGERADO):
         return config.parametro("degradacion.t_frio_c")
     if estado == CONGELADO:
         return config.parametro("degradacion.t_congelado_c")
