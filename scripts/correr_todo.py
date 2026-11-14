@@ -6,9 +6,12 @@ Uso: python scripts/correr_todo.py [--solo r2|r4|r5]
 from __future__ import annotations
 
 import argparse
+import time
+
+from pesca import cadena_actual
 
 # Cada fase registra aqui su funcion de precalculo (r2, r4, r5, resumen).
-TAREAS: dict[str, callable] = {}
+TAREAS: dict[str, callable] = {"r2": cadena_actual.precalcular}
 
 
 def main() -> None:
@@ -21,7 +24,9 @@ def main() -> None:
     for nombre, tarea in TAREAS.items():
         if args.solo in (None, nombre):
             print(f"Corriendo {nombre}...")
+            inicio = time.perf_counter()
             tarea()
+            print(f"{nombre} listo en {time.perf_counter() - inicio:.0f} s")
 
 
 if __name__ == "__main__":

@@ -81,7 +81,7 @@ Esto es lo que el diagnóstico tiene que medir:
 | id | acopio | estado hoy |
 |---|---|---|
 | A01 | **Puerto Gaitán**: plaza de mercado | Funciona. Unos 8 negocios con refrigeración. Es donde se vende |
-| A02 | **San Miguel** | Cuarto frío de 4 m³ inutilizado e inmantenible |
+| A02 | **San Miguel** | Cuarto frío de 4 m³ que construyó la alcaldía sin calcular el costo de la luz; se dejó de usar porque no se podía pagar la energía [DATO]. Hoy el pescado espera en icopor. R4 evalúa recuperarlo (con el costo de energía explícito) o moverlo |
 | A03 | **Puente Arimena** | Cuarto frío pequeño sin uso. Tamaño [CONFIRMAR] |
 
 ### 3.4 Puntos de desembarque
@@ -462,6 +462,12 @@ Van en `src/pesca/datos/parametros.yaml`. Son **[SIMULADO]** salvo que diga otra
 | `factor_precio_local` (plaza de Puerto Gaitán vs Villavicencio) | 0,8 | 0,6–1,0 | |
 | volumen desembarcado | calibrado al SEPEC 2022 (§4.7) | | [OFICIAL] |
 | `factor_subregistro` | 2,0 | 1,3–3,0 | desembarques informales que no registra el SEPEC |
+| destino del volumen (Fase 2) | registrado: Malecón (venta directa) y San Miguel; no registrado: 85 % la señora, 15 % Vichada (cruces con la vía) | Vichada 5–30 % | decisión del usuario, 14 nov |
+| kg por faena / faenas por semana | 20 / 4 | 10–40 / 3–6 | el número de pescadores se deriva del volumen |
+| hielo que se pone al pescado que espera en icopor (h) | 24 | 12–48 | desborde de la señora, San Miguel y Vichada |
+| ciclo del comprador en San Miguel (días) | uniforme(7, 15) | — | [CONFIRMAR] |
+| el comprador trae hielo | no | — | [CONFIRMAR] |
+| bote que no puede remontar la corriente | el lote no llega y se cuenta como perdido en el río | — | pesa sobre todo en aguas altas con botes a remo |
 | pescadores por zona y kg por faena | se derivan para reproducir el volumen calibrado | ±30 % | |
 | mezcla de flota | 60 % madera_remo, 30 % madera_motor, 10 % aluminio_motor | ±15 pp | |
 | capacidad de la plaza de Puerto Gaitán (kg/día) | 1 500 | 800–2 400 | ~8 negocios [DATO]; holgada frente a ~80 kg/día registrados |

@@ -17,9 +17,9 @@
 > Claude Code actualiza esta sección cada vez que se cierra una sesión (prompt "Cierre de sesión").
 
 - **Última actualización:** 14 nov 2026
-- **Fase actual:** 1 cerrada (commit f53cf31, en GitHub). El usuario revisó los mapas: se ven bien y cambian según la ruta y el algoritmo
-- **Qué quedó a medias:** usar la geometría del KML (no solo su longitud) para reemplazar las trazas. El usuario tiene en mente unos cambios a la Fase 1; decide si los hace cuando todo el proyecto esté terminado
-- **Siguiente paso concreto:** Fase 2 (diagnóstico)
+- **Fase actual:** 2 cerrada (pendiente commit y push). Fase 1 en f53cf31
+- **Qué quedó a medias:** geometría del KML para las trazas. El usuario tiene en mente cambios a la Fase 1 y decide al final del proyecto
+- **Siguiente paso concreto:** Fase 3 (recomendador)
 - **Datos pendientes del equipo:** KML de M01–M04; coordenadas de A02, A03, X01 y C01 (el tramo Yucao → boca del Manacacías necesita ×1,86 y la vía a Puente Arimena da 91 km frente al km 68 de la ANI); ubicación del desembarque de la señora
 
 ---
@@ -113,10 +113,10 @@
 - Esta pantalla es la base de la primera parte de tu presentación.
 
 **Hecho cuando:**
-- [ ] Tests: calidad monótona, RRS(0) = 1, RRS(−18) = 0, la pérdida por etapa suma el total y misma semilla da el mismo resultado.
-- [ ] El volumen simulado reproduce el SEPEC 2022 × `factor_subregistro`.
-- [ ] El inventario del congelador nunca supera su capacidad: el exceso aparece como desborde a icopor.
-- [ ] Las cifras tienen intervalo y se distingue lo medido de lo simulado.
+- [x] Tests: calidad monótona, RRS(0) = 1, RRS(−18) = 0, la pérdida por etapa suma el total y misma semilla da el mismo resultado.
+- [x] El volumen simulado reproduce el SEPEC 2022 × `factor_subregistro`.
+- [x] El inventario del congelador nunca supera su capacidad: el exceso aparece como desborde a icopor.
+- [x] Las cifras tienen intervalo y se distingue lo medido de lo simulado.
 - [ ] Commit y push `fase 2: diagnostico (R2)`.
 
 > **Hito del viernes:** el problema queda demostrado con números y mapa.
@@ -251,3 +251,10 @@ El núcleo (`red`, `busqueda`, `transporte`, `degradacion`, `asignacion`, `escen
 | 14 nov | — | Puerto Gaitán por río = malecón (`D_MALECON`), con acceso vial a la plaza A01. Desembarques sin vía: acceso en línea recta × sinuosidad vial [SIMULADO] | Claude (Fase 1) |
 | 14 nov | — | La calidad de la matriz origen × acopio de R1 cuenta solo el viaje; la Fase 2 suma faena y espera | Claude (Fase 1) |
 | 14 nov | — | Mapas con teselas OpenStreetMap: CartoDB ahora pide clave | Claude (Fase 1) |
+| 14 nov | — | Destino de hoy: lo registrado por el SEPEC desembarca en el Malecón (venta directa) y en San Miguel; lo no registrado va donde la señora (Meta, 85 %) y a los cruces con la vía (Vichada, 15 %) | usuario (Fase 2) |
+| 14 nov | — | San Miguel: el cuarto frío se abandonó porque no se pudo pagar la luz. Hoy el pescado espera en icopor; R4 decide si recuperarlo (con costo de energía explícito en el VPN) o moverlo | usuario (Fase 2) |
+| 14 nov | — | Vichada incluido en el diagnóstico con el 15 % del volumen informal | usuario (Fase 2) |
+| 14 nov | — | Diagnóstico = un ciclo del comprador en un mes típico fuera de veda; los indicadores se ponderan por el volumen mensual de cada sitio. Monte Carlo: 500 corridas por candidata y temporada, uniforme en el `rango` de cada parámetro | Claude (Fase 2) |
+| 14 nov | — | COP perdidos por etapa: la congelación lenta es etapa propia; el resto se reparte en proporción a la pérdida de calidad de cada etapa (así suman el total aunque el precio sea escalonado) | Claude (Fase 2) |
+| 14 nov | — | Bote que no puede remontar: el lote se pierde y se cuenta en el río. En aguas altas esto invierte la hipótesis en 3 de 4 candidatas; en aguas bajas (base) la espera pesa más en el 92–98 % de las corridas [CONFIRMAR qué hacen hoy los pescadores a remo en aguas altas] | Claude (Fase 2) |
+| 14 nov | — | Gráficos del diagnóstico con Altair (`st.altair_chart`) para tener tooltips; paleta de referencia azul/naranja | Claude (Fase 2) |

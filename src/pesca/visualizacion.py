@@ -157,3 +157,117 @@ def mapa_busqueda(grafo: nx.DiGraph, resultado: ResultadoBusqueda, paso: int | N
         a = grafo.nodes[nodo]
         folium.Marker([a["lat"], a["lon"]], tooltip=f"{texto}: {a['nombre']}", icon=folium.Icon(color=color)).add_to(mapa)
     return mapa
+
+
+# ---------------------------------------------------------------- diagnostico (Fase 2)
+
+# Paleta de referencia (skill dataviz): slot 1 azul y slot 2 naranja, validados como par
+COLOR_VALOR = "#2a78d6"
+COLOR_PERDIDA = "#eb6834"
+COLOR_TEXTO_SECUNDARIO = "#52514e"
+COLOR_SITIO = {"malecon": "#2a78d6", "san_miguel": "#eb6834", "senora": "#1baf7a", "vichada": "#eda100"}
+
+
+def mapa_recorridos(grafo: nx.DiGraph, flujos: dict[tuple[str, str], float], desembarques: dict[str, str]) -> folium.Map:
+    """Recorridos de hoy: grosor proporcional a los kg; rio por sentido y carretera en gris.
+
+    `desembarques` es {lugar: sitio} para marcar cada desembarque con el color de su sitio.
+    """
+    mapa = _mapa_vacio(grafo)
+    for _, _, d in _aristas_unicas(grafo):
+        if d["modo"] != "transbordo":
+            folium.PolyLine(d["geometria"], color="#d9d9d9", weight=1.5,
+                            dash_array=None if d["modo"] == red.CAPA_RIO else GUION_VIA).add_to(mapa)
+    maximo = max(flujos.values(), default=1.0)
+    for (u, v), kg in sorted(flujos.items(), key=lambda x: x[1]):
+        d = grafo.edges[u, v]
+        if d["modo"] == "transbordo" or kg <= 0:
+            continue
+        folium.PolyLine(
+            d["geometria"],
+            color=COLOR_SENTIDO[d["sentido"]],
+            weight=2 + 10 * kg / maximo,
+            opacity=0.8,
+            dash_array=None if d["modo"] == red.CAPA_RIO else GUION_VIA,
+            tooltip=f"{kg:.0f} kg en el ciclo · {_texto_arista(d)}",
+        ).add_to(mapa)
+    for lugar, sitio in desembarques.items():
+        n = red.clave(lugar, red.CAPA_RIO)
+        a = grafo.nodes[n]
+        folium.CircleMarker([a["lat"], a["lon"]], radius=9, color="#333333", weight=2, fill=True,
+                            fill_color=COLOR_SITIO[sitio], fill_opacity=1, tooltip=f"{a['nombre']} ({sitio})").add_to(mapa)
+    plaza = grafo.nodes["A01@via"]
+    folium.Marker([plaza["lat"], plaza["lon"]], tooltip=plaza["nombre"], icon=folium.Icon(color="red")).add_to(mapa)
+    return mapa
+
+
+def grafico_cascada(pasos: list[dict]):
+    """Cascada COP/kg. Cada paso: {etapa, valor (media), p5, p95, tipo: 'total'|'perdida'}."""
+    import altair as alt
+    import pandas as pd
+
+    filas, nivel = [], 0.0
+    for orden, p in enumerate(pasos):
+        if p["tipo"] == "total":
+            inicio, fin = 0.0, p["valor"]
+            nivel = p["valor"]
+            bajo, alto = p["p5"], p["p95"]
+        else:
+            inicio, fin = nivel, nivel - p["valor"]
+            bajo, alto = nivel - p["p95"], nivel - p["p5"]
+            nivel = fin
+        filas.append({"orden": orden, "etapa": p["etapa"], "inicio": inicio, "fin": fin, "valor": p["valor"],
+                      "p5": p["p5"], "p95": p["p95"], "bajo": bajo, "alto": alto, "tipo": p["tipo"]})
+    datos = pd.DataFrame(filas)
+    x = alt.X("etapa:N", sort=list(datos["etapa"]), title=None, axis=alt.Axis(labelAngle=0, labelLimit=140))
+    color = alt.Color("tipo:N", scale=alt.Scale(domain=["total", "perdida"], range=[COLOR_VALOR, COLOR_PERDIDA]),
+                      legend=alt.Legend(title=None, labelExpr="datum.value == 'total' ? 'valor' : 'pérdida'", orient="top"))
+    tooltip = [alt.Tooltip("etapa:N"), alt.Tooltip("valor:Q", title="COP/kg (media)", format=",.0f"),
+               alt.Tooltip("p5:Q", title="p5", format=",.0f"), alt.Tooltip("p95:Q", title="p95", format=",.0f")]
+    barras = alt.Chart(datos).mark_bar(size=38, cornerRadius=4).encode(
+        x=x, y=alt.Y("inicio:Q", title="COP por kg"), y2="fin:Q", color=color, tooltip=tooltip)
+    intervalo = alt.Chart(datos).mark_rule(color=COLOR_TEXTO_SECUNDARIO, strokeWidth=2).encode(x=x, y="bajo:Q", y2="alto:Q")
+    etiquetas = alt.Chart(datos).transform_calculate(arriba="max(datum.inicio, datum.fin)").mark_text(
+        dy=-8, color=COLOR_TEXTO_SECUNDARIO).encode(x=x, y="arriba:Q", text=alt.Text("valor:Q", format=",.0f"))
+    return (barras + intervalo + etiquetas).properties(height=340)
+
+
+def grafico_inventario(inventario):
+    """Un ciclo de la señora: kg congelados y kg en icopor por dia, la capacidad y los cortes de luz."""
+    import altair as alt
+
+    largo = inventario.melt(id_vars=["dia", "capacidad_kg", "corte_h"], value_vars=["kg_congelado", "kg_icopor"],
+                            var_name="donde", value_name="kg")
+    largo["donde"] = largo["donde"].map({"kg_congelado": "en el congelador", "kg_icopor": "desborde a icopor"})
+    barras = alt.Chart(largo).mark_bar(cornerRadiusTopLeft=4, cornerRadiusTopRight=4, stroke="white", strokeWidth=2).encode(
+        x=alt.X("dia:O", title="día del ciclo (el comprador llega al final)", axis=alt.Axis(labelAngle=0)),
+        y=alt.Y("kg:Q", stack=True, title="kg guardados"),
+        color=alt.Color("donde:N", scale=alt.Scale(domain=["en el congelador", "desborde a icopor"],
+                                                   range=[COLOR_VALOR, COLOR_PERDIDA]),
+                        legend=alt.Legend(title=None, orient="top")),
+        order=alt.Order("donde:N", sort="descending"),
+        tooltip=["dia:O", "donde:N", alt.Tooltip("kg:Q", format=",.0f")],
+    )
+    capacidad = alt.Chart(inventario).mark_rule(color=COLOR_TEXTO_SECUNDARIO, strokeDash=[6, 4], strokeWidth=2).encode(
+        y="mean(capacidad_kg):Q", tooltip=[alt.Tooltip("mean(capacidad_kg):Q", title="capacidad (kg)")])
+    cortes = alt.Chart(inventario[inventario["corte_h"] > 0]).mark_text(text="⚡ corte", dy=-10, fontSize=12,
+                                                                          color=COLOR_TEXTO_SECUNDARIO).encode(
+        x="dia:O", y=alt.value(0), tooltip=[alt.Tooltip("corte_h:Q", title="horas sin luz", format=".1f")])
+    return (barras + capacidad + cortes).properties(height=320)
+
+
+def grafico_zonas(zonas):
+    """% del valor perdido por zona, con el intervalo del 90 %."""
+    import altair as alt
+
+    orden = list(zonas.sort_values("pct_valor_perdido", ascending=False)["nombre"])
+    y = alt.Y("nombre:N", sort=orden, title=None)
+    tooltip = ["nombre:N", alt.Tooltip("pct_valor_perdido:Q", title="% perdido (media)", format=".1f"),
+               alt.Tooltip("pct_valor_perdido_p5:Q", title="p5", format=".1f"),
+               alt.Tooltip("pct_valor_perdido_p95:Q", title="p95", format=".1f"),
+               alt.Tooltip("kg_mes:Q", title="kg al mes", format=",.0f")]
+    barras = alt.Chart(zonas).mark_bar(color=COLOR_PERDIDA, cornerRadiusTopRight=4, cornerRadiusBottomRight=4, height=16).encode(
+        x=alt.X("pct_valor_perdido:Q", title="% del valor perdido", scale=alt.Scale(domain=[0, 100])), y=y, tooltip=tooltip)
+    intervalo = alt.Chart(zonas).mark_rule(color=COLOR_TEXTO_SECUNDARIO, strokeWidth=2).encode(
+        x="pct_valor_perdido_p5:Q", x2="pct_valor_perdido_p95:Q", y=y)
+    return (barras + intervalo).properties(height=28 * len(zonas))

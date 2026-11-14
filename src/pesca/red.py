@@ -358,3 +358,9 @@ def opciones_lugares(g: nx.DiGraph) -> dict[str, str]:
     elegibles = [n for n, a in g.nodes(data=True) if a["lugar"] in orden]
     elegibles.sort(key=lambda n: (orden[g.nodes[n]["lugar"]], g.nodes[n]["capa"]))
     return {n: f"{g.nodes[n]['nombre']} ({capas[g.nodes[n]['capa']]})" for n in elegibles}
+
+
+@cache
+def subgrafo_modo(g: nx.DiGraph, *modos: str) -> nx.DiGraph:
+    """Vista del grafo con solo las aristas de los modos dados (p. ej. solo rio)."""
+    return g.edge_subgraph([(u, v) for u, v, d in g.edges(data=True) if d["modo"] in modos])

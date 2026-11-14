@@ -5,6 +5,9 @@ Todo numero del modelo vive en datos/parametros.yaml; aqui solo se lee.
 
 from __future__ import annotations
 
+import contextlib
+import contextvars
+from collections.abc import Iterator
 from functools import cache
 from pathlib import Path
 from typing import Any
@@ -87,9 +90,28 @@ def hoja(ruta: str) -> dict[str, Any]:
     return nodo
 
 
+# Valores que reemplazan a los del yaml dentro de `sobrescribir` (Monte Carlo y pruebas)
+_SOBRESCRITOS: contextvars.ContextVar[dict[str, Any]] = contextvars.ContextVar("sobrescritos", default={})
+
+
 def parametro(ruta: str) -> Any:
     """Valor de un parametro, p. ej. parametro('general.semilla')."""
+    sobrescritos = _SOBRESCRITOS.get()
+    if ruta in sobrescritos:
+        return sobrescritos[ruta]
     return hoja(ruta)["valor"]
+
+
+@contextlib.contextmanager
+def sobrescribir(valores: dict[str, Any]) -> Iterator[None]:
+    """Dentro del bloque, parametro(ruta) devuelve valores[ruta] en vez del valor del yaml."""
+    for ruta in valores:
+        hoja(ruta)  # falla si el parametro no existe
+    token = _SOBRESCRITOS.set({**_SOBRESCRITOS.get(), **valores})
+    try:
+        yield
+    finally:
+        _SOBRESCRITOS.reset(token)
 
 
 @cache

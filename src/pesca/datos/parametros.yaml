@@ -30,6 +30,11 @@ rio:
     valor: 0.20
     etiqueta: CALIBRADO
     nota: La sinuosidad se calibra con M02 y M04 y varia ±20 % en Monte Carlo
+  escala_sinuosidad:
+    valor: 1.0
+    rango: [0.8, 1.2]
+    etiqueta: CALIBRADO
+    nota: Multiplica la sinuosidad de los tramos sin medir en Monte Carlo (±20 %)
   tiempo_transbordo_h:
     valor: 0.5
     rango: [0.25, 1.5]
@@ -181,6 +186,19 @@ cadena_actual:
     rango: [0.10, 0.50]
     etiqueta: SIMULADO
     nota: Pescadores con nevera de icopor en buen estado
+  horas_hielo_desborde:
+    valor: 24.0
+    rango: [12.0, 48.0]
+    etiqueta: SIMULADO
+    nota: Hielo que se pone en las neveras de icopor al recibir el pescado que no cabe en el congelador (o donde no hay congelador)
+  ciclo_comprador_san_miguel_dias:
+    valor: {min: 7, max: 15}
+    etiqueta: CONFIRMAR
+    nota: Uniforme. El cuarto frio se dejo de usar porque no se podia pagar la luz; hoy el pescado espera en icopor
+  comprador_trae_hielo:
+    valor: false
+    etiqueta: CONFIRMAR
+    nota: Si el comprador lleva el pescado en icopor con hielo por la carretera
   candidatas_desembarque_senora:
     valor: [D01a, D01b, D01c, D01d]
     etiqueta: CONFIRMAR
@@ -222,6 +240,39 @@ volumen:
     valor: 270
     etiqueta: DATO
     nota: Veda del 1 de mayo al 31 de julio. Se usa para el VPN anual
+
+poblacion:
+  kg_por_faena:
+    valor: 20.0
+    rango: [10.0, 40.0]
+    etiqueta: SIMULADO
+    nota: kg promedio por faena; el numero de pescadores se deriva para reproducir el volumen calibrado
+  faenas_semana:
+    valor: 4
+    rango: [3, 6]
+    etiqueta: SIMULADO
+    nota: Faenas por semana en el mes de mas desembarcos
+  fraccion_informal_vichada:
+    valor: 0.15
+    rango: [0.05, 0.30]
+    etiqueta: SIMULADO
+    nota: Parte del volumen no registrado que sale del Vichada; el resto va donde la señora
+  radio_ubicacion_km:
+    valor: 5.0
+    etiqueta: SIMULADO
+    nota: Cada pescador se ubica sobre el rio a lo sumo a esta distancia (por agua) de su zona
+  zonas_por_sitio:
+    valor:
+      malecon: [P01, P03, P04, P08, P09, P10, P11, C01]
+      san_miguel: [P02, P12]
+      senora: [P01, P02, P03, P04, P08, P09, P10, P11, P12, C01]
+      vichada: [P05, P06, P07]
+    etiqueta: SIMULADO
+    nota: Zonas que desembarcan en cada sitio; dentro de cada sitio las zonas pesan igual
+  desembarque_vichada:
+    valor: {P05: V02, P06: A03, P07: V01}
+    etiqueta: CONFIRMAR
+    nota: En el Vichada el pescado se entrega donde el rio cruza la via
 
 flota:
   mezcla:
