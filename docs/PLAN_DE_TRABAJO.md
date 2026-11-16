@@ -17,14 +17,13 @@
 > Claude Code actualiza esta sección cada vez que se cierra una sesión (prompt "Cierre de sesión").
 
 - **Última actualización:** lunes 16 nov 2026 (Bogotá)
-- **Fase actual:** fases 0 a 5 cerradas (Fase 5: commit `fase 5: bimodal, frio e inversion (R5)`). La Fase 6 no ha empezado. La app abre y `pytest -q` pasa (291 tests). Precalculado R2, R4 y R5 al día.
+- **Fase actual:** fases 0 a 5 cerradas y en GitHub (último commit de fase: af5ee6f, `fase 5: bimodal, frio e inversion (R5)`). La Fase 6 no ha empezado. La app abre y `pytest -q` pasa (291 tests). Precalculado R2, R4 y R5 al día.
 - **Resultados de R5** (todo SIMULADO; población de ejemplo, Monte Carlo de 100 corridas):
   - Recomendado: con 100 M, el acopio nuevo de R4 (I4, VPN 116 M); con 250 M y con 500 M, San Miguel + acopio nuevo (I3a + I4, VPN 158 M). Con 500 M no conviene gastar más: lo que sigue (camión) tiene VPN negativo.
   - Ninguna medida pasa la regla del 70 %: San Miguel 61 %, I3a + I4 52 %, I4 45 % de corridas con VPN > 0.
   - El hielo (I1, I2) salva casi nada: el pescado que llega a la plaza ya está en el mejor precio y el que espera se daña por la espera, no por el río. Confirma el diagnóstico.
   - El camión diario (I5:1) es la medida que más valor salva (145 M/año), pero su operación (≈ 250 M/año por 274 km diarios) la hace inviable.
 - **Qué quedó a medias:**
-  - Push de la Fase 5.
   - El Meta boca del Manacacías → San Miguel quedó ×1,00: X01 (estimada) probablemente está muy al occidente.
   - El usuario tiene en mente cambios a la Fase 1 y decide al final del proyecto.
 - **Siguiente paso concreto:** elegir la propuesta final (R3 + R4 + R5; la sugerida es San Miguel + acopio nuevo) y correr el prompt de la Fase 6 en una sesión nueva (`/clear`). La entrega era el domingo 15: si no alcanza, aplicar los recortes del plan.
@@ -182,7 +181,7 @@
 **Hecho cuando:**
 - [x] Ningún portafolio excede su presupuesto.
 - [x] Se ve el efecto de cada medida sola y combinada.
-- [x] Commit (`fase 5: bimodal, frio e inversion (R5)`); falta el push.
+- [x] Commit y push (af5ee6f).
 
 ## Fase 6. Hoy vs propuesta, cartilla, pulido y release (R6)
 
@@ -198,7 +197,7 @@
 - Revisa la app pública desde el celular.
 
 **Hecho cuando:**
-- [ ] La pantalla "Hoy vs propuesta" está lista y la cartilla se descarga.
+- [x] La pantalla "Hoy vs propuesta" está lista y la cartilla se descarga (PDF y CSV).
 - [ ] Se instala desde GitHub.
 - [ ] El repo pasa a público y la app se despliega en Streamlit Community Cloud con link (decisión del 14 nov: solo al final).
 - [ ] Hay release `v1.0`.
@@ -292,3 +291,6 @@ El núcleo (`red`, `busqueda`, `transporte`, `degradacion`, `asignacion`, `escen
 | 16 nov | — | R5: cada medida I1–I7 es un cambio del `Escenario` (cajas térmicas, hielo a bordo, acopios, acopio nuevo de R4, ruta del camión cada N días, subsidio de motor, desembarque mejorado). Valor = costo evitado en el reparto óptimo de la flota frente al óptimo de hoy, como en R4 | Claude (Fase 5) |
 | 16 nov | — | 384 portafolios (I2 exige I1; un solo N de camión) con la población de ejemplo; Pareto en inversión inicial vs valor salvado al año; recomendado = mayor VPN entre los que caben en el presupuesto (100, 250 y 500 M). Monte Carlo (100 corridas) solo para hoy, las medidas solas y los recomendados | Claude (Fase 5) |
 | 16 nov | — | Ruta del camión (I5): circuito por carretera plaza → desembarques y acopios → plaza (vecino más cercano); combustible por los 270 días de pesca / N. Con el desembarque mejorado (I7) el congelador de la señora no tiene tope de capacidad. La probabilidad de congelador con el camión sigue la del Monte Carlo de R2 (conservador) | Claude (Fase 5) |
+| 16 nov | — | Propuesta final (R6): San Miguel rehabilitado + acopio nuevo de R4 (I3a + I4), con los pescadores siguiendo el recomendador. Cartilla en PDF (Matplotlib) y CSV. El repo pasa a público en la Fase 6 | usuario (Fase 6) |
+| 16 nov | — | Hoy vs propuesta con la misma base de R3–R5 (valores esperados del recomendador; hoy = desembarque habitual, propuesta = reparto óptimo). La mejora se separa en lo que da seguir el recomendador (sin invertir) y lo que agrega la inversión. R2 sigue siendo la simulación día a día | Claude (Fase 6) |
+| 16 nov | — | El resumen de resultados (`outputs/resumen_resultados.md`) se genera solo desde lo precalculado más el reparto de R3 (liviano). La cartilla y su PDF se precalculan para que la página no calcule nada al cargar | Claude (Fase 6) |

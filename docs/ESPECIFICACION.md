@@ -507,6 +507,8 @@ Van en `src/pesca/datos/parametros.yaml`. Son **[SIMULADO]** salvo que diga otra
 | I6 subsidio de motor | 50 % de 9 M por motor, al 50 % de los botes a remo | 6–13 M / 30–80 % | el pescador paga la gasolina |
 | I7 desembarque mejorado | 25 M + 3 M/año | 15–40 M / 2–5 M | donde la señora: todo cabe en el congelador y no hay cortes |
 | presupuestos de la alcaldía (inversión inicial) | 100 M, 250 M y 500 M COP | — | recomendado = mayor VPN entre los que caben |
+| propuesta final (R6) | I3a + I4: San Miguel rehabilitado + acopio nuevo de R4, con el recomendador | — | decisión del usuario, 16 nov |
+| cartilla de rutas | 20 kg por faena, nevera de icopor deteriorada, las dos temporadas | — | |
 
 ---
 

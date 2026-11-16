@@ -465,6 +465,16 @@ inversiones:
     etiqueta: SIMULADO
     nota: I7. Mantenimiento
 
+propuesta:
+  portafolio:
+    valor: [I3a, I4]
+    etiqueta: SIMULADO
+    nota: Propuesta final de R6 (decision del usuario, 16 nov) = San Miguel rehabilitado + acopio nuevo de R4, el recomendado de R5 para 250 M
+  nevera_cartilla:
+    valor: deteriorada
+    etiqueta: SIMULADO
+    nota: La cartilla supone la nevera mas comun hoy (icopor deteriorado)
+
 ubicacion:
   k_max_agregar:
     valor: 3

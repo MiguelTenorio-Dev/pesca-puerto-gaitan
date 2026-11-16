@@ -189,7 +189,7 @@ def mapa_busqueda(grafo: nx.DiGraph, resultado: ResultadoBusqueda, paso: int | N
 COLOR_VALOR = "#2a78d6"
 COLOR_PERDIDA = "#eb6834"
 COLOR_TEXTO_SECUNDARIO = "#52514e"
-COLOR_SITIO = {"malecon": "#2a78d6", "san_miguel": "#eb6834", "senora": "#1baf7a", "vichada": "#eda100"}
+COLOR_SITIO = {"malecon": "#2a78d6", "san_miguel": "#eb6834", "senora": "#1baf7a", "vichada": "#eda100", "acopio": "#8f5bd6"}
 
 
 def mapa_recorridos(grafo: nx.DiGraph, flujos: dict[tuple[str, str], float], desembarques: dict[str, str]) -> folium.Map:

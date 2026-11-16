@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pesca-puerto-gaitan"
-version = "0.1.0"
+version = "1.0.0"
 description = "Transporte y cadena de frio del pescado en Puerto Gaitan (Meta): diagnostico, optimizacion y app web"
 readme = "README.md"
 requires-python = ">=3.12"

@@ -517,7 +517,7 @@ def problema_transporte(escenario: Escenario, pob: pd.DataFrame | None = None, m
             "kg_dia": kg,
             "costo_kg": costos.get((pescador, d), p0),
             "cop_kg": valores.get((pescador, d), 0.0),
-            "ruta": o.ruta if o else (),
+            **detalle_opcion(o),
         })
     tabla = pd.DataFrame(filas).merge(pob[["id", "zona", "embarcacion", "sitio"]], left_on="pescador", right_on="id").drop(columns="id")
     uso = tabla.groupby(["destino", "destino_nombre"], as_index=False)["kg_dia"].sum()
@@ -544,8 +544,17 @@ def asignacion_hoy(escenario: Escenario, pob: pd.DataFrame | None = None) -> pd.
         habitual = next((o for o in rec.alternativas if o.destino == pesc.desembarque and o.factible), None)
         o = habitual if habitual is not None else rec.mejor
         filas.append({"pescador": pesc.id, "destino": o.destino if o else SIN_DESTINO, "kg_dia": oferta[pesc.id],
-                      "cop_kg": o.cop_kg if o else 0.0, "viaje_kg": o.costo_viaje / pesc.kg_por_faena if o else 0.0})
+                      "cop_kg": o.cop_kg if o else 0.0, "viaje_kg": o.costo_viaje / pesc.kg_por_faena if o else 0.0,
+                      **detalle_opcion(o)})
     return pd.DataFrame(filas)
+
+
+def detalle_opcion(o: Opcion | None) -> dict:
+    """Ruta, km, horas y calidad de la forma de vender elegida (vacio si el pescado no tiene destino)."""
+    if o is None:
+        return {"ruta": (), "km_rio": 0.0, "km_via": 0.0, "horas_hasta_venta": float("nan"), "calidad": 0.0}
+    return {"ruta": o.ruta, "km_rio": o.km_rio, "km_via": o.km_via, "horas_hasta_venta": o.horas_hasta_venta,
+            "calidad": o.calidad}
 
 
 def costo_hoy(escenario: Escenario, pob: pd.DataFrame | None = None) -> float:

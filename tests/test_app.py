@@ -58,3 +58,13 @@ def test_bimodal_cambia_presupuesto_y_usa_el_portafolio():
     at.button(key="usar_portafolio").click().run()
     assert not at.exception, at.exception
     assert at.session_state["escenario"].inversiones
+
+
+def test_hoy_vs_propuesta_cambia_temporada_y_descarga():
+    pagina = config.DIR_APP / "pages" / "09_Hoy_vs_propuesta.py"
+    at = AppTest.from_file(str(pagina), default_timeout=60).run()
+    assert not at.exception, at.exception
+    at.radio(key="temporada_r6").set_value("aguas_altas").run()
+    assert not at.exception, at.exception
+    at.selectbox(key="zona_cartilla").set_value(at.selectbox(key="zona_cartilla").options[1]).run()
+    assert not at.exception, at.exception

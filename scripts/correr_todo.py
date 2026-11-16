@@ -8,13 +8,15 @@ from __future__ import annotations
 import argparse
 import time
 
-from pesca import cadena_actual, frio_bimodal, ubicacion
+from pesca import cadena_actual, comparacion, frio_bimodal, ubicacion
 
 # Cada fase registra aqui su funcion de precalculo (r2, r4, r5, resumen).
 TAREAS: dict[str, callable] = {
     "r2": cadena_actual.precalcular,
     "r4": ubicacion.precalcular,
     "r5": frio_bimodal.precalcular,
+    "r6": comparacion.precalcular,
+    "resumen": comparacion.escribir_resumen,  # al final: lee lo precalculado
 }
 
 
