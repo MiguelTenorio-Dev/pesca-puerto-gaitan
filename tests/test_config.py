@@ -57,7 +57,43 @@ def test_nodos_validos():
     assert set(nodos["cuenca"]) <= config.CUENCAS
     assert nodos["lat"].between(3.5, 5.0).all()
     assert nodos["lon"].between(-73.0, -70.5).all()
-    assert (nodos["validado"] == "no").all()
+    assert set(nodos["validado"]) <= {"no", "si"}
+    # Solo lo medido en KML queda validado
+    validados = nodos[nodos["validado"] == "si"]
+    assert validados["fuente"].str.startswith("KML medido").all()
+
+
+def test_puntos_kml_tienen_uso_definido():
+    kml = config.cargar_puntos_kml()
+    assert set(kml["uso"]) <= {"nodo", "referencia", "descartado"}
+    assert kml["nombre_kml"].is_unique
+    nodos = set(config.cargar_nodos()["id"])
+    assert set(kml.loc[kml["uso"] == "nodo", "id"]) <= nodos
+    # Los mercados de referencia no entran al grafo
+    assert not set(config.puntos_referencia()["id"]) & nodos
+
+
+def test_kml_tiene_prioridad_sobre_la_coordenada_estimada():
+    kml = config.cargar_puntos_kml()
+    kml = kml[kml["uso"] == "nodo"].set_index("id")
+    assert {"A02", "D_MALECON"} <= set(kml.index)
+    nodos = config.cargar_nodos().set_index("id")
+    rios = config.cargar_rios()
+    vias = config.cargar_vias()
+    for i, p in kml.iterrows():
+        assert (nodos.at[i, "lat"], nodos.at[i, "lon"]) == (p["lat"], p["lon"])
+        assert nodos.at[i, "validado"] == "si"
+        # Las trazas pasan por la misma coordenada
+        for traza in (rios, vias):
+            filas = traza[traza["id_nodo"] == i]
+            assert (filas["lat"] == p["lat"]).all() and (filas["lon"] == p["lon"]).all()
+
+
+def test_punto_descartado_no_cambia_nodos():
+    kml = config.cargar_puntos_kml()
+    descartado = kml[kml["uso"] == "descartado"]
+    assert set(descartado["nombre_kml"]) == {"San Miguel punto de desembarque"}
+    assert descartado["id"].isna().all()
 
 
 def test_nodos_esperados():

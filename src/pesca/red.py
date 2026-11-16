@@ -190,13 +190,27 @@ def _calibrar(tramos: list[Tramo], objetivos: pd.DataFrame, escala_sinuosidad: f
         sinuosidad[modo] = float(s)
         ids = " y ".join(medidas["id"])
 
+        # Tope del factor compartido: cada ruta medida debe dejar a sus tramos exclusivos un factor >= 1
+        compartido, nota = s, "sinuosidad calibrada"
+        for m in medidas.itertuples():
+            crudo_comp = sum(propios[i].crudo_km for i in caminos[m.id] if uso[i] > 1)
+            crudo_excl = sum(propios[i].crudo_km for i in caminos[m.id] if uso[i] == 1)
+            if crudo_comp > 0 and crudo_excl > 0 and (m.km_medido - crudo_excl) / crudo_comp < compartido:
+                compartido = (m.km_medido - crudo_excl) / crudo_comp
+                nota = f"sinuosidad acotada a {compartido:.3f} para reproducir {m.id}"
+        if compartido < 1:
+            raise ValueError(
+                f"Los tramos compartidos de {modo} necesitarían un factor de {compartido:.3f} < 1. "
+                "Revisa las coordenadas de la traza: miden más que la ruta medida."
+            )
+
         for i, t in enumerate(propios):
             if uso[i] == 0:
                 t.factor, t.etiqueta = s * escala_sinuosidad, "CALIBRADO"
                 t.fuente = f"línea recta × sinuosidad calibrada con {ids}"
             elif uso[i] > 1:
-                t.factor, t.etiqueta = s, "CALIBRADO"
-                t.fuente = f"compartido por {' y '.join(t.rutas)}: sinuosidad calibrada"
+                t.factor, t.etiqueta = compartido, "CALIBRADO"
+                t.fuente = f"compartido por {' y '.join(t.rutas)}: {nota}"
 
         for m in medidas.itertuples():
             exclusivos = [i for i in caminos[m.id] if uso[i] == 1]

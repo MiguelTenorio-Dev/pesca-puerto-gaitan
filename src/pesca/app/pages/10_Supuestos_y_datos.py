@@ -57,6 +57,8 @@ with tab_nodos:
         ).add_to(mapa)
     st_folium(mapa, height=450, use_container_width=True, returned_objects=[])
     st.dataframe(nodos, hide_index=True, width="stretch")
+    st.markdown("**Mercados de referencia** (medidos en KML por el equipo; no entran a la red)")
+    st.dataframe(config.puntos_referencia(), hide_index=True, width="stretch")
 
 with tab_dist:
     dist = config.cargar_distancias_medidas()

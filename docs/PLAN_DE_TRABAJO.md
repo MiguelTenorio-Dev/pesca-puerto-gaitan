@@ -16,17 +16,22 @@
 
 > Claude Code actualiza esta sección cada vez que se cierra una sesión (prompt "Cierre de sesión").
 
-- **Última actualización:** sábado 14 nov 2026, 14:18 (Bogotá)
-- **Fase actual:** fases 0 a 4 cerradas y en GitHub (último commit de fase: d341147, `fase 4: acopios (R4)`). La Fase 5 no ha empezado. La app abre y `pytest -q` pasa (269 tests). No hay cambios rotos.
+- **Última actualización:** lunes 16 nov 2026 (Bogotá)
+- **Fase actual:** fases 0 a 4 cerradas. Integrados los datos nuevos del KML `transporte de cachama .kml` (commit `datos: puntos KML de San Miguel y el malecon`). La Fase 5 no ha empezado. La app abre y `pytest -q` pasa (275 tests). Precalculado R2 y R4 regenerado con los datos nuevos.
+- **Qué cambió con el KML** (solo puntos, sin rutas; M01–M04 siguen del CSV):
+  - San Miguel (A02) y el malecón (D_MALECON) quedan con coordenada medida (`validado = si`); un punto se descartó y Villavicencio y Corabastos quedan de referencia (`puntos_kml.csv`).
+  - Sinuosidad río 1,18 → 1,11 y vía 1,34 → 1,27. El factor compartido del Manacacías se acota (×1,097) para que M04 cuadre.
+  - R2: la conclusión no cambia (la espera pesa más que el río en las 4 candidatas y las dos temporadas); la pérdida en el río baja 1–7 %.
+  - R3: mismos destinos; costo óptimo de la flota 1,283 M → 1,244 M COP/día.
+  - R4: San Miguel baja de 66,6 % a 60,8 % de corridas con VPN > 0 (sigue sin pasar la regla del 70 %); p-mediana igual salvo p = 5 y 6 del modo "mover".
 - **Qué quedó a medias:**
   - Fase 5 sin empezar: faltan los costos de las inversiones I1–I7.
-  - Geometría del KML para las trazas (solo se usa su longitud, y todavía no hay KML).
+  - El Meta boca del Manacacías → San Miguel quedó ×1,00: X01 (estimada) probablemente está muy al occidente.
   - El usuario tiene en mente cambios a la Fase 1 y decide al final del proyecto.
-  - Resultado de R4 para revisar: San Miguel queda en 66,6 % de corridas con VPN > 0, justo debajo de la regla del 70 %. Con datos reales de energía o de costos podría cambiar.
-- **Siguiente paso concreto:** abrir una sesión nueva (`/clear`) y correr el prompt de la Fase 5 de `docs/PROMPTS_POR_FASE.md`. Antes, definir con Claude los costos de I1–I7 (o aceptar valores SIMULADO).
+- **Siguiente paso concreto:** la entrega era el domingo 15 y la presentación es hoy: decidir si se aplican los recortes ("Si vas atrasado") o se va directo a la Fase 6. Si se sigue el orden, abrir una sesión nueva (`/clear`) y correr el prompt de la Fase 5, empezando por los costos de I1–I7 (o aceptar valores SIMULADO).
 - **Datos pendientes del equipo:**
-  - KML de M01–M04.
-  - Coordenadas de A02, A03, X01 y C01: el tramo Yucao → boca del Manacacías necesita ×1,86, y la vía a Puente Arimena da 91 km frente al km 68 de la ANI.
+  - KML con rutas (LineString) de M01–M04, si se quiere la geometría real de las trazas.
+  - Coordenadas de X01 (prioridad), A01, A03 y C01: el tramo Yucao → boca del Manacacías necesita ×1,87, y la vía a Puente Arimena da 91 km frente al km 68 de la ANI.
   - A qué río desembocan los caños P08–P12 (D5).
   - Si Puente Arimena está sobre el Muco y si el Planas y el Guarrojo cruzan la vía.
   - Si aparecen: factura o consumo de luz del cuarto frío de San Miguel, y precios reales de cajas térmicas, hielo y camión refrigerado.
@@ -281,3 +286,7 @@ El núcleo (`red`, `busqueda`, `transporte`, `degradacion`, `asignacion`, `escen
 | 14 nov | — | Viabilidad: beneficio = costo evitado (valor perdido + viaje) en el reparto óptimo de la flota × 270 días; costos = rehabilitación + operación + energía explícita (365 días). VPN a 5 años al 12 %. Cada corrida usa su propia población y sortea la temporada | Claude (Fase 4) |
 | 14 nov | — | p-mediana sin capacidades sobre 30 puntos del río + los 3 acopios actuales; costo por kg igual al del recomendador (acopio = cuarto frío 24 h + transbordo + carretera en carro). "Mover los 3" puede dejar la plaza sin acopio en el malecón: la plaza sigue vendiendo lo que llega por carretera | Claude (Fase 4) |
 | 14 nov | — | Acopios nuevos en el escenario (`acopios_nuevos`): puntos del río con acceso vial estimado (línea recta × sinuosidad vial) | Claude (Fase 4) |
+| 16 nov | D4 | KML `transporte de cachama .kml` (solo puntos, sin rutas): corrige `D_MALECON` y `A02` (`validado = si`). Prioridad de coordenadas: KML > CSV, declarada en `puntos_kml.csv`. M01–M04 siguen del CSV | Claude (datos nuevos) |
+| 16 nov | — | El punto "San Miguel punto de desembarque" (4,3944; −72,1008) se descarta como error o duplicado | usuario |
+| 16 nov | — | Central de abastos de Villavicencio y Corabastos: solo de referencia, fuera de la red | usuario |
+| 16 nov | — | Con San Miguel medido, la línea recta boca del Manacacías → San Miguel ya es 33,1 km y M04 no cabía con la sinuosidad global en el tramo compartido. Calibración: el factor compartido se acota para que cada ruta deje a sus tramos exclusivos un factor ≥ 1 (sigue la heurística admisible). El Meta boca → San Miguel queda ×1,00: indica que X01 (estimada) está muy al occidente o que la traza del Meta es corta; corregir X01 con KML es la siguiente prioridad | Claude (datos nuevos) |

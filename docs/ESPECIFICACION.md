@@ -110,6 +110,10 @@ Para cada tramo se usa la mejor fuente disponible:
 3. Calibrado a partir de lo medido.
 4. Simulado.
 
+Para las **coordenadas** de los lugares el orden es:
+1. Punto medido en KML por el equipo (`rutas_kml/*.kml`, `validado = si`). Su uso se declara en `src/pesca/datos/puntos_kml.csv`: `nodo` (corrige un nodo y las trazas que pasan por él), `referencia` (fuera de la red) o `descartado`.
+2. Coordenada estimada de `nodos.csv`, `rios.csv` o `vias.csv` (`validado = no`).
+
 Para volúmenes y precios el orden es:
 1. Dato oficial (SEPEC, SIPSA, §4.7).
 2. Dato del equipo.
@@ -161,7 +165,15 @@ Archivo: `src/pesca/datos/nodos.csv`. Columnas: `id, nombre, tipo, cuenca, lat, 
 - `confluencia`: X01 (boca del Manacacías) y K08–K12 (bocas de los caños, posición de relleno);
 - `punto_via` (carretera): V01 y V02, donde el Planas y el Guarrojo cruzan la vía a Puente Arimena [CONFIRMAR].
 
-Las trazas de ríos y vías están en `src/pesca/datos/rios.csv` y `vias.csv` (aproximadas, `validado = no`, hasta que llegue el KML).
+Las trazas de ríos y vías están en `src/pesca/datos/rios.csv` y `vias.csv` (aproximadas, `validado = no`). Los vértices de un nodo medido en KML toman la coordenada del KML.
+
+**Puntos medidos en KML** (`rutas_kml/transporte de cachama .kml`, 16 nov) [MEDIDO, Google Earth]:
+- Malecón de Puerto Gaitán (`D_MALECON`): 4,31156; −72,07683. La estimada estaba a 0,45 km.
+- San Miguel (`A02`): 4,51168; −71,86234. La estimada estaba a 2,35 km.
+- Central de abastos de Villavicencio y Corabastos (Bogotá): solo de referencia, no entran a la red.
+- Un punto llamado "San Miguel punto de desembarque" (4,3944; −72,1008) queda a 27 km de San Miguel y se descartó como error o duplicado.
+
+El KML no trae rutas (LineString): M01–M04 siguen saliendo de `distancias_medidas.csv`.
 
 ### 4.5 Aristas
 
@@ -440,7 +452,7 @@ Van en `src/pesca/datos/parametros.yaml`. Son **[SIMULADO]** salvo que diga otra
 | parámetro | valor inicial | rango MC | nota |
 |---|---|---|---|
 | `semilla` | 42 | — | |
-| sinuosidad sin medir | río 1,18 (M02 + M04) · vía 1,34 (M01 + M03) | ±20 % | [CALIBRADO] en la Fase 1. Los tramos exclusivos de cada ruta medida se escalan para reproducirla: M02 ×1,86, M04 ×1,07, M01 ×1,57, M03 ×1,27 |
+| sinuosidad sin medir | río 1,11 (M02 + M04) · vía 1,27 (M01 + M03) | ±20 % | [CALIBRADO] con San Miguel y el malecón medidos en KML (16 nov; antes 1,18 y 1,34). Los tramos exclusivos de cada ruta medida se escalan para reproducirla: M02 ×1,87, M04 ×1,00, M01 ×1,57, M03 ×1,18. El tramo compartido (Manacacías, malecón → boca) queda acotado a ×1,097 para que M04 no exija un factor < 1 |
 | corriente, aguas altas / bajas (km/h) | 4 / 2 | 3–6 / 1–3 | escenario base: aguas bajas [CONFIRMAR] |
 | `v_minima` (km/h) | 1 | — | |
 | velocidades de embarcación y de carretera | §5 | §5 | |
@@ -507,7 +519,7 @@ Van en `src/pesca/datos/parametros.yaml`. Son **[SIMULADO]** salvo que diga otra
 | D1 | Entrega | **resuelta:** todo funcional el domingo 15; presentación el lunes 16 en la mañana. El formato del informe no está definido |
 | D2 | Modelo multimodal (río + carretera) | **resuelta:** sí, es parte del diagnóstico y de la solución |
 | D3 | "Embalses u ornamentación" en la inversión de la alcaldía | **resuelta:** se interpreta como infraestructura de cadena de frío (I1–I7) |
-| D4 | Coordenadas exactas de los acopios y del desembarque | **abierta** (§4.6) |
+| D4 | Coordenadas exactas de los acopios y del desembarque | **abierta a medias** (§4.6): San Miguel y el malecón ya están medidos en KML; faltan la plaza (A01), Puente Arimena (A03), la boca del Manacacías (X01) y Yucao (C01) |
 | D5 | ¿A qué cuenca pertenece cada caño menor? | abierta. Por defecto: Meta o Manacacías [CONFIRMAR] |
 | D6 | ¿Individual o en equipo? | **resuelta:** individual, en `main` |
 | D7 | Acopios del proyecto | **resuelta:** Puerto Gaitán, San Miguel y Puente Arimena. Yucao es una comunidad pescadora |

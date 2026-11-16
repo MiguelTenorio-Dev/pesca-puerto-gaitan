@@ -30,7 +30,7 @@
     "R_META_07@rio": "R_META_04@rio",
     "R_YUCAO_01@rio": "R_META_04@rio"
    },
-   "costo_dia": 1196213.0134941468,
+   "costo_dia": 1139561.171354269,
    "acopios": [
     {
      "nodo": "R_META_04@rio",
@@ -57,7 +57,7 @@
     "P02@rio": "R_META_05@rio",
     "P03@rio": "R_META_03@rio",
     "P04@rio": "R_META_03@rio",
-    "P05@rio": "R_META_03@rio",
+    "P05@rio": "R_META_05@rio",
     "P07@rio": "R_META_03@rio",
     "P08@rio": "R_META_05@rio",
     "P09@rio": "R_META_03@rio",
@@ -74,7 +74,7 @@
     "R_META_07@rio": "R_META_05@rio",
     "R_YUCAO_01@rio": "R_META_03@rio"
    },
-   "costo_dia": 905461.8581238403,
+   "costo_dia": 877279.9502831892,
    "acopios": [
     {
      "nodo": "R_META_03@rio",
@@ -112,7 +112,7 @@
     "P03@rio": "R_MANACACIAS_01@rio",
     "P04@rio": "R_META_02@rio",
     "P05@rio": "R_META_02@rio",
-    "P07@rio": "R_MANACACIAS_01@rio",
+    "P07@rio": "R_META_05@rio",
     "P08@rio": "R_META_05@rio",
     "P09@rio": "R_MANACACIAS_01@rio",
     "P10@rio": "R_MANACACIAS_01@rio",
@@ -128,7 +128,7 @@
     "R_META_07@rio": "R_META_05@rio",
     "R_YUCAO_01@rio": "R_META_02@rio"
    },
-   "costo_dia": 584728.0460442235,
+   "costo_dia": 563860.216720118,
    "acopios": [
     {
      "nodo": "R_MANACACIAS_01@rio",
@@ -176,7 +176,7 @@
     "P03@rio": "R_MANACACIAS_01@rio",
     "P04@rio": "R_META_02@rio",
     "P05@rio": "R_GUARROJO_01@rio",
-    "P07@rio": "R_GUARROJO_01@rio",
+    "P07@rio": "R_MANACACIAS_01@rio",
     "P08@rio": "R_META_05@rio",
     "P09@rio": "R_MANACACIAS_01@rio",
     "P10@rio": "R_MANACACIAS_01@rio",
@@ -192,7 +192,7 @@
     "R_META_07@rio": "R_META_05@rio",
     "R_YUCAO_01@rio": "R_META_02@rio"
    },
-   "costo_dia": 502369.5276531059,
+   "costo_dia": 482238.76919127617,
    "acopios": [
     {
      "nodo": "R_GUARROJO_01@rio",
@@ -200,8 +200,8 @@
      "actual": false,
      "nombre": "Punto del río Guarrojo",
      "rio": "guarrojo",
-     "lat": 4.08068,
-     "lon": -71.7466
+     "lat": 4.08835,
+     "lon": -71.74575
     },
     {
      "nodo": "R_MANACACIAS_01@rio",
@@ -237,46 +237,37 @@
    "p": 5,
    "k": null,
    "abiertos": [
-    "R_CANO_CANOMORROCO_01@rio",
     "R_CANO_MAICIANA_01@rio",
     "R_GUARROJO_01@rio",
     "R_META_02@rio",
-    "R_META_05@rio"
+    "R_META_04@rio",
+    "R_META_06@rio"
    ],
    "asignacion": {
     "C01@rio": "R_META_02@rio",
     "P01@rio": "R_META_02@rio",
-    "P02@rio": "R_META_05@rio",
+    "P02@rio": "R_META_06@rio",
     "P03@rio": "R_CANO_MAICIANA_01@rio",
     "P04@rio": "R_META_02@rio",
     "P05@rio": "R_GUARROJO_01@rio",
     "P07@rio": "R_GUARROJO_01@rio",
-    "P08@rio": "R_META_05@rio",
-    "P09@rio": "R_CANO_CANOMORROCO_01@rio",
+    "P08@rio": "R_META_04@rio",
+    "P09@rio": "R_META_04@rio",
     "P10@rio": "R_CANO_MAICIANA_01@rio",
     "P11@rio": "R_META_02@rio",
-    "R_CANO_CANOMORROCO_01@rio": "R_CANO_CANOMORROCO_01@rio",
+    "R_CANO_CANOMORROCO_01@rio": "R_META_04@rio",
     "R_CANO_GUIVA_01@rio": "R_META_02@rio",
     "R_CANO_MAICIANA_01@rio": "R_CANO_MAICIANA_01@rio",
     "R_GUARROJO_01@rio": "R_GUARROJO_01@rio",
     "R_META_01@rio": "R_META_02@rio",
-    "R_META_03@rio": "R_META_02@rio",
-    "R_META_05@rio": "R_META_05@rio",
-    "R_META_06@rio": "R_META_05@rio",
-    "R_META_07@rio": "R_META_05@rio",
+    "R_META_03@rio": "R_META_04@rio",
+    "R_META_05@rio": "R_META_06@rio",
+    "R_META_06@rio": "R_META_06@rio",
+    "R_META_07@rio": "R_META_06@rio",
     "R_YUCAO_01@rio": "R_META_02@rio"
    },
-   "costo_dia": 436756.7038830701,
+   "costo_dia": 418839.94231105,
    "acopios": [
-    {
-     "nodo": "R_CANO_CANOMORROCO_01@rio",
-     "lugar": "R_CANO_CANOMORROCO_01",
-     "actual": false,
-     "nombre": "Punto del caño Cañomorroco",
-     "rio": "cano_canomorroco",
-     "lat": 4.27375,
-     "lon": -72.07724999999999
-    },
     {
      "nodo": "R_CANO_MAICIANA_01@rio",
      "lugar": "R_CANO_MAICIANA_01",
@@ -292,8 +283,8 @@
      "actual": false,
      "nombre": "Punto del río Guarrojo",
      "rio": "guarrojo",
-     "lat": 4.08068,
-     "lon": -71.7466
+     "lat": 4.08835,
+     "lon": -71.74575
     },
     {
      "nodo": "R_META_02@rio",
@@ -305,13 +296,22 @@
      "lon": -72.184
     },
     {
-     "nodo": "R_META_05@rio",
-     "lugar": "R_META_05",
+     "nodo": "R_META_04@rio",
+     "lugar": "R_META_04",
      "actual": false,
      "nombre": "Punto del río Meta",
      "rio": "meta",
-     "lat": 4.422000000000001,
-     "lon": -71.99
+     "lat": 4.371,
+     "lon": -72.087
+    },
+    {
+     "nodo": "R_META_06@rio",
+     "lugar": "R_META_06",
+     "actual": false,
+     "nombre": "Punto del río Meta",
+     "rio": "meta",
+     "lat": 4.4625,
+     "lon": -71.94
     }
    ]
   },
@@ -320,47 +320,38 @@
    "p": 6,
    "k": null,
    "abiertos": [
-    "R_CANO_CANOMORROCO_01@rio",
     "R_CANO_MAICIANA_01@rio",
     "R_GUARROJO_01@rio",
     "R_META_02@rio",
-    "R_META_05@rio",
-    "R_PLANAS_04@rio"
+    "R_META_04@rio",
+    "R_META_06@rio",
+    "R_PLANAS_02@rio"
    ],
    "asignacion": {
     "C01@rio": "R_META_02@rio",
     "P01@rio": "R_META_02@rio",
-    "P02@rio": "R_META_05@rio",
+    "P02@rio": "R_META_06@rio",
     "P03@rio": "R_CANO_MAICIANA_01@rio",
     "P04@rio": "R_META_02@rio",
     "P05@rio": "R_GUARROJO_01@rio",
-    "P07@rio": "R_PLANAS_04@rio",
-    "P08@rio": "R_META_05@rio",
-    "P09@rio": "R_CANO_CANOMORROCO_01@rio",
+    "P07@rio": "R_PLANAS_02@rio",
+    "P08@rio": "R_META_04@rio",
+    "P09@rio": "R_META_04@rio",
     "P10@rio": "R_CANO_MAICIANA_01@rio",
     "P11@rio": "R_META_02@rio",
-    "R_CANO_CANOMORROCO_01@rio": "R_CANO_CANOMORROCO_01@rio",
+    "R_CANO_CANOMORROCO_01@rio": "R_META_04@rio",
     "R_CANO_GUIVA_01@rio": "R_META_02@rio",
     "R_CANO_MAICIANA_01@rio": "R_CANO_MAICIANA_01@rio",
     "R_GUARROJO_01@rio": "R_GUARROJO_01@rio",
     "R_META_01@rio": "R_META_02@rio",
-    "R_META_03@rio": "R_META_02@rio",
-    "R_META_05@rio": "R_META_05@rio",
-    "R_META_06@rio": "R_META_05@rio",
-    "R_META_07@rio": "R_META_05@rio",
+    "R_META_03@rio": "R_META_04@rio",
+    "R_META_05@rio": "R_META_06@rio",
+    "R_META_06@rio": "R_META_06@rio",
+    "R_META_07@rio": "R_META_06@rio",
     "R_YUCAO_01@rio": "R_META_02@rio"
    },
-   "costo_dia": 388560.7668439208,
+   "costo_dia": 362549.3760479874,
    "acopios": [
-    {
-     "nodo": "R_CANO_CANOMORROCO_01@rio",
-     "lugar": "R_CANO_CANOMORROCO_01",
-     "actual": false,
-     "nombre": "Punto del caño Cañomorroco",
-     "rio": "cano_canomorroco",
-     "lat": 4.27375,
-     "lon": -72.07724999999999
-    },
     {
      "nodo": "R_CANO_MAICIANA_01@rio",
      "lugar": "R_CANO_MAICIANA_01",
@@ -376,8 +367,8 @@
      "actual": false,
      "nombre": "Punto del río Guarrojo",
      "rio": "guarrojo",
-     "lat": 4.08068,
-     "lon": -71.7466
+     "lat": 4.08835,
+     "lon": -71.74575
     },
     {
      "nodo": "R_META_02@rio",
@@ -389,22 +380,31 @@
      "lon": -72.184
     },
     {
-     "nodo": "R_META_05@rio",
-     "lugar": "R_META_05",
+     "nodo": "R_META_04@rio",
+     "lugar": "R_META_04",
      "actual": false,
      "nombre": "Punto del río Meta",
      "rio": "meta",
-     "lat": 4.422000000000001,
-     "lon": -71.99
+     "lat": 4.371,
+     "lon": -72.087
     },
     {
-     "nodo": "R_PLANAS_04@rio",
-     "lugar": "R_PLANAS_04",
+     "nodo": "R_META_06@rio",
+     "lugar": "R_META_06",
+     "actual": false,
+     "nombre": "Punto del río Meta",
+     "rio": "meta",
+     "lat": 4.4625,
+     "lon": -71.94
+    },
+    {
+     "nodo": "R_PLANAS_02@rio",
+     "lugar": "R_PLANAS_02",
      "actual": false,
      "nombre": "Punto del río Planas",
      "rio": "planas",
-     "lat": 4.179657142857143,
-     "lon": -71.98057142857142
+     "lat": 4.125633333333333,
+     "lon": -71.98866666666666
     }
    ]
   },
@@ -424,7 +424,7 @@
     "P02@rio": "A02@rio",
     "P03@rio": "D_MALECON@rio",
     "P04@rio": "R_META_03@rio",
-    "P05@rio": "R_META_03@rio",
+    "P05@rio": "A03@rio",
     "P07@rio": "D_MALECON@rio",
     "P08@rio": "R_META_03@rio",
     "P09@rio": "D_MALECON@rio",
@@ -441,7 +441,7 @@
     "R_META_07@rio": "A02@rio",
     "R_YUCAO_01@rio": "R_META_03@rio"
    },
-   "costo_dia": 848225.1327317463,
+   "costo_dia": 829460.8979921414,
    "acopios": [
     {
      "nodo": "D_MALECON@rio",
@@ -449,8 +449,8 @@
      "actual": true,
      "nombre": "Puerto Gaitán, plaza de mercado",
      "rio": "manacacias",
-     "lat": 4.315,
-     "lon": -72.079
+     "lat": 4.311559036793359,
+     "lon": -72.07683493639789
     },
     {
      "nodo": "A02@rio",
@@ -458,8 +458,8 @@
      "actual": true,
      "nombre": "San Miguel",
      "rio": "meta",
-     "lat": 4.5,
-     "lon": -71.88
+     "lat": 4.511680555555555,
+     "lon": -71.8623361111111
     },
     {
      "nodo": "A03@rio",
@@ -498,8 +498,8 @@
     "P02@rio": "R_META_05@rio",
     "P03@rio": "D_MALECON@rio",
     "P04@rio": "R_META_02@rio",
-    "P05@rio": "R_META_02@rio",
-    "P07@rio": "R_META_05@rio",
+    "P05@rio": "A03@rio",
+    "P07@rio": "D_MALECON@rio",
     "P08@rio": "R_META_05@rio",
     "P09@rio": "D_MALECON@rio",
     "P10@rio": "D_MALECON@rio",
@@ -515,7 +515,7 @@
     "R_META_07@rio": "A02@rio",
     "R_YUCAO_01@rio": "R_META_02@rio"
    },
-   "costo_dia": 648189.7325545662,
+   "costo_dia": 623646.388337075,
    "acopios": [
     {
      "nodo": "D_MALECON@rio",
@@ -523,8 +523,8 @@
      "actual": true,
      "nombre": "Puerto Gaitán, plaza de mercado",
      "rio": "manacacias",
-     "lat": 4.315,
-     "lon": -72.079
+     "lat": 4.311559036793359,
+     "lon": -72.07683493639789
     },
     {
      "nodo": "A02@rio",
@@ -532,8 +532,8 @@
      "actual": true,
      "nombre": "San Miguel",
      "rio": "meta",
-     "lat": 4.5,
-     "lon": -71.88
+     "lat": 4.511680555555555,
+     "lon": -71.8623361111111
     },
     {
      "nodo": "A03@rio",
@@ -582,8 +582,8 @@
     "P02@rio": "R_META_05@rio",
     "P03@rio": "R_CANO_MAICIANA_01@rio",
     "P04@rio": "R_META_02@rio",
-    "P05@rio": "A03@rio",
-    "P07@rio": "R_CANO_MAICIANA_01@rio",
+    "P05@rio": "R_CANO_MAICIANA_01@rio",
+    "P07@rio": "R_META_05@rio",
     "P08@rio": "R_META_05@rio",
     "P09@rio": "D_MALECON@rio",
     "P10@rio": "R_CANO_MAICIANA_01@rio",
@@ -591,7 +591,7 @@
     "R_CANO_CANOMORROCO_01@rio": "D_MALECON@rio",
     "R_CANO_GUIVA_01@rio": "R_META_02@rio",
     "R_CANO_MAICIANA_01@rio": "R_CANO_MAICIANA_01@rio",
-    "R_GUARROJO_01@rio": "R_META_05@rio",
+    "R_GUARROJO_01@rio": "D_MALECON@rio",
     "R_META_01@rio": "R_META_02@rio",
     "R_META_03@rio": "R_META_02@rio",
     "R_META_05@rio": "R_META_05@rio",
@@ -599,7 +599,7 @@
     "R_META_07@rio": "A02@rio",
     "R_YUCAO_01@rio": "R_META_02@rio"
    },
-   "costo_dia": 502679.7977414804,
+   "costo_dia": 488571.7819045406,
    "acopios": [
     {
      "nodo": "D_MALECON@rio",
@@ -607,8 +607,8 @@
      "actual": true,
      "nombre": "Puerto Gaitán, plaza de mercado",
      "rio": "manacacias",
-     "lat": 4.315,
-     "lon": -72.079
+     "lat": 4.311559036793359,
+     "lon": -72.07683493639789
     },
     {
      "nodo": "A02@rio",
@@ -616,8 +616,8 @@
      "actual": true,
      "nombre": "San Miguel",
      "rio": "meta",
-     "lat": 4.5,
-     "lon": -71.88
+     "lat": 4.511680555555555,
+     "lon": -71.8623361111111
     },
     {
      "nodo": "A03@rio",
@@ -658,7 +658,7 @@
    ]
   }
  ],
- "costo_actuales_dia": 1167887.5335033068,
+ "costo_actuales_dia": 1146009.3603682213,
  "demanda": {
   "C01@rio": 6.985213172900824,
   "P01@rio": 14.037749503761553,

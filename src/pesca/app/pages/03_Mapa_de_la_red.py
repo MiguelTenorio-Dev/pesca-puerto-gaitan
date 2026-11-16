@@ -24,7 +24,8 @@ st.markdown(
     "🟡 calibrada con lo medido, 🟠 simulada."
 )
 st.warning(
-    "Las coordenadas y las trazas de los ríos son **aproximadas** (`validado = no`). "
+    "Las trazas de los ríos y casi todas las coordenadas son **aproximadas** (`validado = no`); "
+    "solo el malecón de Puerto Gaitán y San Miguel están medidos en KML (`validado = si`). "
     "Las distancias, en cambio, se ajustan a lo medido en Google Earth."
 )
 

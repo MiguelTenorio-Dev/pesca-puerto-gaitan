@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2" xmlns:gx="http://www.google.com/kml/ext/2.2" xmlns:kml="http://www.opengis.net/kml/2.2" xmlns:atom="http://www.w3.org/2005/Atom">
+<Document>
+	<name>transporte de cachama .kml</name>
+	<StyleMap id="m_ylw-pushpin">
+		<Pair>
+			<key>normal</key>
+			<styleUrl>#s_ylw-pushpin</styleUrl>
+		</Pair>
+		<Pair>
+			<key>highlight</key>
+			<styleUrl>#s_ylw-pushpin_hl</styleUrl>
+		</Pair>
+	</StyleMap>
+	<Style id="s_ylw-pushpin">
+		<IconStyle>
+			<scale>1.1</scale>
+			<Icon>
+				<href>http://maps.google.com/mapfiles/kml/pushpin/ylw-pushpin.png</href>
+			</Icon>
+			<hotSpot x="20" y="2" xunits="pixels" yunits="pixels"/>
+		</IconStyle>
+	</Style>
+	<Style id="s_ylw-pushpin_hl">
+		<IconStyle>
+			<scale>1.3</scale>
+			<Icon>
+				<href>http://maps.google.com/mapfiles/kml/pushpin/ylw-pushpin.png</href>
+			</Icon>
+			<hotSpot x="20" y="2" xunits="pixels" yunits="pixels"/>
+		</IconStyle>
+	</Style>
+	<Folder>
+		<name>transporte de cachama </name>
+		<open>1</open>
+		<Placemark>
+			<name>San Miguel punto de desembarque </name>
+			<LookAt>
+				<longitude>-72.1008947875752</longitude>
+				<latitude>4.394053554354238</latitude>
+				<altitude>0</altitude>
+				<heading>3.697546732153546</heading>
+				<tilt>28.31125853092707</tilt>
+				<range>233.198769346769</range>
+				<gx:altitudeMode>relativeToSeaFloor</gx:altitudeMode>
+			</LookAt>
+			<styleUrl>#m_ylw-pushpin</styleUrl>
+			<Point>
+				<gx:drawOrder>1</gx:drawOrder>
+				<coordinates>-72.10077897949743,4.394393720654855,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>Punto de desembarque Pto. Gaitán </name>
+			<LookAt>
+				<longitude>-72.07524691435778</longitude>
+				<latitude>4.311347424701018</latitude>
+				<altitude>0</altitude>
+				<heading>3.699392835867398</heading>
+				<tilt>27.98811119169723</tilt>
+				<range>523.1267094220431</range>
+				<gx:altitudeMode>relativeToSeaFloor</gx:altitudeMode>
+			</LookAt>
+			<styleUrl>#m_ylw-pushpin</styleUrl>
+			<Point>
+				<gx:drawOrder>1</gx:drawOrder>
+				<coordinates>-72.07683493639789,4.311559036793359,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>Punto de Desembarque San Miguel </name>
+			<LookAt>
+				<longitude>-71.8621781851642</longitude>
+				<latitude>4.511672030921825</latitude>
+				<altitude>0</altitude>
+				<heading>3.715476523622049</heading>
+				<tilt>30.00100930548791</tilt>
+				<range>223.8154925535254</range>
+				<gx:altitudeMode>relativeToSeaFloor</gx:altitudeMode>
+			</LookAt>
+			<styleUrl>#m_ylw-pushpin</styleUrl>
+			<Point>
+				<gx:drawOrder>1</gx:drawOrder>
+				<coordinates>-71.86233611111111,4.511680555555555,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>Central de abastos Villavicencio </name>
+			<LookAt>
+				<longitude>-73.61213055350096</longitude>
+				<latitude>4.123334345859403</latitude>
+				<altitude>0</altitude>
+				<heading>3.5571073102359</heading>
+				<tilt>28.45079665690201</tilt>
+				<range>724.2830515614099</range>
+				<gx:altitudeMode>relativeToSeaFloor</gx:altitudeMode>
+			</LookAt>
+			<styleUrl>#m_ylw-pushpin</styleUrl>
+			<Point>
+				<gx:drawOrder>1</gx:drawOrder>
+				<coordinates>-73.61172894682343,4.123198936276723,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>plaza de Mercado Corabastos Bogota</name>
+			<LookAt>
+				<longitude>-74.16076459288873</longitude>
+				<latitude>4.631777544287598</latitude>
+				<altitude>0</altitude>
+				<heading>5.233236082592762e-05</heading>
+				<tilt>12.4604216093381</tilt>
+				<range>642.9147752739424</range>
+				<gx:altitudeMode>relativeToSeaFloor</gx:altitudeMode>
+			</LookAt>
+			<styleUrl>#m_ylw-pushpin</styleUrl>
+			<Point>
+				<gx:drawOrder>1</gx:drawOrder>
+				<coordinates>-74.16126914469625,4.632131999144415,0</coordinates>
+			</Point>
+		</Placemark>
+		<atom:link rel="app" href="https://www.google.com/earth/about/versions/#earth-pro" title="Google Earth Pro 7.3.7.1327"></atom:link>
+	</Folder>
+</Document>
+</kml>

@@ -1,4 +1,5 @@
 import networkx as nx
+import pandas as pd
 import pytest
 
 from pesca import busqueda, config, red
@@ -104,6 +105,42 @@ def test_san_miguel_queda_rio_abajo():
     ruta = nx.shortest_path(capa, "A02@rio", "D_MALECON@rio", weight="distancia_km")
     sentidos = [G.edges[u, v]["sentido"] for u, v in zip(ruta, ruta[1:])]
     assert set(sentidos) == {"aguas_arriba"}
+
+
+def test_san_miguel_en_la_coordenada_del_kml():
+    kml = config.cargar_puntos_kml().set_index("nombre_kml")
+    p = kml.loc["Punto de Desembarque San Miguel"]
+    for capa in (red.CAPA_RIO, red.CAPA_VIA):
+        a = G.nodes[red.clave("A02", capa)]
+        assert (a["lat"], a["lon"], a["validado"]) == (p["lat"], p["lon"], "si")
+
+
+def test_factores_de_calibracion_no_menores_que_uno():
+    # El tope del factor compartido deja los tramos exclusivos de M04 en >= 1 (heuristica de A* admisible)
+    for u, v, d in G.edges(data=True):
+        if d["modo"] == red.CAPA_RIO and d["etiqueta"] == "MEDIDO":
+            assert d["distancia_km"] >= red.longitud_km(d["geometria"]) - 1e-9, (u, v)
+
+
+def test_tope_del_factor_compartido():
+    # Dos rutas que comparten el tramo B-C; la segunda casi no deja holgura
+    tramos = [
+        red.Tramo("rio", "t", "t", "meta", "A", "B", [(4.0, -72.0), (4.0, -71.9)]),
+        red.Tramo("rio", "t", "t", "meta", "B", "C", [(4.0, -71.9), (4.0, -71.8)]),
+        red.Tramo("rio", "t", "t", "meta", "C", "D", [(4.0, -71.8), (4.0, -71.7)]),
+    ]
+    crudo = tramos[0].crudo_km
+    objetivos = pd.DataFrame([
+        {"id": "X1", "modo": "rio", "origen": "A", "destino": "C", "km_medido": 3.0 * crudo, "fuente": "x"},
+        {"id": "X2", "modo": "rio", "origen": "B", "destino": "D", "km_medido": 2.05 * crudo, "fuente": "x"},
+    ])
+    vias = [red.Tramo("via", "v", "v", None, "A", "D", [(4.0, -72.0), (4.0, -71.7)])]
+    objetivos = pd.concat([objetivos, pd.DataFrame([{"id": "X3", "modo": "via", "origen": "A", "destino": "D", "km_medido": 4 * crudo, "fuente": "x"}])])
+    red._calibrar(tramos + vias, objetivos, 1.0)
+    assert tramos[1].factor == pytest.approx(1.05)  # acotado, no la sinuosidad global (5,05 / 4)
+    assert "acotada" in tramos[1].fuente
+    assert tramos[2].factor == pytest.approx(1.0)
+    assert sum(t.crudo_km * t.factor for t in tramos[:2]) == pytest.approx(3.0 * crudo)
 
 
 def test_haversine_conocido():

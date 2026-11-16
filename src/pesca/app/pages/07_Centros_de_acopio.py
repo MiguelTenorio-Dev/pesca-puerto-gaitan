@@ -106,7 +106,7 @@ if c2.button("Activar estos acopios en el escenario", key="activar_propuesta"):
     activar(ubicacion.escenario_con_propuesta(escenario, propuestos))
 st.caption(
     "Al activarlos, aparecen en «¿A dónde llevo mi pescado?» y en «Toda la flota». "
-    "Las coordenadas salen de trazas aproximadas del río (validado = no)."
+    "Las coordenadas de los puntos nuevos salen de trazas aproximadas del río (validado = no)."
 )
 
 st.subheader("¿Cuántos acopios hacen falta?")

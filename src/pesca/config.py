@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import contextlib
 import contextvars
+import xml.etree.ElementTree as ET
 from collections.abc import Iterator
 from functools import cache
 from pathlib import Path
@@ -41,6 +42,7 @@ COLUMNAS_DISTANCIAS = ["id", "origen", "destino", "modo", "distancia_km", "senti
 COLUMNAS_RIOS = ["traza", "nombre", "cuenca", "orden", "id_nodo", "lat", "lon", "fuente"]
 COLUMNAS_VIAS = ["traza", "nombre", "orden", "id_nodo", "lat", "lon", "fuente"]
 COLUMNAS_SEPEC =["sitio", "periodo", "toneladas", "fuente"]
+COLUMNAS_PUNTOS_KML = ["nombre_kml", "uso", "id", "nombre", "notas"]
 COLUMNAS_PRECIOS = ["producto", "mercado", "fecha", "cop_por_kg", "fuente"]
 
 
@@ -114,10 +116,65 @@ def sobrescribir(valores: dict[str, Any]) -> Iterator[None]:
         _SOBRESCRITOS.reset(token)
 
 
+COLUMNAS_KML = ["nombre_kml", "lat", "lon", "archivo"]
+
+
+def leer_puntos_kml(ruta: Path) -> pd.DataFrame:
+    """Placemark con Point de un KML de Google Earth: nombre (sin espacios sobrantes), lat, lon."""
+    filas = []
+    for marca in ET.parse(ruta).iter():
+        if not marca.tag.endswith("Placemark"):
+            continue
+        nombre = next((e.text or "" for e in marca if e.tag.endswith("name")), "").strip()
+        for punto in marca.iter():
+            if punto.tag.endswith("Point"):
+                texto = next(e.text for e in punto.iter() if e.tag.endswith("coordinates"))
+                lon, lat, *_ = (float(x) for x in texto.split(","))
+                filas.append({"nombre_kml": nombre, "lat": lat, "lon": lon, "archivo": ruta.name})
+    return pd.DataFrame(filas, columns=COLUMNAS_KML)
+
+
+@cache
+def cargar_puntos_kml() -> pd.DataFrame:
+    """Puntos medidos por el equipo en los KML de rutas_kml/, con su uso segun puntos_kml.csv.
+
+    uso = nodo (corrige la coordenada de un nodo), referencia (fuera del grafo) o descartado.
+    Un punto que no este en puntos_kml.csv es un error: hay que decidir su uso.
+    """
+    mapa = _validar_columnas(pd.read_csv(DIR_DATOS / "puntos_kml.csv"), COLUMNAS_PUNTOS_KML, "puntos_kml.csv")
+    leidos = [leer_puntos_kml(r) for r in sorted(DIR_KML.glob("*.kml"))]
+    puntos = pd.concat(leidos, ignore_index=True) if leidos else pd.DataFrame(columns=COLUMNAS_KML)
+    sin_uso = set(puntos["nombre_kml"]) - set(mapa["nombre_kml"])
+    if sin_uso:
+        raise ValueError(f"Puntos KML sin uso definido en puntos_kml.csv: {sorted(sin_uso)}")
+    return puntos.merge(mapa, on="nombre_kml")
+
+
+def _con_coordenadas_kml(df: pd.DataFrame, col_id: str) -> pd.DataFrame:
+    """Prioridad de coordenadas: punto KML medido > coordenada estimada del CSV."""
+    kml = cargar_puntos_kml()
+    kml = kml[kml["uso"] == "nodo"].set_index("id")
+    df = df.copy()
+    medido = df[col_id].isin(kml.index)
+    ids = df.loc[medido, col_id]
+    df.loc[medido, "lat"] = ids.map(kml["lat"]).to_numpy()
+    df.loc[medido, "lon"] = ids.map(kml["lon"]).to_numpy()
+    df.loc[medido, "fuente"] = ids.map(lambda i: f"KML medido ({kml.at[i, 'archivo'].strip()})").to_numpy()
+    if "validado" in df:
+        df.loc[medido, "validado"] = "si"
+    return df
+
+
 @cache
 def cargar_nodos() -> pd.DataFrame:
     df = pd.read_csv(DIR_DATOS / "nodos.csv", dtype={"validado": str})
-    return _validar_columnas(df, COLUMNAS_NODOS, "nodos.csv")
+    return _con_coordenadas_kml(_validar_columnas(df, COLUMNAS_NODOS, "nodos.csv"), "id")
+
+
+def puntos_referencia() -> pd.DataFrame:
+    """Mercados de referencia medidos en KML que no entran al grafo (Villavicencio, Bogota)."""
+    kml = cargar_puntos_kml()
+    return kml.loc[kml["uso"] == "referencia", ["id", "nombre", "lat", "lon", "archivo", "notas"]].reset_index(drop=True)
 
 
 @cache
@@ -130,14 +187,16 @@ def cargar_distancias_medidas() -> pd.DataFrame:
 def cargar_rios() -> pd.DataFrame:
     """Trazas de rios y caños, un vertice por fila, de aguas arriba a aguas abajo."""
     df = pd.read_csv(DIR_DATOS / "rios.csv", dtype={"id_nodo": str})
-    return _validar_columnas(df, COLUMNAS_RIOS, "rios.csv").sort_values(["traza", "orden"], kind="stable")
+    df = _con_coordenadas_kml(_validar_columnas(df, COLUMNAS_RIOS, "rios.csv"), "id_nodo")
+    return df.sort_values(["traza", "orden"], kind="stable")
 
 
 @cache
 def cargar_vias() -> pd.DataFrame:
     """Trazas de las carreteras, un vertice por fila."""
     df = pd.read_csv(DIR_DATOS / "vias.csv", dtype={"id_nodo": str})
-    return _validar_columnas(df, COLUMNAS_VIAS, "vias.csv").sort_values(["traza", "orden"], kind="stable")
+    df = _con_coordenadas_kml(_validar_columnas(df, COLUMNAS_VIAS, "vias.csv"), "id_nodo")
+    return df.sort_values(["traza", "orden"], kind="stable")
 
 
 @cache

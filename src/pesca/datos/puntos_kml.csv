@@ -1,0 +1,6 @@
+nombre_kml,uso,id,nombre,notas
+Punto de desembarque Pto. Gaitán,nodo,D_MALECON,,Reemplaza la coordenada estimada desde la captura M02 (estaba a 0.45 km)
+Punto de Desembarque San Miguel,nodo,A02,,Reemplaza la coordenada estimada desde la captura M04 (estaba a 2.35 km)
+San Miguel punto de desembarque,descartado,,,"Error o duplicado (usuario, 16 nov): queda sobre el Meta a 27 km de San Miguel y 9 km al norte de Puerto Gaitan"
+Central de abastos Villavicencio,referencia,M_VILLAVICENCIO,Central de abastos de Villavicencio,Solo referencia: no entra al grafo (fuera de alcance)
+plaza de Mercado Corabastos Bogota,referencia,M_BOGOTA,Corabastos (Bogotá),Solo referencia: no entra al grafo (fuera de alcance)
