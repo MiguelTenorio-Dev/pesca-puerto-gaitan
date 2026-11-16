@@ -17,16 +17,16 @@
 > Claude Code actualiza esta sección cada vez que se cierra una sesión (prompt "Cierre de sesión").
 
 - **Última actualización:** lunes 16 nov 2026 (Bogotá)
-- **Fase actual:** fases 0 a 5 cerradas y en GitHub (último commit de fase: af5ee6f, `fase 5: bimodal, frio e inversion (R5)`). La Fase 6 no ha empezado. La app abre y `pytest -q` pasa (291 tests). Precalculado R2, R4 y R5 al día.
-- **Resultados de R5** (todo SIMULADO; población de ejemplo, Monte Carlo de 100 corridas):
-  - Recomendado: con 100 M, el acopio nuevo de R4 (I4, VPN 116 M); con 250 M y con 500 M, San Miguel + acopio nuevo (I3a + I4, VPN 158 M). Con 500 M no conviene gastar más: lo que sigue (camión) tiene VPN negativo.
-  - Ninguna medida pasa la regla del 70 %: San Miguel 61 %, I3a + I4 52 %, I4 45 % de corridas con VPN > 0.
-  - El hielo (I1, I2) salva casi nada: el pescado que llega a la plaza ya está en el mejor precio y el que espera se daña por la espera, no por el río. Confirma el diagnóstico.
-  - El camión diario (I5:1) es la medida que más valor salva (145 M/año), pero su operación (≈ 250 M/año por 274 km diarios) la hace inviable.
+- **Fase actual:** fases 0 a 6 cerradas y en GitHub (último commit de fase: a1f9844, `fase 6: hoy vs propuesta, cartilla y release (R6)`; release `v1.0`). El repo es **público**. La app abre, `pytest -q` pasa (303 tests) y se instala desde GitHub. Precalculado R2, R4, R5 y R6 al día; cifras en `outputs/resumen_resultados.md`.
+- **Resultados clave** (todo SIMULADO salvo lo medido y lo oficial; detalle e intervalos en el resumen):
+  - R2: la espera pesa más que el río en el 100 % de las corridas; se pierde ≈ 50 % (aguas bajas) a 62 % (aguas altas) del valor.
+  - R6, propuesta San Miguel + acopio nuevo (130 M): el valor perdido baja de 46 % a 9 % (aguas bajas). De la mejora, ≈ 2/3 viene de solo seguir el recomendador y ≈ 1/3 de la inversión. VPN positivo en el 52 % de las corridas (no pasa la regla del 70 %).
+  - R5: el hielo casi no ayuda (la espera manda); el camión diario salva mucho pero su operación lo hace inviable.
 - **Qué quedó a medias:**
-  - El Meta boca del Manacacías → San Miguel quedó ×1,00: X01 (estimada) probablemente está muy al occidente.
+  - Desplegar en Streamlit Community Cloud (repo `MiguelTenorio-Dev/pesca-puerto-gaitan`, rama `main`, archivo `src/pesca/app/Inicio.py`, Python 3.12) y poner el link en el README.
+  - El Meta boca del Manacacías → San Miguel quedó ×1,00: X01 (estimada) probablemente está muy al occidente; la captura M04 sugiere que la confluencia queda más al oriente.
   - El usuario tiene en mente cambios a la Fase 1 y decide al final del proyecto.
-- **Siguiente paso concreto:** elegir la propuesta final (R3 + R4 + R5; la sugerida es San Miguel + acopio nuevo) y correr el prompt de la Fase 6 en una sesión nueva (`/clear`). La entrega era el domingo 15: si no alcanza, aplicar los recortes del plan.
+- **Siguiente paso concreto:** desplegar la app y pasar el link; luego la Fase 7 (informe con cifras solo de `outputs/resumen_resultados.md`, presentación y ensayo de la demo).
 - **Datos pendientes del equipo:**
   - KML con rutas (LineString) de M01–M04, si se quiere la geometría real de las trazas.
   - Coordenadas de X01 (prioridad), A01, A03 y C01: el tramo Yucao → boca del Manacacías necesita ×1,87, y la vía a Puente Arimena da 91 km frente al km 68 de la ANI.
@@ -198,9 +198,9 @@
 
 **Hecho cuando:**
 - [x] La pantalla "Hoy vs propuesta" está lista y la cartilla se descarga (PDF y CSV).
-- [ ] Se instala desde GitHub.
-- [ ] El repo pasa a público y la app se despliega en Streamlit Community Cloud con link (decisión del 14 nov: solo al final).
-- [ ] Hay release `v1.0`.
+- [x] Se instala desde GitHub (probado en una carpeta limpia: `pesca-gaitan` responde).
+- [ ] El repo pasa a público (hecho, 16 nov) y la app se despliega en Streamlit Community Cloud con link (falta: lo hace el usuario en el navegador).
+- [x] Hay release `v1.0` (tag `v1.0`, commit a1f9844).
 
 ## Fase 7. Informe, presentación y ensayo
 
