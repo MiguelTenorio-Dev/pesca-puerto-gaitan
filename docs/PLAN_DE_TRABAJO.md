@@ -17,18 +17,17 @@
 > Claude Code actualiza esta sección cada vez que se cierra una sesión (prompt "Cierre de sesión").
 
 - **Última actualización:** lunes 16 nov 2026 (Bogotá)
-- **Fase actual:** fases 0 a 4 cerradas. Integrados los datos nuevos del KML `transporte de cachama .kml` (commit `datos: puntos KML de San Miguel y el malecon`). La Fase 5 no ha empezado. La app abre y `pytest -q` pasa (275 tests). Precalculado R2 y R4 regenerado con los datos nuevos.
-- **Qué cambió con el KML** (solo puntos, sin rutas; M01–M04 siguen del CSV):
-  - San Miguel (A02) y el malecón (D_MALECON) quedan con coordenada medida (`validado = si`); un punto se descartó y Villavicencio y Corabastos quedan de referencia (`puntos_kml.csv`).
-  - Sinuosidad río 1,18 → 1,11 y vía 1,34 → 1,27. El factor compartido del Manacacías se acota (×1,097) para que M04 cuadre.
-  - R2: la conclusión no cambia (la espera pesa más que el río en las 4 candidatas y las dos temporadas); la pérdida en el río baja 1–7 %.
-  - R3: mismos destinos; costo óptimo de la flota 1,283 M → 1,244 M COP/día.
-  - R4: San Miguel baja de 66,6 % a 60,8 % de corridas con VPN > 0 (sigue sin pasar la regla del 70 %); p-mediana igual salvo p = 5 y 6 del modo "mover".
+- **Fase actual:** fases 0 a 5 cerradas (Fase 5: commit `fase 5: bimodal, frio e inversion (R5)`). La Fase 6 no ha empezado. La app abre y `pytest -q` pasa (291 tests). Precalculado R2, R4 y R5 al día.
+- **Resultados de R5** (todo SIMULADO; población de ejemplo, Monte Carlo de 100 corridas):
+  - Recomendado: con 100 M, el acopio nuevo de R4 (I4, VPN 116 M); con 250 M y con 500 M, San Miguel + acopio nuevo (I3a + I4, VPN 158 M). Con 500 M no conviene gastar más: lo que sigue (camión) tiene VPN negativo.
+  - Ninguna medida pasa la regla del 70 %: San Miguel 61 %, I3a + I4 52 %, I4 45 % de corridas con VPN > 0.
+  - El hielo (I1, I2) salva casi nada: el pescado que llega a la plaza ya está en el mejor precio y el que espera se daña por la espera, no por el río. Confirma el diagnóstico.
+  - El camión diario (I5:1) es la medida que más valor salva (145 M/año), pero su operación (≈ 250 M/año por 274 km diarios) la hace inviable.
 - **Qué quedó a medias:**
-  - Fase 5 sin empezar: faltan los costos de las inversiones I1–I7.
+  - Push de la Fase 5.
   - El Meta boca del Manacacías → San Miguel quedó ×1,00: X01 (estimada) probablemente está muy al occidente.
   - El usuario tiene en mente cambios a la Fase 1 y decide al final del proyecto.
-- **Siguiente paso concreto:** la entrega era el domingo 15 y la presentación es hoy: decidir si se aplican los recortes ("Si vas atrasado") o se va directo a la Fase 6. Si se sigue el orden, abrir una sesión nueva (`/clear`) y correr el prompt de la Fase 5, empezando por los costos de I1–I7 (o aceptar valores SIMULADO).
+- **Siguiente paso concreto:** elegir la propuesta final (R3 + R4 + R5; la sugerida es San Miguel + acopio nuevo) y correr el prompt de la Fase 6 en una sesión nueva (`/clear`). La entrega era el domingo 15: si no alcanza, aplicar los recortes del plan.
 - **Datos pendientes del equipo:**
   - KML con rutas (LineString) de M01–M04, si se quiere la geometría real de las trazas.
   - Coordenadas de X01 (prioridad), A01, A03 y C01: el tramo Yucao → boca del Manacacías necesita ×1,87, y la vía a Puente Arimena da 91 km frente al km 68 de la ANI.
@@ -181,9 +180,9 @@
 **Tú:** define los costos de I1–I7 con Claude. Si consigues precios reales (caja térmica, hielo, camión), mejor.
 
 **Hecho cuando:**
-- [ ] Ningún portafolio excede su presupuesto.
-- [ ] Se ve el efecto de cada medida sola y combinada.
-- [ ] Commit y push.
+- [x] Ningún portafolio excede su presupuesto.
+- [x] Se ve el efecto de cada medida sola y combinada.
+- [x] Commit (`fase 5: bimodal, frio e inversion (R5)`); falta el push.
 
 ## Fase 6. Hoy vs propuesta, cartilla, pulido y release (R6)
 
@@ -290,3 +289,6 @@ El núcleo (`red`, `busqueda`, `transporte`, `degradacion`, `asignacion`, `escen
 | 16 nov | — | El punto "San Miguel punto de desembarque" (4,3944; −72,1008) se descarta como error o duplicado | usuario |
 | 16 nov | — | Central de abastos de Villavicencio y Corabastos: solo de referencia, fuera de la red | usuario |
 | 16 nov | — | Con San Miguel medido, la línea recta boca del Manacacías → San Miguel ya es 33,1 km y M04 no cabía con la sinuosidad global en el tramo compartido. Calibración: el factor compartido se acota para que cada ruta deje a sus tramos exclusivos un factor ≥ 1 (sigue la heurística admisible). El Meta boca → San Miguel queda ×1,00: indica que X01 (estimada) está muy al occidente o que la traza del Meta es corta; corregir X01 con KML es la siguiente prioridad | Claude (datos nuevos) |
+| 16 nov | — | R5: cada medida I1–I7 es un cambio del `Escenario` (cajas térmicas, hielo a bordo, acopios, acopio nuevo de R4, ruta del camión cada N días, subsidio de motor, desembarque mejorado). Valor = costo evitado en el reparto óptimo de la flota frente al óptimo de hoy, como en R4 | Claude (Fase 5) |
+| 16 nov | — | 384 portafolios (I2 exige I1; un solo N de camión) con la población de ejemplo; Pareto en inversión inicial vs valor salvado al año; recomendado = mayor VPN entre los que caben en el presupuesto (100, 250 y 500 M). Monte Carlo (100 corridas) solo para hoy, las medidas solas y los recomendados | Claude (Fase 5) |
+| 16 nov | — | Ruta del camión (I5): circuito por carretera plaza → desembarques y acopios → plaza (vecino más cercano); combustible por los 270 días de pesca / N. Con el desembarque mejorado (I7) el congelador de la señora no tiene tope de capacidad. La probabilidad de congelador con el camión sigue la del Monte Carlo de R2 (conservador) | Claude (Fase 5) |

@@ -45,3 +45,16 @@ def test_centros_de_acopio_activa_la_propuesta():
     at.button(key="activar_propuesta").click().run()
     assert not at.exception, at.exception
     assert at.session_state["escenario"].acopios_nuevos
+
+
+def test_bimodal_cambia_presupuesto_y_usa_el_portafolio():
+    pagina = config.DIR_APP / "pages" / "08_Bimodal_y_cadena_de_frio.py"
+    at = AppTest.from_file(str(pagina), default_timeout=120).run()
+    assert not at.exception, at.exception
+    at.radio(key="emb_bimodal").set_value("madera_motor").run()
+    for presupuesto in config.parametro("inversiones.presupuestos_cop"):
+        at.radio(key="presupuesto").set_value(presupuesto).run()
+        assert not at.exception, at.exception
+    at.button(key="usar_portafolio").click().run()
+    assert not at.exception, at.exception
+    assert at.session_state["escenario"].inversiones

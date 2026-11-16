@@ -34,8 +34,9 @@ ARCHIVO_META = "r2_meta.json"
 
 
 def escenario_hoy(escenario: Escenario) -> Escenario:
-    """El diagnostico es la situacion de hoy: sin hielo a bordo ni camion refrigerado."""
-    return escenario.con(hielo_a_bordo=False, camion_refrigerado=False)
+    """El diagnostico es la situacion de hoy: sin hielo a bordo, camion refrigerado ni medidas de R5."""
+    return escenario.con(hielo_a_bordo=False, camion_refrigerado=False, cajas_termicas=False, ciclo_camion_dias=None,
+                         desembarque_mejorado=False, subsidio_motor=False, inversiones=frozenset())
 
 
 def grafo_vigente() -> nx.DiGraph:

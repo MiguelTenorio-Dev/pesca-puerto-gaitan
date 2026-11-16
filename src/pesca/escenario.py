@@ -17,6 +17,11 @@ class Escenario:
     inversiones: frozenset[str] = field(default_factory=frozenset)
     semilla: int = 0
     acopios_nuevos: frozenset[str] = field(default_factory=frozenset)  # puntos del rio (p-mediana de R4)
+    # Medidas de R5 (frio_bimodal.escenario_con las enciende segun el portafolio I1–I7)
+    cajas_termicas: bool = False  # todo pescador con nevera buena
+    ciclo_camion_dias: int | None = None  # camion refrigerado que recoge en los desembarques cada N dias
+    desembarque_mejorado: bool = False  # donde la señora: congelador con capacidad y energia confiables
+    subsidio_motor: bool = False  # parte de los botes a remo pasa a motor
 
     def __post_init__(self) -> None:
         nodos = config.cargar_nodos().set_index("id")
@@ -31,6 +36,8 @@ class Escenario:
             raise ValueError(f"'{self.desembarque_senora}' no es una candidata del desembarque: {candidatas}")
         if self.temporada not in config.TEMPORADAS:
             raise ValueError(f"Temporada desconocida: {self.temporada}")
+        if self.ciclo_camion_dias is not None and self.ciclo_camion_dias < 1:
+            raise ValueError("El camión debe pasar al menos cada 1 día")
         grafo = red.construir_red()
         fuera = [a for a in self.acopios_nuevos if red.clave(a, red.CAPA_RIO) not in grafo]
         if fuera:

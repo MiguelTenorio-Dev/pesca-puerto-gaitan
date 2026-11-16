@@ -90,8 +90,13 @@ def costo_viaje(km_rio: float, horas_rio: float, embarcacion: str) -> float:
     return p("pescador.factor_regreso") * (gasolina + horas_rio * p("pescador.cop_por_hora"))
 
 
-def dias_espera_esperados() -> float:
-    """Dias que espera en promedio un lote: el comprador llega cada L ~ U{min..max} dias y el lote llega en cualquier dia."""
+def dias_espera_esperados(escenario: Escenario | None = None) -> float:
+    """Dias que espera en promedio un lote: quien recoge pasa cada L dias y el lote llega en cualquier dia.
+
+    Hoy es el comprador, L ~ U{min..max}; con la ruta del camion refrigerado (I5), L = N.
+    """
+    if escenario is not None and escenario.ciclo_camion_dias is not None:
+        return (escenario.ciclo_camion_dias + 1) / 2
     ciclo = config.parametro("cadena_actual.ciclo_comprador_dias")
     return ((ciclo["min"] + ciclo["max"]) / 2 + 1) / 2
 
@@ -209,7 +214,9 @@ def _evaluar(tipo: str, destino: str, origen: str, perfil: transporte.Perfil, kg
 
     sitio = _sitio(tipo, destino, escenario)
     refrigerado = tipo == "acopio" and escenario.camion_refrigerado
-    vehiculo = "camion_refrigerado" if refrigerado else "comprador_carro"
+    # Con la ruta del camion (I5), en los desembarques recoge el camion refrigerado en vez del comprador
+    ruta_camion = sitio in ("senora", "sin_frio") and escenario.ciclo_camion_dias is not None
+    vehiculo = "camion_refrigerado" if refrigerado or ruta_camion else "comprador_carro"
     perfil_via = dataclasses.replace(perfil, vehiculo=vehiculo)
     ruta_via, tramos_via = _pierna_carretera(destino_rio, perfil_via, grafo, memo)
     tramos = pd.concat([transporte.tramos_ruta(grafo, viaje_rio.ruta, perfil), tramos_via], ignore_index=True)
@@ -238,19 +245,21 @@ def _evaluar(tipo: str, destino: str, origen: str, perfil: transporte.Perfil, kg
         dg.avanzar(lote, espera_h, "espera", dg.REFRIGERADO)
         valores = [(1.0, dg.valor_lote(carretera(lote, dg.REFRIGERADO if refrigerado else dg.AMBIENTE)))]
     else:
-        espera_h = dias_espera_esperados() * cadena_actual.HORAS_DIA
+        estado_via = dg.REFRIGERADO if ruta_camion else dg.AMBIENTE
+        espera_h = dias_espera_esperados(escenario) * cadena_actual.HORAS_DIA
         icopor = lote_hasta_el_destino()
         dg.poner_hielo(icopor, p("cadena_actual.horas_hielo_desborde"))
         dg.avanzar(icopor, espera_h, "espera", dg.ICOPOR_HIELO)
-        v_icopor = dg.valor_lote(carretera(icopor, dg.AMBIENTE))
+        v_icopor = dg.valor_lote(carretera(icopor, estado_via))
         if sitio == "senora":
-            prob = prob_congelador(escenario.desembarque_senora, escenario.temporada)
+            # Desembarque mejorado (I7): todo cabe en el congelador y no hay cortes de luz
+            prob = 1.0 if escenario.desembarque_mejorado else prob_congelador(escenario.desembarque_senora, escenario.temporada)
             congelado = lote_hasta_el_destino()
             dg.congelar(congelado)
-            falla = min(espera_h, horas_falla_esperadas(dias_espera_esperados()))
+            falla = 0.0 if escenario.desembarque_mejorado else min(espera_h, horas_falla_esperadas(dias_espera_esperados(escenario)))
             dg.avanzar(congelado, falla, "espera", dg.FALLA)
             dg.avanzar(congelado, espera_h - falla, "espera", dg.CONGELADO)
-            v_cong = dg.valor_lote(carretera(congelado, dg.AMBIENTE))
+            v_cong = dg.valor_lote(carretera(congelado, estado_via))
             valores = [(prob, v_cong), (1 - prob, v_icopor)]
             cop_cong, cop_icop = v_cong["cop_recibido"] / kg, v_icopor["cop_recibido"] / kg
         else:
@@ -440,13 +449,15 @@ def _clave_destino(o: Opcion, parte: str = "") -> str:
 def _poblacion_y_oferta(escenario: Escenario, pob: pd.DataFrame | None = None) -> tuple[pd.DataFrame, dict[str, float]]:
     if pob is None:
         pob = cadena_actual.corrida_ejemplo(escenario).poblacion
+    if escenario.subsidio_motor:
+        pob = poblacion.aplicar_subsidio_motor(pob)
     act = poblacion.actividad_diagnostico()
     oferta = dict(zip(pob["id"], pob["kg_por_faena"] * pob["p_faena_pico"] * act))
     return pob, oferta
 
 
-def _nevera(pesc) -> str:
-    return "buena" if pesc.nevera_buena else "deteriorada"
+def _nevera(pesc, escenario: Escenario) -> str:
+    return "buena" if pesc.nevera_buena or escenario.cajas_termicas else "deteriorada"
 
 
 def capacidad_acopio_kg_dia(acopio: str) -> float:
@@ -467,12 +478,14 @@ def problema_transporte(escenario: Escenario, pob: pd.DataFrame | None = None, m
     p = config.parametro
     p0 = dg.precio_base()
     pob, oferta = _poblacion_y_oferta(escenario, pob)
-    capacidad_congelador = p("cadena_actual.n_congeladores") * p("cadena_actual.kg_por_congelador") / (
-        sum(p("cadena_actual.ciclo_comprador_dias").values()) / 2
+    # kg/dia que caben en los congeladores de la señora; con el desembarque mejorado (I7) cabe todo
+    capacidad_congelador = None if escenario.desembarque_mejorado else (
+        p("cadena_actual.n_congeladores") * p("cadena_actual.kg_por_congelador")
+        / (sum(p("cadena_actual.ciclo_comprador_dias").values()) / 2)
     )
     costos, capacidades, opciones, nombres, valores = {}, {}, {}, {}, {}
     for pesc in pob.itertuples():
-        rec = recomendar(pesc.ubicacion, pesc.embarcacion, pesc.kg_por_faena, escenario, _nevera(pesc), memo)
+        rec = recomendar(pesc.ubicacion, pesc.embarcacion, pesc.kg_por_faena, escenario, _nevera(pesc, escenario), memo)
         for o in rec.alternativas:
             if not o.factible:
                 continue
@@ -524,10 +537,10 @@ def problema_transporte(escenario: Escenario, pob: pd.DataFrame | None = None, m
 def asignacion_hoy(escenario: Escenario, pob: pd.DataFrame | None = None) -> pd.DataFrame:
     """Cada pescador en su desembarque habitual de hoy (si no puede remontar, el centro alcanzable mas cercano)."""
     hoy = Escenario.base().con(desembarque_senora=escenario.desembarque_senora, temporada=escenario.temporada)
-    pob, oferta = _poblacion_y_oferta(escenario, pob)
+    pob, oferta = _poblacion_y_oferta(hoy, pob)
     filas = []
     for pesc in pob.itertuples():
-        rec = recomendar(pesc.ubicacion, pesc.embarcacion, pesc.kg_por_faena, hoy, _nevera(pesc))
+        rec = recomendar(pesc.ubicacion, pesc.embarcacion, pesc.kg_por_faena, hoy, _nevera(pesc, hoy))
         habitual = next((o for o in rec.alternativas if o.destino == pesc.desembarque and o.factible), None)
         o = habitual if habitual is not None else rec.mejor
         filas.append({"pescador": pesc.id, "destino": o.destino if o else SIN_DESTINO, "kg_dia": oferta[pesc.id],

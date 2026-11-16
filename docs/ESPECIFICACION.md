@@ -499,7 +499,14 @@ Van en `src/pesca/datos/parametros.yaml`. Son **[SIMULADO]** salvo que diga otra
 | días de pesca al año | 270 | — | veda 1 may – 31 jul [DATO] |
 | separación entre candidatos (km) | 5 | — | |
 | corridas de Monte Carlo | 500 (R2, R4), 100 (R5) | — | |
-| costos de I1–I7 | se definen en la Fase 5 | | |
+| I1 cajas térmicas | 350 000 COP por pescador, vida 3 años | 250 000–500 000 | nevera buena para todos (hielo 48 h); la reposición va en la operación anual |
+| I2 fábrica de hielo (exige I1) | 60 M + 12 M/año + 40 kWh/día | 40–90 M / 8–18 M / 25–60 | hielo a bordo: el río a 4 °C |
+| I3a / I3b | costos de R4 (San Miguel / Puente Arimena) | los de R4 | acopio con cuarto frío activo |
+| I4 acopio nuevo | 90 M + 15 M/año + 15 kWh/día | 60–130 M / 10–25 M / 8–25 | en el mejor punto k = 1 de la p-mediana de R4 |
+| I5:N camión refrigerado con ruta | 180 M + 30 M/año + 3 000 COP/km × km del circuito × 270/N | 120–260 M / 20–40 M / 2 000–4 500 | N ∈ {1, 3, 7} días; espera en desembarques (N+1)/2 días y carretera a 4 °C |
+| I6 subsidio de motor | 50 % de 9 M por motor, al 50 % de los botes a remo | 6–13 M / 30–80 % | el pescador paga la gasolina |
+| I7 desembarque mejorado | 25 M + 3 M/año | 15–40 M / 2–5 M | donde la señora: todo cabe en el congelador y no hay cortes |
+| presupuestos de la alcaldía (inversión inicial) | 100 M, 250 M y 500 M COP | — | recomendado = mayor VPN entre los que caben |
 
 ---
 

@@ -371,3 +371,67 @@ def grafico_codo(codo, costo_actuales: float, p_marcado: int):
     hoy = alt.Chart(pd.DataFrame({"y": [costo_actuales / 1e6], "t": ["los 3 acopios de hoy"]})).mark_rule(
         color=COLOR_TEXTO_SECUNDARIO, strokeDash=[6, 4], strokeWidth=2).encode(y="y:Q", tooltip=alt.Tooltip("t:N", title=""))
     return (linea + puntos + hoy).properties(height=300)
+
+
+def grafico_medidas(resumen):
+    """Valor salvado al año de cada medida sola: media e IC 90 %, con la inversion en el tooltip."""
+    import altair as alt
+
+    datos = resumen.assign(media=resumen["beneficio_anual_media"] / 1e6, p5=resumen["beneficio_anual_p5"] / 1e6,
+                           p95=resumen["beneficio_anual_p95"] / 1e6, inversion=resumen["inversion_media"] / 1e6)
+    y = alt.Y("medida:N", title=None, sort="-x", axis=alt.Axis(labelLimit=300))
+    tooltip = [alt.Tooltip("medida:N"), alt.Tooltip("media:Q", title="valor salvado (millones/año)", format=",.1f"),
+               alt.Tooltip("p5:Q", title="p5", format=",.1f"), alt.Tooltip("p95:Q", title="p95", format=",.1f"),
+               alt.Tooltip("inversion:Q", title="inversión (millones)", format=",.0f"),
+               alt.Tooltip("pct_vpn_positivo:Q", title="% corridas con VPN > 0", format=".0f")]
+    barras = alt.Chart(datos).mark_bar(color=COLOR_VALOR, cornerRadius=3, height=18).encode(
+        x=alt.X("media:Q", title="valor que se salva al año (millones de COP)"), y=y, tooltip=tooltip)
+    intervalo = alt.Chart(datos).mark_rule(color=COLOR_TEXTO_SECUNDARIO, strokeWidth=2).encode(x="p5:Q", x2="p95:Q", y=y)
+    return (barras + intervalo).properties(height=34 * len(datos) + 30)
+
+
+def grafico_pareto(tabla, presupuestos: list[float], recomendados: list[str]):
+    """Inversion vs valor salvado al año de todos los portafolios; frontera de Pareto y presupuestos."""
+    import altair as alt
+    import pandas as pd
+
+    datos = tabla.assign(inversion_m=tabla["inversion"] / 1e6, valor_m=tabla["beneficio_anual"] / 1e6,
+                         vpn_m=tabla["vpn"] / 1e6,
+                         grupo=tabla.apply(lambda f: "recomendado" if f["portafolio"] in recomendados
+                                           else ("frontera de Pareto" if f["pareto"] else "otros"), axis=1))
+    x = alt.X("inversion_m:Q", title="inversión inicial (millones de COP)")
+    y = alt.Y("valor_m:Q", title="valor que se salva al año (millones de COP)")
+    tooltip = [alt.Tooltip("portafolio:N"), alt.Tooltip("inversion_m:Q", title="inversión (millones)", format=",.0f"),
+               alt.Tooltip("valor_m:Q", title="valor salvado (millones/año)", format=",.1f"),
+               alt.Tooltip("vpn_m:Q", title="VPN (millones)", format=",.0f")]
+    color = alt.Color("grupo:N", scale=alt.Scale(domain=["otros", "frontera de Pareto", "recomendado"],
+                                                 range=["#c8c8c8", COLOR_VALOR, COLOR_PERDIDA]),
+                      legend=alt.Legend(title=None, orient="top"))
+    puntos = alt.Chart(datos).mark_point(filled=True, size=55, opacity=0.85).encode(x=x, y=y, color=color, tooltip=tooltip)
+    frontera = alt.Chart(datos[datos["pareto"]].sort_values("inversion_m")).mark_line(
+        color=COLOR_VALOR, strokeWidth=2, interpolate="step-after").encode(x=x, y=y)
+    limites = pd.DataFrame({"x": [b / 1e6 for b in presupuestos],
+                            "t": [f"presupuesto {b / 1e6:,.0f} M".replace(",", ".") for b in presupuestos]})
+    reglas = alt.Chart(limites).mark_rule(color=COLOR_TEXTO_SECUNDARIO, strokeDash=[6, 4]).encode(
+        x="x:Q", tooltip=alt.Tooltip("t:N", title=""))
+    return (reglas + frontera + puntos).properties(height=380)
+
+
+def grafico_combinado(pasos: list[dict]):
+    """Valor salvado al año acumulado al ir sumando las medidas de un portafolio."""
+    import altair as alt
+    import pandas as pd
+
+    filas, previo = [], 0.0
+    for p in pasos:
+        filas.append({"medida": f"+ {p['medida']}", "inicio": previo / 1e6, "fin": p["beneficio_anual"] / 1e6,
+                      "aporte": (p["beneficio_anual"] - previo) / 1e6})
+        previo = p["beneficio_anual"]
+    datos = pd.DataFrame(filas)
+    x = alt.X("medida:N", sort=list(datos["medida"]), title=None, axis=alt.Axis(labelAngle=0, labelLimit=160))
+    barras = alt.Chart(datos).mark_bar(size=40, cornerRadius=3).encode(
+        x=x, y=alt.Y("inicio:Q", title="valor salvado acumulado (millones/año)"), y2="fin:Q",
+        color=alt.condition("datum.aporte >= 0", alt.value(COLOR_VALOR), alt.value(COLOR_PERDIDA)),
+        tooltip=[alt.Tooltip("medida:N"), alt.Tooltip("aporte:Q", title="aporta (millones/año)", format=",.1f"),
+                 alt.Tooltip("fin:Q", title="acumulado (millones/año)", format=",.1f")])
+    return barras.properties(height=280)

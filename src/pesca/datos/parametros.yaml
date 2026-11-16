@@ -376,10 +376,94 @@ economia:
     valor: 0.70
     etiqueta: SIMULADO
     nota: Vale la pena si VPN > 0 en al menos esta fraccion de corridas
-  costos_inversion:
-    valor: null
+
+inversiones:
+  presupuestos_cop:
+    valor: [100000000, 250000000, 500000000]
     etiqueta: SIMULADO
-    nota: Costos de I1 a I7. Se definen en la Fase 5
+    nota: Tres presupuestos de inversion inicial de la alcaldia para la frontera de Pareto (R5)
+  caja_termica_cop:
+    valor: 350000.0
+    rango: [250000.0, 500000.0]
+    etiqueta: SIMULADO
+    nota: I1. Caja termica de ~150 L por pescador
+  vida_caja_anios:
+    valor: 3
+    etiqueta: SIMULADO
+    nota: I1. La reposicion entra a la operacion anual (costo / vida)
+  fabrica_hielo_cop:
+    valor: 60000000.0
+    rango: [40000000.0, 90000000.0]
+    etiqueta: SIMULADO
+    nota: I2. Maquina de hielo de ~2 t/dia en Puerto Gaitan (exige I1)
+  operacion_anual_hielo_cop:
+    valor: 12000000.0
+    rango: [8000000.0, 18000000.0]
+    etiqueta: SIMULADO
+    nota: I2. Personal y mantenimiento, sin la energia
+  kwh_dia_hielo:
+    valor: 40.0
+    rango: [25.0, 60.0]
+    etiqueta: SIMULADO
+    nota: I2. Consumo de la maquina de hielo
+  acopio_nuevo_cop:
+    valor: 90000000.0
+    rango: [60000000.0, 130000000.0]
+    etiqueta: SIMULADO
+    nota: I4. Cuarto frio de 4 m³ con caseta en un punto del rio (el mejor k = 1 de la p-mediana de R4)
+  operacion_anual_acopio_nuevo_cop:
+    valor: 15000000.0
+    rango: [10000000.0, 25000000.0]
+    etiqueta: SIMULADO
+    nota: I4. Igual que San Miguel, sin la energia
+  kwh_dia_acopio_nuevo:
+    valor: 15.0
+    rango: [8.0, 25.0]
+    etiqueta: SIMULADO
+    nota: I4. Igual que San Miguel
+  camion_refrigerado_cop:
+    valor: 180000000.0
+    rango: [120000000.0, 260000000.0]
+    etiqueta: SIMULADO
+    nota: I5. Camion refrigerado usado de ~3 t
+  operacion_anual_camion_cop:
+    valor: 30000000.0
+    rango: [20000000.0, 40000000.0]
+    etiqueta: SIMULADO
+    nota: I5. Conductor y mantenimiento, sin el combustible
+  camion_cop_km:
+    valor: 3000.0
+    rango: [2000.0, 4500.0]
+    etiqueta: SIMULADO
+    nota: I5. Combustible y desgaste por km recorrido
+  ciclos_camion_dias:
+    valor: [1, 3, 7]
+    etiqueta: SIMULADO
+    nota: I5. Opciones de N (el camion pasa por los desembarques cada N dias); N es variable de decision
+  motor_cop:
+    valor: 9000000.0
+    rango: [6000000.0, 13000000.0]
+    etiqueta: SIMULADO
+    nota: I6. Motor fuera de borda de ~15 HP
+  fraccion_subsidio_motor:
+    valor: 0.5
+    etiqueta: SIMULADO
+    nota: I6. Parte del precio del motor que paga la alcaldia
+  fraccion_remo_a_motor:
+    valor: 0.5
+    rango: [0.3, 0.8]
+    etiqueta: SIMULADO
+    nota: I6. Fraccion de los botes de madera a remo que reciben el subsidio
+  desembarque_mejorado_cop:
+    valor: 25000000.0
+    rango: [15000000.0, 40000000.0]
+    etiqueta: SIMULADO
+    nota: I7. Congelador adicional y respaldo solar donde la señora (todo cabe y no hay cortes)
+  operacion_anual_desembarque_cop:
+    valor: 3000000.0
+    rango: [2000000.0, 5000000.0]
+    etiqueta: SIMULADO
+    nota: I7. Mantenimiento
 
 ubicacion:
   k_max_agregar:

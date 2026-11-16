@@ -136,6 +136,20 @@ def generar_poblacion(rng: np.random.Generator, desembarque_senora: str, grafo: 
     return pd.DataFrame(filas)
 
 
+def aplicar_subsidio_motor(poblacion: pd.DataFrame) -> pd.DataFrame:
+    """Subsidio de motor (I6): una fraccion fija de los botes de madera a remo pasa a madera con motor.
+
+    El sorteo usa la semilla general, asi la misma poblacion da siempre los mismos subsidiados.
+    """
+    p = config.parametro
+    pob = poblacion.copy()
+    remo = pob.index[pob["embarcacion"] == "madera_remo"]
+    rng = np.random.default_rng(p("general.semilla"))
+    elegidos = remo[rng.random(len(remo)) < p("inversiones.fraccion_remo_a_motor")]
+    pob.loc[elegidos, "embarcacion"] = "madera_motor"
+    return pob
+
+
 def volumen_mensual(poblacion: pd.DataFrame) -> pd.DataFrame:
     """Toneladas esperadas por mes y sitio que produce la poblacion."""
     act = actividad()

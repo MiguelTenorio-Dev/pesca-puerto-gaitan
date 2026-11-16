@@ -96,6 +96,15 @@ def barra_lateral() -> Escenario:
             if st.button("Quitar acopios nuevos"):
                 nuevos = frozenset()
 
+        medidas = {"inversiones": actual.inversiones, "cajas_termicas": actual.cajas_termicas,
+                   "ciclo_camion_dias": actual.ciclo_camion_dias, "desembarque_mejorado": actual.desembarque_mejorado,
+                   "subsidio_motor": actual.subsidio_motor}
+        if actual.inversiones:
+            st.caption("Inversiones activas: " + ", ".join(sorted(actual.inversiones)))
+            if st.button("Quitar inversiones"):
+                medidas = {"inversiones": frozenset(), "cajas_termicas": False, "ciclo_camion_dias": None,
+                           "desembarque_mejorado": False, "subsidio_motor": False}
+
     nuevo = actual.con(
         acopios_activos=frozenset(activos),
         desembarque_senora=senora,
@@ -103,6 +112,7 @@ def barra_lateral() -> Escenario:
         hielo_a_bordo=hielo,
         camion_refrigerado=camion,
         acopios_nuevos=nuevos,
+        **medidas,
     )
     st.session_state["escenario"] = nuevo
     return nuevo
