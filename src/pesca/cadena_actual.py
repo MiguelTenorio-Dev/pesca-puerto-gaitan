@@ -394,11 +394,11 @@ def veredicto_sensibilidad(tabla: pd.DataFrame) -> tuple[bool, str]:
         sentido = "pesa más" if mayoria.all() else "pesa menos"
         return False, (
             f"La ubicación **no cambia** la conclusión: en las {len(tabla)} candidatas la espera {sentido} que el río. "
-            f"El valor perdido varía {rango:.1f} puntos entre candidatas."
+            f"El valor perdido varía {f"{rango:.1f}".replace(".", ",")} puntos entre candidatas."
         )
     return True, (
         f"La ubicación **sí cambia** la conclusión: en {int(mayoria.sum())} de {len(tabla)} candidatas la espera pesa más "
-        f"que el río. El valor perdido varía {rango:.1f} puntos entre candidatas."
+        f"que el río. El valor perdido varía {f"{rango:.1f}".replace(".", ",")} puntos entre candidatas."
     )
 
 

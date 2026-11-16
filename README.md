@@ -89,5 +89,6 @@ tests/                pruebas (pytest)
 
 - [Especificación](docs/ESPECIFICACION.md): la fuente de verdad.
 - [Plan de trabajo](docs/PLAN_DE_TRABAJO.md): fases y registro de decisiones.
+- [Informe](docs/informe/informe.md) ([PDF](docs/informe/informe.pdf)) y [guion de la demo](docs/informe/guion_demo.md).
 
 Licencia MIT.

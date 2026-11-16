@@ -17,7 +17,7 @@
 > Claude Code actualiza esta sección cada vez que se cierra una sesión (prompt "Cierre de sesión").
 
 - **Última actualización:** lunes 16 nov 2026 (Bogotá)
-- **Fase actual:** fases 0 a 6 cerradas y en GitHub (último commit de fase: a1f9844, `fase 6: hoy vs propuesta, cartilla y release (R6)`; release `v1.0`). El repo es **público**. La app abre, `pytest -q` pasa (303 tests) y se instala desde GitHub. Precalculado R2, R4, R5 y R6 al día; cifras en `outputs/resumen_resultados.md`.
+- **Fase actual:** fases 0 a 7 hechas. Fase 7: informe `docs/informe/informe.md` + `informe.pdf` (11 páginas, figuras en `outputs/figuras/`), guion de la demo y presentación de 15 diapositivas en claude.ai (Artifact privado: https://claude.ai/artifact/63enmDbtuC4JvbMR6GReMp; se descarga como PPTX o PDF). El repo es público, release `v1.0`. `pytest -q` pasa.
 - **Resultados clave** (todo SIMULADO salvo lo medido y lo oficial; detalle e intervalos en el resumen):
   - R2: la espera pesa más que el río en el 100 % de las corridas; se pierde ≈ 50 % (aguas bajas) a 62 % (aguas altas) del valor.
   - R6, propuesta San Miguel + acopio nuevo (130 M): el valor perdido baja de 46 % a 9 % (aguas bajas). De la mejora, ≈ 2/3 viene de solo seguir el recomendador y ≈ 1/3 de la inversión. VPN positivo en el 52 % de las corridas (no pasa la regla del 70 %).
@@ -26,7 +26,7 @@
   - Desplegar en Streamlit Community Cloud (repo `MiguelTenorio-Dev/pesca-puerto-gaitan`, rama `main`, archivo `src/pesca/app/Inicio.py`, Python 3.12) y poner el link en el README.
   - El Meta boca del Manacacías → San Miguel quedó ×1,00: X01 (estimada) probablemente está muy al occidente; la captura M04 sugiere que la confluencia queda más al oriente.
   - El usuario tiene en mente cambios a la Fase 1 y decide al final del proyecto.
-- **Siguiente paso concreto:** desplegar la app y pasar el link; luego la Fase 7 (informe con cifras solo de `outputs/resumen_resultados.md`, presentación y ensayo de la demo).
+- **Siguiente paso concreto:** desplegar la app en Streamlit Cloud y poner el link en el README y en la última diapositiva; ensayar la demo con el guion; correr la revisión final del informe en una sesión nueva (segundo prompt de la Fase 7).
 - **Datos pendientes del equipo:**
   - KML con rutas (LineString) de M01–M04, si se quiere la geometría real de las trazas.
   - Coordenadas de X01 (prioridad), A01, A03 y C01: el tramo Yucao → boca del Manacacías necesita ×1,87, y la vía a Puente Arimena da 91 km frente al km 68 de la ANI.
@@ -210,9 +210,9 @@
 - Revisión final por una sesión nueva.
 
 **Hecho cuando:**
-- [ ] Cada cifra está respaldada.
-- [ ] Las limitaciones están declaradas.
-- [ ] La demo está ensayada. Abre la app pública 10 minutos antes.
+- [x] Cada cifra está respaldada (`tests/test_informe.py`: las cifras del informe están en el resumen o en la especificación).
+- [x] Las limitaciones están declaradas (informe §10 y diapositiva 14).
+- [ ] La demo está ensayada (guion en `docs/informe/guion_demo.md`; lo hace el usuario). Abre la app pública 10 minutos antes.
 
 ---
 
@@ -294,3 +294,6 @@ El núcleo (`red`, `busqueda`, `transporte`, `degradacion`, `asignacion`, `escen
 | 16 nov | — | Propuesta final (R6): San Miguel rehabilitado + acopio nuevo de R4 (I3a + I4), con los pescadores siguiendo el recomendador. Cartilla en PDF (Matplotlib) y CSV. El repo pasa a público en la Fase 6 | usuario (Fase 6) |
 | 16 nov | — | Hoy vs propuesta con la misma base de R3–R5 (valores esperados del recomendador; hoy = desembarque habitual, propuesta = reparto óptimo). La mejora se separa en lo que da seguir el recomendador (sin invertir) y lo que agrega la inversión. R2 sigue siendo la simulación día a día | Claude (Fase 6) |
 | 16 nov | — | El resumen de resultados (`outputs/resumen_resultados.md`) se genera solo desde lo precalculado más el reparto de R3 (liviano). La cartilla y su PDF se precalculan para que la página no calcule nada al cargar | Claude (Fase 6) |
+| 16 nov | — | Fase 7: informe en Markdown + PDF (Chrome sin ventana, librería `markdown` en el extra dev) y presentación como deck Artifact | usuario (Fase 7) |
+| 16 nov | — | El informe cita solo `outputs/resumen_resultados.md` (resultados) y la especificación §10 (supuestos); un test revisa cada cifra con decimales o miles. Al resumen se agregó la comparación Dijkstra/A*/BFS y todas las etapas de la pérdida | Claude (Fase 7) |
+| 16 nov | — | La explicación del recomendador dice cuándo el pescado se salvaría yendo a la plaza pero el viaje cuesta más de lo que pagan (antes decía «ninguna opción salva tu pescado») | Claude (Fase 7) |

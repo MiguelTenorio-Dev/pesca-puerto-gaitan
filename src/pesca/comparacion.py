@@ -15,7 +15,7 @@ import textwrap
 import numpy as np
 import pandas as pd
 
-from pesca import asignacion, cadena_actual, config, degradacion as dg, frio_bimodal, red, ubicacion
+from pesca import asignacion, busqueda, cadena_actual, config, degradacion as dg, frio_bimodal, red, transporte, ubicacion
 from pesca.escenario import Escenario
 
 TEMPORADAS = ("aguas_bajas", "aguas_altas")
@@ -23,6 +23,8 @@ TEXTO_TEMPORADA = {"aguas_bajas": "Aguas bajas (verano)", "aguas_altas": "Aguas 
 TEXTO_BOTE = {"madera_remo": "Madera a remo", "madera_motor": "Madera con motor",
               "aluminio_remo": "Aluminio a remo", "aluminio_motor": "Aluminio con motor"}
 LADOS = ("hoy", "propuesta")
+TEXTO_ALGORITMO = {"dijkstra": "Dijkstra", "a_estrella": "A*", "bfs": "BFS"}
+EMBARCACION_ALGORITMOS = "madera_motor"  # la del laboratorio de algoritmos de la app
 # Sitio de cada desembarque o acopio para colorear el mapa (visualizacion.COLOR_SITIO)
 SITIO_MAPA = {"D_MALECON": "malecon", "A02": "san_miguel", "A03": "vichada"}
 
@@ -301,6 +303,18 @@ def texto_resumen() -> str:
     s = g.graph["sinuosidad"]
     lineas += ["", f"Sinuosidad calibrada: río {_n(s['rio'], 2)}, carretera {_n(s['via'], 2)}. "
                f"Grafo: {g.number_of_nodes()} nodos, {g.number_of_edges()} aristas.", ""]
+    perfil = transporte.Perfil.desde_escenario(Escenario.base(), EMBARCACION_ALGORITMOS)
+    comp = busqueda.comparar(g, busqueda.pares_comparacion(), perfil)
+    lineas += [f"Dijkstra vs A* vs BFS ({TEXTO_BOTE[EMBARCACION_ALGORITMOS].lower()}, aguas bajas, peso = pérdida de calidad):", "",
+               "| ruta | algoritmo | nodos explorados | tramos | % peor que Dijkstra |", "|---|---|---|---|---|"]
+    for c in comp.itertuples():
+        lineas.append(f"| {c.par} | {TEXTO_ALGORITMO[c.algoritmo]} | {c.nodos_explorados} | {c.tramos} | {_n(max(c.pct_peor_que_dijkstra, 0.0), 1)} % |")
+    total = comp.groupby("algoritmo")["nodos_explorados"].sum()
+    peor = comp[comp["algoritmo"] == "bfs"]["pct_peor_que_dijkstra"]
+    lineas += ["", f"Nodos explorados en total: Dijkstra {total['dijkstra']}, A* {total['a_estrella']} "
+               f"({_n(100 * (1 - total['a_estrella'] / total['dijkstra']), 0)} % menos), BFS {total['bfs']}. "
+               f"A* da siempre el mismo costo que Dijkstra; BFS (menos tramos) queda en promedio {_n(peor.mean(), 1)} % peor "
+               f"(máximo {_n(peor.max(), 1)} %).", ""]
 
     # R2
     r2 = cadena_actual.cargar_precalculado()
@@ -313,9 +327,13 @@ def texto_resumen() -> str:
     for ind, texto, f in [("calidad_media", "calidad media (0–1)", lambda x: _n(x, 2)),
                           ("pct_valor_perdido", "% del valor perdido", _n),
                           ("cop_perdidos_mes", "COP perdidos al mes", _m),
+                          ("precio_base", "precio base (COP/kg)", lambda x: _n(x, 0)),
+                          ("cop_kg_faena", "COP/kg perdidos en la faena", lambda x: _n(x, 0)),
                           ("cop_kg_rio", "COP/kg perdidos en el río", lambda x: _n(x, 0)),
                           ("cop_kg_espera", "COP/kg perdidos en la espera", lambda x: _n(x, 0)),
+                          ("cop_kg_congelacion_lenta", "COP/kg perdidos por congelación lenta", lambda x: _n(x, 0)),
                           ("cop_kg_carretera", "COP/kg perdidos en la carretera", lambda x: _n(x, 0)),
+                          ("cop_kg_recibido", "COP/kg que recibe el pescador", lambda x: _n(x, 0)),
                           ("razon_espera_rio", "espera / río (veces)", lambda x: _n(x, 0))]:
         lineas.append(f"| {texto} | " + " | ".join(_ic(res[t].loc[ind].to_dict(), f) for t in TEMPORADAS) + " |")
     lineas.append("| % corridas con espera > río | " + " | ".join(f"{_n(res[t].at['espera_mayor_que_rio', 'media'], 1)} %" for t in TEMPORADAS) + " |")

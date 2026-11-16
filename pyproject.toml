@@ -23,7 +23,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest>=8.0"]
+dev = ["pytest>=8.0", "markdown>=3.5"]  # markdown: solo para el PDF del informe
 
 [project.scripts]
 pesca-gaitan = "pesca.cli:main"

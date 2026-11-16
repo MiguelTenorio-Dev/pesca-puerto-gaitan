@@ -170,3 +170,11 @@ def test_el_viaje_largo_puede_no_convenir():
     horas = [o.tramos.loc[o.tramos["modo"] == red.CAPA_RIO, "horas"].sum() for o in rec.alternativas if o.factible]
     mejor = rec.mejor.tramos.loc[rec.mejor.tramos["modo"] == red.CAPA_RIO, "horas"].sum()
     assert mejor == pytest.approx(min(horas))
+
+
+def test_explicacion_cuando_salvarlo_no_compensa_el_viaje():
+    # Con nevera deteriorada, subir a la plaza salva el pescado, pero 14 h de remo ida y vuelta cuestan mas
+    rec = asg.recomendar("P02@rio", "madera_remo", 20, BASE, "deteriorada")
+    assert rec.mejor.cop_total == 0
+    assert "solo se salva si lo llevas" in rec.explicacion
+    assert "te quedarían" in rec.explicacion

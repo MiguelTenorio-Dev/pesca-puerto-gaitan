@@ -358,7 +358,14 @@ def explicar(rec: Recomendacion) -> str:
         motivo = rec.alternativas[0].motivo if rec.alternativas else ""
         return f"Desde aquí no hay ninguna ruta posible con este bote. {motivo}."
     partes = []
-    if m.cop_total <= 0:
+    salvan = [o for o in rec.alternativas if o.factible and o.cop_total > 0]
+    if m.cop_total <= 0 and salvan:
+        lejos = max(salvan, key=lambda o: o.cop_neto)
+        partes.append(
+            f"Tu pescado solo se salva si lo llevas a **{lejos.nombre}**, pero ese viaje te cuesta más de lo que te pagan. "
+            f"Lo que menos plata te hace perder es llevarlo a **{m.nombre}**."
+        )
+    elif m.cop_total <= 0:
         partes.append(
             "Con lo que hay hoy, **ninguna opción salva tu pescado**: llega dañado y lo rechazan. "
             f"Lo que menos daño le hace es llevarlo a **{m.nombre}**."
@@ -392,7 +399,9 @@ def explicar(rec: Recomendacion) -> str:
         if plaza.factible:
             partes.append(
                 f"No subas por el río hasta Puerto Gaitán: son {_texto_corriente(plaza)}, {_horas_rio(plaza):.0f} horas"
-                + (f", y te pagarían {pesos(plaza.cop_total)}." if plaza.cop_total > 0 else ", y el pescado llega dañado.")
+                + (f": te pagarían {pesos(plaza.cop_total)}, pero el viaje ida y vuelta te cuesta {pesos(plaza.costo_viaje)} "
+                   f"{_que_gastas(rec.embarcacion)} y te quedarían {pesos(plaza.cop_neto)}."
+                   if plaza.cop_total > 0 else ", y el pescado llega dañado.")
             )
         else:
             partes.append(f"Hasta Puerto Gaitán por río no se puede: {plaza.motivo.lower()}.")

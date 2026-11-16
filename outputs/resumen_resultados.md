@@ -13,6 +13,37 @@ Generado por `python scripts/correr_todo.py`. El informe toma sus cifras solo de
 
 Sinuosidad calibrada: río 1,11, carretera 1,27. Grafo: 69 nodos, 148 aristas.
 
+Dijkstra vs A* vs BFS (madera con motor, aguas bajas, peso = pérdida de calidad):
+
+| ruta | algoritmo | nodos explorados | tramos | % peor que Dijkstra |
+|---|---|---|---|---|
+| Meta bajo → Puerto Gaitán, plaza de mercado | Dijkstra | 19 | 5 | 0,0 % |
+| Meta bajo → Puerto Gaitán, plaza de mercado | A* | 16 | 5 | 0,0 % |
+| Meta bajo → Puerto Gaitán, plaza de mercado | BFS | 15 | 5 | 0,0 % |
+| Meta alto → Puerto Gaitán, plaza de mercado | Dijkstra | 22 | 7 | 0,0 % |
+| Meta alto → Puerto Gaitán, plaza de mercado | A* | 18 | 7 | 0,0 % |
+| Meta alto → Puerto Gaitán, plaza de mercado | BFS | 18 | 7 | 0,0 % |
+| Yucao → Puerto Gaitán, plaza de mercado | Dijkstra | 21 | 7 | 0,0 % |
+| Yucao → Puerto Gaitán, plaza de mercado | A* | 16 | 7 | 0,0 % |
+| Yucao → Puerto Gaitán, plaza de mercado | BFS | 17 | 7 | 0,2 % |
+| caño Chayva → Puerto Gaitán, plaza de mercado | Dijkstra | 17 | 6 | 0,0 % |
+| caño Chayva → Puerto Gaitán, plaza de mercado | A* | 17 | 6 | 0,0 % |
+| caño Chayva → Puerto Gaitán, plaza de mercado | BFS | 13 | 6 | 0,0 % |
+| Manacacías → San Miguel | Dijkstra | 49 | 8 | 0,0 % |
+| Manacacías → San Miguel | A* | 33 | 8 | 0,0 % |
+| Manacacías → San Miguel | BFS | 29 | 8 | 0,0 % |
+| San Miguel → Malecón de Puerto Gaitán | Dijkstra | 22 | 5 | 0,0 % |
+| San Miguel → Malecón de Puerto Gaitán | A* | 16 | 5 | 0,0 % |
+| San Miguel → Malecón de Puerto Gaitán | BFS | 22 | 5 | 0,0 % |
+| Muco → Puerto Gaitán, plaza de mercado | Dijkstra | 15 | 9 | 0,0 % |
+| Muco → Puerto Gaitán, plaza de mercado | A* | 10 | 9 | 0,0 % |
+| Muco → Puerto Gaitán, plaza de mercado | BFS | 11 | 9 | 0,0 % |
+| Planas → Puente Arimena | Dijkstra | 50 | 9 | 0,0 % |
+| Planas → Puente Arimena | A* | 10 | 9 | 0,0 % |
+| Planas → Puente Arimena | BFS | 15 | 9 | 0,0 % |
+
+Nodos explorados en total: Dijkstra 215, A* 136 (37 % menos), BFS 140. A* da siempre el mismo costo que Dijkstra; BFS (menos tramos) queda en promedio 0,0 % peor (máximo 0,2 %).
+
 ## R2. Diagnóstico de hoy [SIMULADO, 500 corridas por candidata y temporada]
 
 Candidata base del desembarque de la señora: D01a.
@@ -22,15 +53,19 @@ Candidata base del desembarque de la señora: D01a.
 | calidad media (0–1) | 0,47 (90 %: 0,29 a 0,70) | 0,35 (90 %: 0,20 a 0,55) |
 | % del valor perdido | 49,6 (90 %: 24,4 a 68,6) | 62,3 (90 %: 41,7 a 78,3) |
 | COP perdidos al mes | 42,1 M (90 %: 13,9 M a 79,6 M) | 51,7 M (90 %: 24,1 M a 91,6 M) |
+| precio base (COP/kg) | 10.397 (90 %: 7.574 a 13.708) | 10.397 (90 %: 7.574 a 13.708) |
+| COP/kg perdidos en la faena | 97 (90 %: 14 a 266) | 86 (90 %: 18 a 234) |
 | COP/kg perdidos en el río | 199 (90 %: 10 a 844) | 101 (90 %: 14 a 374) |
 | COP/kg perdidos en la espera | 4.508 (90 %: 1.981 a 7.377) | 5.924 (90 %: 3.625 a 8.657) |
+| COP/kg perdidos por congelación lenta | 159 (90 %: 23 a 454) | 149 (90 %: 26 a 406) |
 | COP/kg perdidos en la carretera | 184 (90 %: 55 a 389) | 209 (90 %: 66 a 409) |
+| COP/kg que recibe el pescador | 5.249 (90 %: 2.989 a 8.338) | 3.927 (90 %: 2.025 a 6.694) |
 | espera / río (veces) | 124 (90 %: 5 a 351) | 165 (90 %: 16 a 403) |
 | % corridas con espera > río | 100,0 % | 100,0 % |
 
-Sensibilidad a la ubicación de la señora, aguas bajas (verano): La ubicación no cambia la conclusión: en las 4 candidatas la espera pesa más que el río. El valor perdido varía 1.2 puntos entre candidatas.
+Sensibilidad a la ubicación de la señora, aguas bajas (verano): La ubicación no cambia la conclusión: en las 4 candidatas la espera pesa más que el río. El valor perdido varía 1,2 puntos entre candidatas.
 
-Sensibilidad a la ubicación de la señora, aguas altas (invierno): La ubicación no cambia la conclusión: en las 4 candidatas la espera pesa más que el río. El valor perdido varía 6.2 puntos entre candidatas.
+Sensibilidad a la ubicación de la señora, aguas altas (invierno): La ubicación no cambia la conclusión: en las 4 candidatas la espera pesa más que el río. El valor perdido varía 6,2 puntos entre candidatas.
 
 ## R3. Recomendador y reparto óptimo [SIMULADO, población de ejemplo, aguas bajas]
 
