@@ -22,7 +22,7 @@ from pesca.escenario import Escenario  # noqa: E402
 
 DESTINO = config.DIR_REPO / "outputs" / "figuras"
 AZUL, NARANJA, GRIS = visualizacion.COLOR_VALOR, visualizacion.COLOR_PERDIDA, visualizacion.COLOR_TEXTO_SECUNDARIO
-NOTA = "SIMULADO: supuestos del proyecto (especificación §10)"
+NOTA = "SIMULADO: supuestos del proyecto (parametros.yaml)"
 ANCHO_MAPA, ALTO_MAPA = 1400, 900
 ESPERA_TESELAS_MS = 8000
 

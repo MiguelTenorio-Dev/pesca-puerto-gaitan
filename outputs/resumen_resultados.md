@@ -1,6 +1,6 @@
 # Resumen de resultados
 
-Generado por `python scripts/correr_todo.py`. El informe toma sus cifras solo de aquí. Etiquetas: **MEDIDO** (Google Earth/KML), **OFICIAL** (SEPEC, SIPSA), **SIMULADO** (supuestos del proyecto, §10). Las cifras con Monte Carlo se dan como media e intervalo del 90 %.
+Generado por `python scripts/correr_todo.py`. El informe toma sus cifras solo de aquí. Etiquetas: **MEDIDO** (Google Earth/KML), **OFICIAL** (SEPEC, SIPSA), **SIMULADO** (supuestos del proyecto, en `src/pesca/datos/parametros.yaml`). Las cifras con Monte Carlo se dan como media e intervalo del 90 %.
 
 ## R1. Red y calibración [MEDIDO → CALIBRADO]
 

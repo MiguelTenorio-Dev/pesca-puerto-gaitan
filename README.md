@@ -81,14 +81,14 @@ src/pesca/app/        app Streamlit (las páginas no tienen lógica)
 src/pesca/datos/      parametros.yaml, nodos, trazas, datos oficiales, KML y precalculado/
 scripts/correr_todo.py  precálculo y resumen
 outputs/              resumen_resultados.md (fuente de las cifras del informe)
-docs/                 especificación, plan de trabajo y evidencias de las mediciones
+docs/                 contexto del problema y evidencias de las mediciones
 tests/                pruebas (pytest)
 ```
 
 ## Documentos
 
-- [Especificación](docs/ESPECIFICACION.md): la fuente de verdad.
-- [Plan de trabajo](docs/PLAN_DE_TRABAJO.md): fases y registro de decisiones.
-- [Informe](docs/informe/informe.md) ([PDF](docs/informe/informe.pdf)) y [guion de la demo](docs/informe/guion_demo.md).
+- [Contexto del problema](docs/contexto_original.md): la problemática de la pesca en Puerto Gaitán y lo que el proyecto se propuso resolver.
+- [Evidencias de las mediciones](docs/evidencias/): capturas de Google Earth de las rutas M01–M04.
+- Supuestos y parámetros, con su rango y su etiqueta: [`src/pesca/datos/parametros.yaml`](src/pesca/datos/parametros.yaml) y la pantalla «Supuestos y datos» de la app.
 
 Licencia MIT.

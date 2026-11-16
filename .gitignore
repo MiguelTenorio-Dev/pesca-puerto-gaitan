@@ -7,3 +7,10 @@ build/
 dist/
 .streamlit/secrets.toml
 .env
+
+# Documentos de trabajo personales: solo en el PC del equipo, no en el repo publico
+docs/informe/
+docs/ESPECIFICACION.md
+docs/GUIA_TERMINAL_Y_GITHUB.md
+docs/PLAN_DE_TRABAJO.md
+docs/PROMPTS_POR_FASE.md

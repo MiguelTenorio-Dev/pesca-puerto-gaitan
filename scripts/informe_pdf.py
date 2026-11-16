@@ -52,6 +52,8 @@ def separar_listas(texto: str) -> str:
 
 
 def main() -> None:
+    if not ORIGEN.is_file():
+        raise SystemExit(f"No está {ORIGEN}: el informe es un documento personal y no viene en el repositorio")
     chrome = shutil.which("google-chrome") or shutil.which("chromium") or shutil.which("chromium-browser")
     if chrome is None:
         raise SystemExit("Hace falta Google Chrome o Chromium para imprimir el PDF")

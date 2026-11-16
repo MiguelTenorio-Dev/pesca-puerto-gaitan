@@ -19,10 +19,16 @@ def _normalizar(token: str) -> float:
     return signo * float(token.lstrip("−-").replace(".", "").replace(",", "."))
 
 
-@pytest.mark.skipif(config.DIR_REPO is None, reason="el informe solo esta en el repositorio")
+# El informe y la especificacion son documentos personales: estan en el PC del equipo, no en el repo publico
+INFORME = config.DIR_REPO / "docs" / "informe" / "informe.md" if config.DIR_REPO else None
+FUENTES = [config.DIR_REPO / "outputs" / "resumen_resultados.md", config.DIR_REPO / "docs" / "ESPECIFICACION.md"] if config.DIR_REPO else []
+
+
+@pytest.mark.skipif(INFORME is None or not all(p.is_file() for p in [INFORME, *FUENTES]),
+                    reason="el informe y la especificacion solo estan en el PC del equipo")
 def test_cifras_del_informe_tienen_respaldo():
-    informe = (config.DIR_REPO / "docs" / "informe" / "informe.md").read_text(encoding="utf-8")
-    fuentes = [(config.DIR_REPO / "outputs" / "resumen_resultados.md"), (config.DIR_REPO / "docs" / "ESPECIFICACION.md")]
+    informe = INFORME.read_text(encoding="utf-8")
+    fuentes = FUENTES
     respaldo = set().union(*(_valores(f.read_text(encoding="utf-8")) for f in fuentes))
     # Un negativo del informe tambien vale si la fuente lo escribe en un intervalo ("a -129,3")
     respaldo |= {-v for v in respaldo}
