@@ -37,6 +37,7 @@ pesca = [
     "datos/*.csv",
     "datos/precalculado/*",
     "datos/rutas_kml/*",
+    "datos/grafo/*.csv",
     "app/*.py",
     "app/pages/*.py",
 ]

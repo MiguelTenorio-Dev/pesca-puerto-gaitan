@@ -20,6 +20,7 @@ DIR_PAQUETE = Path(__file__).resolve().parent
 DIR_DATOS = DIR_PAQUETE / "datos"
 DIR_PRECALCULADO = DIR_DATOS / "precalculado"
 DIR_KML = DIR_DATOS / "rutas_kml"
+DIR_GRAFO = DIR_DATOS / "grafo"
 DIR_APP = DIR_PAQUETE / "app"
 
 
@@ -44,6 +45,15 @@ COLUMNAS_VIAS = ["traza", "nombre", "orden", "id_nodo", "lat", "lon", "fuente"]
 COLUMNAS_SEPEC =["sitio", "periodo", "toneladas", "fuente"]
 COLUMNAS_PUNTOS_KML = ["nombre_kml", "uso", "id", "nombre", "notas"]
 COLUMNAS_PRECIOS = ["producto", "mercado", "fecha", "cop_por_kg", "fuente"]
+
+# Grafo de la adenda v4 (§2.5)
+COLUMNAS_CENTROS = [
+    "id", "nombre", "clase_dane", "habitantes_2018", "lat", "lon", "acceso_rio", "acceso_via",
+    "energia", "capacidad_frio_kg", "validado", "fuente", "notas",
+]
+COLUMNAS_NODOS_GRAFO = ["id", "nombre", "tipo", "cuenca", "lat", "lon", "centro_id", "peso_kg_dia", "validado", "fuente", "notas"]
+COLUMNAS_ARISTAS = ["id", "origen", "destino", "tipo", "modo", "distancia_km", "sentido", "clase_via", "fuente", "validado", "notas"]
+_TEXTO_GRAFO = {"id": str, "centro_id": str, "origen": str, "destino": str, "validado": str, "clase_via": str, "cuenca": str}
 
 
 def _validar_columnas(df: pd.DataFrame, columnas: list[str], archivo: str) -> pd.DataFrame:
@@ -209,6 +219,29 @@ def cargar_sepec() -> pd.DataFrame:
 def cargar_precios() -> pd.DataFrame:
     df = pd.read_csv(DIR_DATOS / "precios_referencia.csv")
     return _validar_columnas(df, COLUMNAS_PRECIOS, "precios_referencia.csv")
+
+
+def leer_csv_grafo(ruta: Path, columnas: list[str]) -> pd.DataFrame:
+    """CSV del grafo v4 con sus columnas exactas; los ids y textos se leen como texto."""
+    df = pd.read_csv(ruta, dtype={c: t for c, t in _TEXTO_GRAFO.items() if c in columnas}, keep_default_na=False, na_values=[""])
+    if list(df.columns) != columnas:
+        raise ValueError(f"{ruta.name}: columnas {list(df.columns)}, se esperaban {columnas}")
+    return df
+
+
+@cache
+def cargar_centros_poblados() -> pd.DataFrame:
+    return leer_csv_grafo(DIR_DATOS / "centros_poblados.csv", COLUMNAS_CENTROS)
+
+
+@cache
+def cargar_nodos_grafo() -> pd.DataFrame:
+    return leer_csv_grafo(DIR_GRAFO / "nodos.csv", COLUMNAS_NODOS_GRAFO)
+
+
+@cache
+def cargar_aristas() -> pd.DataFrame:
+    return leer_csv_grafo(DIR_GRAFO / "aristas.csv", COLUMNAS_ARISTAS)
 
 
 def ruta_evidencia(relativa: str) -> Path | None:

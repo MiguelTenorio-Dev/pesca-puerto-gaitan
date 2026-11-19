@@ -1,0 +1,2 @@
+id,origen,destino,tipo,modo,distancia_km,sentido,clase_via,fuente,validado,notas
+T001,R001,R002,rio,rio,4.85,1,,SIMULADO: fila de ejemplo de la plantilla,no,"Un tramo de río se guarda una vez; sentido = +1 si va aguas abajo de origen a destino. tipo: rio, acceso, transbordo, via, espera o venta"

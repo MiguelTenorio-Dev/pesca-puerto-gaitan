@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+<Document>
+  <name>juguete_rio</name>
+  <Placemark>
+    <name>río Uno</name>
+    <LineString><coordinates>-72.00,4.00,0 -71.90,4.00,0 -71.80,4.00,0</coordinates></LineString>
+  </Placemark>
+  <Placemark>
+    <name>río Dos</name>
+    <LineString><coordinates>-71.95,4.05,0 -71.95,4.0005,0</coordinates></LineString>
+  </Placemark>
+</Document>
+</kml>

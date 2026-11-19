@@ -1,0 +1,2 @@
+id,nombre,tipo,cuenca,lat,lon,centro_id,peso_kg_dia,validado,fuente,notas
+R001,"río Meta, frente a pueblo Yucao",punto_rio,meta,4.349,-72.162,,,no,SIMULADO: fila de ejemplo de la plantilla,"tipo: zona_pesca, punto_rio, embarcadero, centro_poblado, punto_via, desembarque, comunidad o mercado. fuente = ETIQUETA: detalle"

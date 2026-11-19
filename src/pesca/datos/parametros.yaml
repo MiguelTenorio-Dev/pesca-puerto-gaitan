@@ -50,6 +50,28 @@ red:
     etiqueta: DATO
     nota: El grafo debe reproducir M01–M04 con este error relativo (criterio de R1)
 
+grafo:
+  paso_km:
+    valor: 5.0
+    etiqueta: SIMULADO
+    nota: kml_a_grafo pone un vertice del rio o de la via cada ~paso_km (adenda §2.3)
+  paso_esqueleto_km:
+    valor: 30.0
+    etiqueta: SIMULADO
+    nota: Paso del esqueleto SIMULADO, para dejar pocos puntos mientras llega el KML
+  tolerancia_confluencia_km:
+    valor: 0.3
+    etiqueta: SIMULADO
+    nota: Si el extremo de una traza queda a esta distancia de otra, ahi hay una confluencia o un cruce
+  tolerancia_vertice_km:
+    valor: 1.0
+    etiqueta: SIMULADO
+    nota: Un pueblo se cuelga del vertice de la traza mas cercano si esta a menos de esta distancia
+  distancia_max_pueblo_km:
+    valor: 3.0
+    etiqueta: SIMULADO
+    nota: Mas lejos que esto, el pueblo no se cuelga de esa red (se reporta como pendiente)
+
 busqueda:
   pares_comparacion:
     valor:

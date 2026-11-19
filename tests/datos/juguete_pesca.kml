@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+<Document>
+  <name>juguete_pesca</name>
+  <Placemark><name>zona A</name><Point><coordinates>-71.99,4.004,0</coordinates></Point></Placemark>
+  <Placemark><name>zona B</name><Point><coordinates>-71.951,4.04,0</coordinates></Point></Placemark>
+</Document>
+</kml>

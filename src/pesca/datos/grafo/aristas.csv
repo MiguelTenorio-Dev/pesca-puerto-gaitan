@@ -1,0 +1,21 @@
+id,origen,destino,tipo,modo,distancia_km,sentido,clase_via,fuente,validado,notas
+T001,R001,R002,rio,rio,9.267,1,,"SIMULADO: esqueleto G1 (rios.csv, traza aproximada)",no,río Meta: suma de haversine sobre 3 vértices; km × 1.873 (cierra M02)
+T002,R002,R003,rio,rio,33.537,1,,"SIMULADO: esqueleto G1 (rios.csv, traza aproximada)",no,río Meta: suma de haversine sobre 6 vértices; km × 1.000 (cierra M04)
+T003,R004,R002,rio,rio,8.113,1,,"SIMULADO: esqueleto G1 (rios.csv, traza aproximada)",no,río Manacacías: suma de haversine sobre 4 vértices; km × 1.097 (sinuosidad común de M02 y M04)
+T004,V001,V002,via,via,15.14,0,por_confirmar,"SIMULADO: esqueleto G1 (vias.csv, traza aproximada)",no,vía Puerto Gaitán–Yucao: suma de haversine sobre 3 vértices; km × 1.566 (cierra M01)
+T005,V002,V003,via,via,38.8995,0,por_confirmar,"SIMULADO: esqueleto G1 (vias.csv, traza aproximada)",no,vía Puerto Gaitán–San Miguel: suma de haversine sobre 3 vértices; km × 1.183 (cierra M03)
+T006,V002,V004,via,via,39.3468,0,por_confirmar,"SIMULADO: esqueleto G1 (línea recta entre centros_poblados.csv, vía sin trazar)",no,vía Puerto Gaitán–La Cristalina: suma de haversine sobre 2 vértices; km × 1.270 (sinuosidad común de M01 y M03)
+T007,V004,V005,via,via,39.341,0,por_confirmar,"SIMULADO: esqueleto G1 (línea recta entre centros_poblados.csv, vía sin trazar)",no,vía Puerto Gaitán–La Cristalina: suma de haversine sobre 2 vértices; km × 1.270 (sinuosidad común de M01 y M03)
+T008,R004,E_CP01,acceso,rio,0.0,0,,"SIMULADO: esqueleto G1 (rios.csv, traza aproximada)",no,El embarcadero queda sobre el punto del río más cercano al pueblo
+T009,E_CP01,CP01,transbordo,interno,0.0,0,,SIMULADO: esqueleto G1 (arco interno (d = 0); el tiempo sale de parametros.yaml),no,
+T010,CP01,V002,via,via,0.0,0,por_confirmar,SIMULADO: esqueleto G1 (línea recta del pueblo al punto de la vía más cercano),no,
+T011,CP01,MER_CP01,venta,interno,0.0,0,,SIMULADO: esqueleto G1 (arco interno (d = 0); el tiempo sale de parametros.yaml),no,
+T012,CP02,V005,via,via,0.0,0,por_confirmar,SIMULADO: esqueleto G1 (línea recta del pueblo al punto de la vía más cercano),no,
+T013,R003,E_CP03,acceso,rio,0.0,0,,"SIMULADO: esqueleto G1 (rios.csv, traza aproximada)",no,El embarcadero queda sobre el punto del río más cercano al pueblo
+T014,E_CP03,CP03,transbordo,interno,0.0,0,,SIMULADO: esqueleto G1 (arco interno (d = 0); el tiempo sale de parametros.yaml),no,
+T015,CP03,V003,via,via,0.0005,0,por_confirmar,SIMULADO: esqueleto G1 (línea recta del pueblo al punto de la vía más cercano),no,nan; km × 1.183 (cierra M03)
+T016,R001,E_C01,acceso,rio,0.0,0,,"SIMULADO: esqueleto G1 (rios.csv, traza aproximada)",no,El embarcadero queda sobre el punto del río más cercano al pueblo
+T017,E_C01,C01,transbordo,interno,0.0,0,,SIMULADO: esqueleto G1 (arco interno (d = 0); el tiempo sale de parametros.yaml),no,
+T018,C01,V001,via,via,0.0,0,por_confirmar,SIMULADO: esqueleto G1 (línea recta del pueblo al punto de la vía más cercano),no,
+T019,P01,R001,acceso,rio,10.0324,0,,SIMULADO: esqueleto G1 (línea recta al punto del río más cercano),no,
+T020,P02,R003,acceso,rio,12.8162,0,,SIMULADO: esqueleto G1 (línea recta al punto del río más cercano),no,
