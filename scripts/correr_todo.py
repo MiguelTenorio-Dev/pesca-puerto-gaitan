@@ -1,6 +1,6 @@
 """Precalcula los resultados pesados en src/pesca/datos/precalculado/ y outputs/.
 
-Uso: python scripts/correr_todo.py [--solo r2|r4|r5]
+Uso: python scripts/correr_todo.py [--solo r2|r4|r5|r6|g5|resumen]
 """
 
 from __future__ import annotations
@@ -8,7 +8,7 @@ from __future__ import annotations
 import argparse
 import time
 
-from pesca import cadena_actual, comparacion, frio_bimodal, ubicacion
+from pesca import acopios, cadena_actual, comparacion, frio_bimodal, ubicacion
 
 # Cada fase registra aqui su funcion de precalculo (r2, r4, r5, resumen).
 TAREAS: dict[str, callable] = {
@@ -16,6 +16,7 @@ TAREAS: dict[str, callable] = {
     "r4": ubicacion.precalcular,
     "r5": frio_bimodal.precalcular,
     "r6": comparacion.precalcular,
+    "g5": acopios.precalcular,  # grafo v4: Monte Carlo de viabilidad y sensibilidad de los acopios
     "resumen": comparacion.escribir_resumen,  # al final: lee lo precalculado
 }
 

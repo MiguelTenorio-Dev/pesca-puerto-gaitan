@@ -2,117 +2,127 @@ import pandas as pd
 import streamlit as st
 from streamlit_folium import st_folium
 
-from pesca import asignacion, config, red, ubicacion, visualizacion
+from pesca import acopios, config, grafo, visualizacion
 from pesca.app import comun
 
 comun.configurar_pagina("Centros de acopio")
 escenario = comun.barra_lateral()
 
 
+@st.cache_data(show_spinner="Calculando c_ij con Dijkstra por capas…")
+def analisis():
+    an = acopios.analizar()
+    an.pop("grafo")
+    return an
+
+
 @st.cache_data
 def precalculado():
-    return ubicacion.cargar_precalculado()
+    return acopios.cargar_precalculado()
 
 
-def activar(nuevo) -> None:
-    st.session_state["escenario"] = nuevo
-    st.rerun()
+an = analisis()
+g = grafo.construir_grafo()
+an["grafo"] = g
+pre = precalculado()
+nombres = config.cargar_centros_poblados().set_index("id")["nombre"]
 
 
-st.title("Centros de acopio: ¿sirven los de hoy? ¿dónde deberían estar?")
-datos = precalculado()
-if datos is None:
-    st.error("Faltan los resultados. Córrelos con `python scripts/correr_todo.py --solo r4`.")
-    st.stop()
+def nombre(j: str) -> str:
+    return nombres.get(j, g.nodes[j]["nombre"] if j in g else j)
 
-grafo = red.construir_red()
-umbral = 100 * config.parametro("economia.umbral_vpn_positivo")
-anios = config.parametro("economia.horizonte_anios")
 
-# ---------------------------------------------------------------- 1. viabilidad
-st.header("1. ¿Vale la pena rehabilitar los cuartos fríos?")
+def conjunto(s) -> str:
+    return ", ".join(nombre(j) for j in s)
+
+
+st.title("Centros de acopio: ¿dónde ponerlos y por qué ahí?")
 st.markdown(
-    f"**Regla de decisión:** un acopio **vale la pena** si su valor presente neto (VPN) a {anios} años es positivo "
-    f"en al menos el **{umbral:.0f} %** de las {datos['meta']['corridas']} corridas de Monte Carlo. "
-    "El beneficio es lo que se deja de perder (pescado dañado + viaje de los pescadores) en el mejor reparto de la flota; "
-    "los costos son la rehabilitación, la operación y **la energía**, que fue lo que hizo abandonar el cuarto frío de San Miguel."
-)
-resumen = ubicacion.resumen_viabilidad(datos["viabilidad"])
-acopios_del_escenario = {"A02": {"A02"}, "A03": {"A03"}, "todos": {"A02", "A03"}}
-for fila in resumen.itertuples():
-    with st.container(border=True):
-        veredicto = "✅ VALE LA PENA" if fila.vale_la_pena else "❌ NO VALE LA PENA"
-        st.markdown(f"#### {fila.nombre}: {veredicto}")
-        st.caption(f"VPN > 0 en el {fila.pct_vpn_positivo:.0f} % de las corridas (la regla pide {umbral:.0f} %).")
-        c1, c2, c3 = st.columns(3)
-        c1.metric("VPN medio", f"{asignacion.pesos(fila.vpn_media / 1e6)} M")
-        c1.caption(f"90 %: {fila.vpn_p5 / 1e6:,.0f} a {fila.vpn_p95 / 1e6:,.0f} millones".replace(",", "."))
-        c2.metric("Valor que se salva al año", f"{asignacion.pesos(fila.beneficio_anual_media / 1e6)} M")
-        c2.caption(f"{fila.kg_salvados_dia_media:.0f} kg/día más se venden · uso del cuarto frío {fila.uso_pct_media:.0f} %")
-        c3.metric("Energía al año", f"{asignacion.pesos(fila.energia_anual_media / 1e6)} M")
-        if fila.equilibrio_cop_kwh > 0:
-            c3.caption(f"El VPN medio llega a 0 con la luz a {asignacion.pesos(fila.equilibrio_cop_kwh)}/kWh")
-        else:
-            c3.caption("Ni con la luz gratis el VPN medio es positivo")
-        nuevos_activos = acopios_del_escenario[fila.acopio]
-        if nuevos_activos <= escenario.acopios_activos:
-            st.caption("✔ Ya está activo en el escenario.")
-        elif st.button("Activar en el escenario", key=f"activar_{fila.acopio}"):
-            activar(escenario.con(acopios_activos=frozenset(escenario.acopios_activos | nuevos_activos)))
-st.altair_chart(visualizacion.grafico_vpn(resumen), width="stretch")
-st.caption(
-    f"{comun.etiqueta('SIMULADO')}: costos de rehabilitación, operación, consumo de energía y tarifa. "
-    "Cada corrida cambia los parámetros dentro de sus rangos, la población de pescadores y la temporada."
+    "Un acopio solo puede estar en un **centro poblado** (ahí hay comprador, energía y carretera). Entre ellos se elige "
+    "con la **p-mediana sobre los vértices del grafo**: el conjunto de pueblos que hace mínima la calidad perdida, "
+    "ponderada por los kilos de cada zona. El costo de cada zona a cada pueblo (c_ij) lo calcula **Dijkstra por capas**."
 )
 
-# ---------------------------------------------------------------- 2. reubicacion
-st.header("2. ¿Están bien ubicados?")
+st.subheader("1. ¿Qué pueblos pueden ser acopio?")
+tabla = an["tabla_candidatos"].copy()
+tabla["entra"] = tabla["candidato"].map({True: "✅ candidato", False: "❌ excluido"})
+st.dataframe(tabla[["nombre", "habitantes_2018", "acceso_rio", "acceso_via", "entra", "motivo", "marca"]], hide_index=True, width="stretch")
+st.caption(f"Regla: cabecera o centro poblado, ≥ {config.parametro('acopios_grafo.p_min_habitantes')} habitantes, "
+           f"acceso {config.parametro('acopios_grafo.criterio_acceso')} por río o vía, con coordenadas y alcanzable por BFS. "
+           "[CONFIRMAR] = coordenadas, acceso o energía sin confirmar.")
+
+st.subheader("2. ¿Cuánto se pierde llevando cada zona a cada pueblo? (c_ij)")
+c = an["c"].rename(columns=nombre, index=lambda i: g.nodes[i]["nombre"])
+st.dataframe(c, width="stretch", column_config={col: st.column_config.NumberColumn(format="%.3f") for col in c.columns})
+st.caption("c_ij = ΔQ de la ida por río (con hielo) + ΔQ de la espera en el cuarto frío + ΔQ de la vuelta a la plaza en frío. "
+           "Promedio sobre la flota y las neveras [SIMULADO]. 1 = no se llega o se pierde todo.")
+
+st.subheader("3. ¿Cuántos acopios valen la pena? (curva del codo)")
+curva = an["curva"].assign(S=lambda d: d["S"].map(conjunto))
+c1, c2 = st.columns([2, 1])
+c1.line_chart(an["curva"].set_index("p")["f"], x_label="número de acopios p", y_label="kg perdidos por día f(p)")
+c2.dataframe(curva, hide_index=True, width="stretch", column_config={"f": st.column_config.NumberColumn(format="%.3f")})
+st.markdown(f"El codo está en **p = {an['p_codo']}**: abrir uno más ya casi no reduce la pérdida. "
+            f"Los acopios elegidos son **{conjunto(an['S'])}**.")
+
+st.subheader("4. Tres métodos, el mismo resultado")
+st.dataframe(an["metodos"].assign(S=lambda d: d["S"].map(conjunto)), hide_index=True, width="stretch",
+             column_config={"f": st.column_config.NumberColumn(format="%.4f"), "gap_pct": st.column_config.NumberColumn("gap (%)", format="%.2f")})
+st.caption("Enumeración: todas las combinaciones (óptimo garantizado). ILP: PuLP/CBC. Búsqueda local Teitz–Bart: heurística, "
+           "por eso se reporta su gap contra la enumeración.")
+
+st.subheader("5. ¿Por qué estos pueblos y no otro punto?")
+libre = an["libre"]
+filas = [
+    {"referencia": "Propuesta (p-mediana sobre pueblos)", "S": conjunto(an["S"]), "kg perdidos/día": acopios.f(an["c"], an["w"], an["S"])},
+    {"referencia": "Acopios de hoy", "S": conjunto(an["actuales"]), "kg perdidos/día": an["f_actuales"]},
+    {"referencia": "p-mediana libre (cualquier punto del río, cota inferior)", "S": conjunto(libre["S"]) if libre else "—",
+     "kg perdidos/día": libre["f"] if libre else None},
+    {"referencia": "Centroide de las zonas (1 acopio)", "S": nombre(an["centroide"]), "kg perdidos/día": an["f_centroide_p1"]},
+    {"referencia": "p-mediana con 1 acopio", "S": conjunto(an["curva"]["S"].iloc[0]), "kg perdidos/día": an["f_p1"]},
+]
+st.dataframe(pd.DataFrame(filas), hide_index=True, width="stretch", column_config={"kg perdidos/día": st.column_config.NumberColumn(format="%.3f")})
 st.markdown(
-    "Con la **p-mediana** se buscan los puntos del río donde poner los acopios para que se pierda lo menos posible "
-    "(pescado dañado + viaje), sumando sobre todos los pescadores según sus kilos."
+    f"- **Costo de exigir pueblos:** {an['costo_exigir_pueblos']:.3f} kg/día (propuesta − p-mediana libre).\n"
+    f"- **El punto medio no sirve:** el centroide cae en {nombre(an['centroide'])} y pierde "
+    f"{an['f_centroide_p1']:.2f} kg/día contra {an['f_p1']:.2f} del mejor pueblo."
 )
-pm = datos["pmediana"]
-resultados = pd.DataFrame(pm["resultados"])
-modo = st.radio("¿Qué quieres ver?", ["mover", "agregar"], horizontal=True, key="modo_pmediana",
-                format_func={"mover": "Mover los 3 acopios", "agregar": "Mantener los de hoy y agregar"}.get)
-if modo == "mover":
-    elegido = resultados[(resultados["modo"] == "mover") & (resultados["p"] == 3)].iloc[0]
+
+st.subheader("6. Mapa: hoy, propuesta y área de influencia")
+modo = st.radio("Modo", ["evaluar", "agregar", "reubicar"], horizontal=True, key="modo_pmediana",
+                format_func={"evaluar": "Evaluar los de hoy", "agregar": "Mantener y agregar", "reubicar": "Reubicar (p libre)"}.get)
+if modo == "evaluar":
+    propuesta = list(an["actuales"])
+elif modo == "agregar":
+    if len(an["agregar"]):
+        k = st.select_slider("¿Cuántos agregar?", list(an["agregar"]["k"]), key="k_agregar")
+        propuesta = list(an["agregar"].set_index("k").at[k, "S"])
+    else:
+        st.info("No hay más candidatos que agregar: los demás pueblos no tienen coordenadas o acceso confirmado [CONFIRMAR].")
+        propuesta = list(an["actuales"])
 else:
-    k = st.select_slider("¿Cuántos acopios agregar?", options=sorted(resultados["k"].dropna().astype(int)), value=1)
-    elegido = resultados[(resultados["modo"] == "agregar") & (resultados["k"] == k)].iloc[0]
+    propuesta = list(an["S"])
+asignacion = acopios.voronoi(an["c"], propuesta).to_dict()
+st_folium(visualizacion.mapa_acopios_grafo(g, an["actuales"], [j for j in propuesta if j not in an["actuales"]] or propuesta, asignacion),
+          height=420, use_container_width=True, returned_objects=[])
 
-propuestos = elegido["acopios"]
-st_folium(
-    visualizacion.mapa_acopios(grafo, list(ubicacion.ACTUALES), propuestos, elegido["asignacion"]),
-    height=440, use_container_width=True, returned_objects=[],
-)
-st.caption("🏠 rojo: acopios de hoy · ⭐ azul: acopios propuestos · líneas: a qué acopio va cada zona.")
+st.subheader("7. Veredicto por acopio")
+mc = pre["mc"] if pre is not None else None
+via = acopios.viabilidad(an, propuesta, mc)
+via["nombre"] = via["acopio"].map(nombre)
+st.dataframe(via.drop(columns=["acopio"]), hide_index=True, width="stretch",
+             column_config={c: st.column_config.NumberColumn(format="%,.0f") for c in ("beneficio_anual", "inversion", "vpn", "vpn_p5", "vpn_p95")})
+umbral = 100 * config.parametro("economia.umbral_vpn_positivo")
+st.caption(f"Regla: vale la pena si el VPN a {config.parametro('economia.horizonte_anios')} años es positivo en al menos el {umbral:.0f} % "
+           "de las corridas de Monte Carlo. Pérdida evitada = f(S sin el acopio) − f(S). Costos e inversiones: SIMULADO.")
+if mc is None:
+    st.info("Falta el Monte Carlo: córrelo con `python scripts/correr_todo.py --solo g5`.")
 
-ahorro = pm["costo_actuales_dia"] - elegido["costo_dia"]
-c1, c2 = st.columns(2)
-c1.metric("Con los 3 acopios de hoy", f"{asignacion.pesos(pm['costo_actuales_dia'])}/día")
-c2.metric("Con la propuesta", f"{asignacion.pesos(elegido['costo_dia'])}/día",
-          delta=f"-{100 * ahorro / pm['costo_actuales_dia']:.0f} %", delta_color="inverse")
+if pre is not None:
+    st.subheader("8. ¿Cambia la conclusión? (sensibilidad)")
+    sens = pre["sensibilidad"].assign(S=lambda d: d["S"].map(conjunto))
+    st.dataframe(sens, hide_index=True, width="stretch")
 
-tabla = pd.DataFrame(propuestos)[["lugar", "nombre", "rio", "lat", "lon", "actual"]]
-tabla["actual"] = tabla["actual"].map({True: "existe hoy", False: "nuevo"})
-st.dataframe(tabla, hide_index=True, width="stretch",
-             column_config={"lat": st.column_config.NumberColumn(format="%.4f"), "lon": st.column_config.NumberColumn(format="%.4f"),
-                            "actual": "estado"})
-c1, c2 = st.columns(2)
-c1.download_button("⬇ Descargar coordenadas (CSV)", tabla.to_csv(index=False).encode("utf-8"),
-                   file_name=f"acopios_propuestos_{modo}.csv", mime="text/csv")
-if c2.button("Activar estos acopios en el escenario", key="activar_propuesta"):
-    activar(ubicacion.escenario_con_propuesta(escenario, propuestos))
-st.caption(
-    "Al activarlos, aparecen en «¿A dónde llevo mi pescado?» y en «Toda la flota». "
-    "Las coordenadas de los puntos nuevos salen de trazas aproximadas del río (validado = no)."
-)
-
-st.subheader("¿Cuántos acopios hacen falta?")
-codo = resultados[resultados["modo"] == "mover"][["p", "costo_dia"]]
-st.altair_chart(visualizacion.grafico_codo(codo, pm["costo_actuales_dia"], 3), width="stretch")
-st.caption(
-    "Cada acopio más reduce la pérdida, pero cada vez menos (el «codo»). La línea punteada es el costo con los 3 de hoy. "
-    "La p-mediana no limita la capacidad de cada acopio; las capacidades entran en «Toda la flota»."
-)
+if st.button("Activar esta propuesta en el escenario", key="activar_propuesta"):
+    st.session_state["escenario"] = escenario.con(acopios_grafo=frozenset(propuesta))
+    st.rerun()

@@ -22,6 +22,7 @@ class Escenario:
     ciclo_camion_dias: int | None = None  # camion refrigerado que recoge en los desembarques cada N dias
     desembarque_mejorado: bool = False  # donde la señora: congelador con capacidad y energia confiables
     subsidio_motor: bool = False  # parte de los botes a remo pasa a motor
+    acopios_grafo: frozenset[str] = field(default_factory=frozenset)  # centros poblados activados en el grafo v4 (G5)
 
     def __post_init__(self) -> None:
         nodos = config.cargar_nodos().set_index("id")
@@ -46,6 +47,10 @@ class Escenario:
         object.__setattr__(self, "acopios_activos", frozenset(self.acopios_activos))
         object.__setattr__(self, "inversiones", frozenset(self.inversiones))
         object.__setattr__(self, "acopios_nuevos", frozenset(self.acopios_nuevos))
+        centros = set(config.cargar_centros_poblados()["id"])
+        if set(self.acopios_grafo) - centros:
+            raise ValueError(f"Los acopios del grafo deben ser centros poblados: {sorted(set(self.acopios_grafo) - centros)}")
+        object.__setattr__(self, "acopios_grafo", frozenset(self.acopios_grafo))
 
     @classmethod
     def base(cls) -> Escenario:

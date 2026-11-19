@@ -29,8 +29,12 @@ st.markdown(
     """
 - **Barra lateral:** define el escenario (acopios activos, dónde está el desembarque, temporada, hielo y camión).
   Lo que cambies ahí se ve en todas las pantallas.
+- **Del dato a la decisión:** el recorrido completo del modelo de grafos en cinco pasos, con números del escenario.
+- **Datos del grafo → Cómo se construye el grafo → Cómo se calculan los pesos → Laboratorio de algoritmos → Centros de acopio:**
+  de dónde sale cada arista, cada peso y cada acopio.
+- **¿A dónde llevo mi pescado?:** el recomendador para el pescador.
+- **Diagnóstico, Toda la flota, Bimodal y cadena de frío, Hoy vs propuesta:** la cadena de hoy y la propuesta de inversión.
 - **Supuestos y datos:** de dónde sale cada número: qué es medido, qué es oficial y qué es simulado.
-- Las demás pantallas (diagnóstico, mapa, recomendador, acopios, frío, hoy vs propuesta) se agregan fase por fase.
 """
 )
 

@@ -18,15 +18,24 @@ Todas las cifras, con su intervalo del 90 % y su etiqueta, están en [`outputs/r
 
 ## Pantallas
 
-1. **Diagnóstico: la situación hoy.** Pérdida por etapa, pescador por pescador, con Monte Carlo.
-2. **Mapa de la red.** Red multimodal río + carretera, calibrada con rutas medidas en Google Earth.
-3. **Laboratorio de algoritmos.** Dijkstra, A\* y BFS, implementados para el curso.
-4. **¿A dónde llevo mi pescado?** Recomendador tipo "Uber" para el pescador.
-5. **Toda la flota.** Reparto óptimo como problema de transporte.
-6. **Centros de acopio.** Viabilidad (VPN) y reubicación con p-mediana.
-7. **Bimodal y cadena de frío.** Medidas I1–I7, portafolios y frontera de Pareto.
-8. **Hoy vs propuesta.** Mapa doble y cartilla de rutas para imprimir (PDF y CSV).
-9. **Supuestos y datos.** Todos los parámetros, con su etiqueta y su fuente.
+**Grafo y acopios (modelo de grafos):**
+
+1. **Del dato a la decisión.** Los cinco pasos, del archivo con coordenadas a la elección de acopios, con un ejemplo numérico del escenario.
+2. **Datos del grafo.** Centros poblados del DANE, nodos y arcos, cada uno con la fuente de su dato.
+3. **Cómo se construye el grafo.** Grafo dirigido río + carretera desde archivos, calibrado con las rutas medidas, y su validación (BFS, DFS).
+4. **Cómo se calculan los pesos.** Pérdida de calidad de cada arco paso a paso: corriente, tiempo y hielo que se acaba.
+5. **Laboratorio de algoritmos.** Dijkstra, A\* y BFS propios sobre el grafo por capas de conservación (hielo y frío).
+6. **¿A dónde llevo mi pescado?** Recomendador para el pescador, con la ruta coloreada según la corriente.
+7. **Centros de acopio.** p-mediana sobre los centros poblados (enumeración, ILP y búsqueda local), curva del codo y VPN.
+
+**Cadena de hoy y propuesta:**
+
+8. **Diagnóstico: la situación hoy.** Pérdida por etapa, pescador por pescador, con Monte Carlo.
+9. **Mapa de la red, Toda la flota, Bimodal y cadena de frío, Hoy vs propuesta.** Red, reparto de la flota, medidas I1–I7 con frontera de Pareto y cartilla de rutas (PDF y CSV).
+10. **Supuestos y datos.** Todos los parámetros, con su etiqueta y su fuente.
+
+El grafo usa por ahora un **esqueleto SIMULADO** que reproduce las rutas medidas; para cambiarlo por las trazas reales,
+se dejan los KML en `src/pesca/datos/grafo/kml/` y se corre `python scripts/kml_a_grafo.py`.
 
 ## Instalar y abrir (Python 3.12)
 
@@ -47,6 +56,7 @@ pip install -e ".[dev]"
 pytest -q                          # pruebas
 pesca-gaitan                       # app (o: streamlit run src/pesca/app/Inicio.py)
 python scripts/correr_todo.py      # recalcula Monte Carlo, p-mediana y portafolios (~20 min) y el resumen
+python scripts/correr_todo.py --solo resumen   # solo regenera outputs/resumen_resultados.md
 ```
 
 Los resultados pesados ya vienen precalculados en `src/pesca/datos/precalculado/`, así que la app abre sin recalcular.

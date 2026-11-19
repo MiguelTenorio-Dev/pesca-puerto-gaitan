@@ -32,6 +32,9 @@ TEXTO_MODO = {"rio": "río", "via": "carretera", "transbordo": "transbordo"}
 
 TEXTO_SENTIDO = {"aguas_abajo": "a favor de la corriente", "aguas_arriba": "contra la corriente"}
 
+# A03 era Puente Arimena; desde el 19 nov el acopio queda en La Cristalina (en el grafo v4, CP02)
+NOMBRE_ACOPIO = {"A03": "La Cristalina / Puente Arimena (A03)"}
+
 TEXTO_ETIQUETA = {
     "MEDIDO": "🟢 MEDIDO",
     "DATO": "🔵 DATO",
@@ -66,7 +69,7 @@ def barra_lateral() -> Escenario:
             "Acopios activos",
             acopios,
             default=sorted(actual.acopios_activos),
-            format_func=lambda i: nodos.at[i, "nombre"],
+            format_func=lambda i: NOMBRE_ACOPIO.get(i, nodos.at[i, "nombre"]),
         )
         senora = st.selectbox(
             "¿Dónde está el desembarque de la señora?",
@@ -96,6 +99,13 @@ def barra_lateral() -> Escenario:
             if st.button("Quitar acopios nuevos"):
                 nuevos = frozenset()
 
+        del_grafo = actual.acopios_grafo
+        if del_grafo:
+            centros = config.cargar_centros_poblados().set_index("id")["nombre"]
+            st.caption("Acopios activados en el grafo: " + ", ".join(centros[j] for j in sorted(del_grafo)))
+            if st.button("Quitar acopios del grafo"):
+                del_grafo = frozenset()
+
         medidas = {"inversiones": actual.inversiones, "cajas_termicas": actual.cajas_termicas,
                    "ciclo_camion_dias": actual.ciclo_camion_dias, "desembarque_mejorado": actual.desembarque_mejorado,
                    "subsidio_motor": actual.subsidio_motor}
@@ -112,6 +122,7 @@ def barra_lateral() -> Escenario:
         hielo_a_bordo=hielo,
         camion_refrigerado=camion,
         acopios_nuevos=nuevos,
+        acopios_grafo=del_grafo,
         **medidas,
     )
     st.session_state["escenario"] = nuevo

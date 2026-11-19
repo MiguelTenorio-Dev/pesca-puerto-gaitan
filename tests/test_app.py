@@ -41,10 +41,28 @@ def test_centros_de_acopio_activa_la_propuesta():
     pagina = config.DIR_APP / "pages" / "07_Centros_de_acopio.py"
     at = AppTest.from_file(str(pagina), default_timeout=60).run()
     assert not at.exception, at.exception
-    at.radio(key="modo_pmediana").set_value("agregar").run()
+    for modo in ("agregar", "evaluar", "reubicar"):
+        at.radio(key="modo_pmediana").set_value(modo).run()
+        assert not at.exception, at.exception
     at.button(key="activar_propuesta").click().run()
     assert not at.exception, at.exception
-    assert at.session_state["escenario"].acopios_nuevos
+    assert at.session_state["escenario"].acopios_grafo
+
+
+def test_pesos_carga_el_ejemplo():
+    pagina = config.DIR_APP / "pages" / "13_Como_se_calculan_los_pesos.py"
+    at = AppTest.from_file(str(pagina), default_timeout=30).run()
+    at.button(key="cargar_ejemplo").click().run()
+    assert not at.exception, at.exception
+    assert any("0,4978" in m.value or "0,1134" in m.value for m in at.markdown)
+
+
+def test_recomendador_respeta_la_corriente():
+    pagina = config.DIR_APP / "pages" / "05_A_donde_llevo_mi_pescado.py"
+    at = AppTest.from_file(str(pagina), default_timeout=30).run()
+    at.radio(key="nevera").set_value("sin_hielo").run()
+    assert not at.exception, at.exception
+    assert any("corriente" in m.value for m in at.markdown)
 
 
 def test_bimodal_cambia_presupuesto_y_usa_el_portafolio():

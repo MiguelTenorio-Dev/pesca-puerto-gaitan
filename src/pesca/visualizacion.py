@@ -435,3 +435,153 @@ def grafico_combinado(pasos: list[dict]):
         tooltip=[alt.Tooltip("medida:N"), alt.Tooltip("aporte:Q", title="aporta (millones/año)", format=",.1f"),
                  alt.Tooltip("fin:Q", title="acumulado (millones/año)", format=",.1f")])
     return barras.properties(height=280)
+
+
+# ---------------------------------------------------------------- grafo v4 (adenda §2, fase G2)
+
+# Color de cada etiqueta de fuente (las 6 de config.ETIQUETAS)
+COLOR_FUENTE = {
+    "MEDIDO": "#1a9850",
+    "DATO": "#4575b4",
+    "OFICIAL": "#4575b4",
+    "CALIBRADO": "#d4a017",
+    "SIMULADO": "#f46d43",
+    "CONFIRMAR": "#d73027",
+}
+COLOR_VIA = "#7f7f7f"
+COLOR_NODO_V4 = {
+    "zona_pesca": "#2166ac",
+    "punto_rio": "#92c5de",
+    "embarcadero": "#35978f",
+    "centro_poblado": "#d73027",
+    "punto_via": "#4d4d4d",
+    "desembarque": "#fc8d59",
+    "comunidad": "#7b3294",
+    "mercado": "#1b7837",
+}
+TEXTO_NODO_V4 = {
+    "zona_pesca": "Zonas de pesca",
+    "punto_rio": "Puntos del río",
+    "embarcadero": "Embarcaderos",
+    "centro_poblado": "Centros poblados",
+    "punto_via": "Puntos de la vía",
+    "desembarque": "Desembarques",
+    "comunidad": "Comunidades",
+    "mercado": "Mercado",
+}
+
+
+def mapa_grafo(grafo: nx.DiGraph) -> folium.Map:
+    """Grafo v4: nodos por tipo; rio con flecha de corriente y color por fuente; vias en gris."""
+    from folium.plugins import PolyLineTextPath
+
+    mapa = _mapa_vacio(grafo)
+    rios = folium.FeatureGroup(name="Río (flecha = corriente; color = fuente)")
+    accesos = folium.FeatureGroup(name="Accesos")
+    vias = folium.FeatureGroup(name="Carreteras")
+    for _, _, a in grafo.edges(data=True):
+        # cada tramo una vez: el rio en su sentido aguas abajo; lo demas en el sentido del CSV
+        if "~" in a["id"] or a["modo"] == "interno":
+            continue
+        texto = f"{a['id']} · {a['tipo']} · {a['d_km']:.2f} km · {a['fuente']}"
+        if a["tipo"] == "rio":
+            linea = folium.PolyLine(a["geometria"], color=COLOR_FUENTE[a["etiqueta"]], weight=5, tooltip=texto).add_to(rios)
+            PolyLineTextPath(linea, "  ►  ", repeat=True, offset=6, attributes={"fill": "#08306b", "font-size": "14"}).add_to(rios)
+        elif a["tipo"] == "via":
+            folium.PolyLine(a["geometria"], color=COLOR_VIA, weight=3, dash_array=GUION_VIA, tooltip=texto).add_to(vias)
+        else:
+            folium.PolyLine(a["geometria"], color=COLOR_FUENTE[a["etiqueta"]], weight=1.5, tooltip=texto).add_to(accesos)
+
+    grupos = {t: folium.FeatureGroup(name=texto) for t, texto in TEXTO_NODO_V4.items()}
+    for n, a in grafo.nodes(data=True):
+        if a.get("parte") == "sale":
+            continue  # el nodo dividido se dibuja una vez
+        menor = a["tipo"] in ("punto_rio", "punto_via", "embarcadero")
+        folium.CircleMarker(
+            [a["lat"], a["lon"]],
+            radius=4 if menor else 8,
+            color=COLOR_NODO_V4.get(a["tipo"], "black"),
+            fill=True,
+            fill_opacity=0.9,
+            tooltip=f"{n.split(':')[0]} · {a['nombre']} ({a['tipo']}) · {a['fuente']} · validado: {a['validado']}",
+        ).add_to(grupos[a["tipo"]])
+
+    for capa in [rios, vias, accesos, *grupos.values()]:
+        capa.add_to(mapa)
+    folium.LayerControl(collapsed=True).add_to(mapa)
+    return mapa
+
+
+COLOR_A_FAVOR, COLOR_EN_CONTRA, COLOR_SIN_CORRIENTE = "#1a9850", "#d73027", "#4575b4"
+
+
+def _fondo_grafo(mapa: folium.Map, grafo: nx.DiGraph) -> None:
+    """La red v4 en gris claro, cada tramo una vez."""
+    for _, _, a in grafo.edges(data=True):
+        if "~" in a["id"] or a["modo"] == "interno":
+            continue
+        folium.PolyLine(a["geometria"], color="#bdbdbd", weight=2 if a["modo"] == "rio" else 1.5,
+                        dash_array=None if a["modo"] == "rio" else GUION_VIA).add_to(mapa)
+
+
+def _punto(grafo: nx.DiGraph, nodo) -> list[float]:
+    a = grafo.nodes[nodo[0] if isinstance(nodo, tuple) else nodo]
+    return [a["lat"], a["lon"]]
+
+
+def color_tramo(modo: str, sentido: int) -> str:
+    if modo == "via":
+        return COLOR_VIA
+    return {1: COLOR_A_FAVOR, -1: COLOR_EN_CONTRA}.get(sentido, COLOR_SIN_CORRIENTE)
+
+
+def mapa_ruta_grafo(grafo: nx.DiGraph, tramos: list, origen: str | None = None) -> folium.Map:
+    """Ruta sobre el grafo v4: verde a favor de la corriente, rojo en contra, gris por carretera."""
+    mapa = _mapa_vacio(grafo)
+    _fondo_grafo(mapa, grafo)
+    for u, v, modo, sentido in tramos:
+        if modo == "interno":
+            continue
+        folium.PolyLine([_punto(grafo, u), _punto(grafo, v)], color=color_tramo(modo, sentido), weight=6, opacity=0.9,
+                        dash_array=GUION_VIA if modo == "via" else None).add_to(mapa)
+    for n, a in grafo.nodes(data=True):
+        if a["tipo"] in ("centro_poblado", "mercado", "comunidad") and a.get("parte") != "sale":
+            folium.CircleMarker([a["lat"], a["lon"]], radius=6, color=COLOR_NODO_V4[a["tipo"]], fill=True, fill_opacity=0.9,
+                                tooltip=a["nombre"]).add_to(mapa)
+    if origen is not None:
+        folium.Marker(_punto(grafo, origen), tooltip="Estás aquí", icon=folium.Icon(color="blue", icon="user")).add_to(mapa)
+    return mapa
+
+
+def mapa_busqueda_capas(grafo: nx.DiGraph, resultado, paso: int | None = None) -> folium.Map:
+    """Estados explorados (de claro a oscuro, en orden) y la ruta encontrada."""
+    mapa = _mapa_vacio(grafo)
+    _fondo_grafo(mapa, grafo)
+    explorados = resultado.explorados if paso is None else resultado.explorados[:paso]
+    n = max(len(explorados) - 1, 1)
+    for k, estado in enumerate(explorados):
+        folium.CircleMarker(_punto(grafo, estado), radius=8, color=_mezclar(*RAMPA_EXPLORACION, k / n), fill=True,
+                            fill_opacity=0.8, tooltip=f"{k + 1}. {estado[0]} ({estado[1]})").add_to(mapa)
+    if paso is None and resultado.alcanzable:
+        for u, v in zip(resultado.camino, resultado.camino[1:]):
+            folium.PolyLine([_punto(grafo, u), _punto(grafo, v)], color="#000000", weight=4).add_to(mapa)
+    return mapa
+
+
+def mapa_acopios_grafo(grafo: nx.DiGraph, actuales: list[str], propuestos: list[str], asignacion: dict) -> folium.Map:
+    """Acopios de hoy (rojo) y propuestos (azul) sobre los centros poblados, y el area de influencia de cada uno."""
+    mapa = _mapa_vacio(grafo)
+    _fondo_grafo(mapa, grafo)
+
+    def lugar(j: str) -> list[float]:
+        return _punto(grafo, f"{j}:entra" if f"{j}:entra" in grafo else j)
+
+    for i, j in asignacion.items():
+        folium.PolyLine([_punto(grafo, i), lugar(j)], color=COLOR_VALOR, weight=1.5, opacity=0.7).add_to(mapa)
+        folium.CircleMarker(_punto(grafo, i), radius=4, color=COLOR_NODO_V4["zona_pesca"], fill=True,
+                            tooltip=f"{grafo.nodes[i]['nombre']} → {j}").add_to(mapa)
+    for j in actuales:
+        folium.Marker(lugar(j), tooltip=f"Hoy: {j}", icon=folium.Icon(color="red", icon="home")).add_to(mapa)
+    for j in propuestos:
+        folium.Marker(lugar(j), tooltip=f"Propuesto: {j}", icon=folium.Icon(color="blue", icon="star")).add_to(mapa)
+    return mapa

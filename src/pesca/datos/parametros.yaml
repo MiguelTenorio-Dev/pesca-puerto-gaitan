@@ -72,6 +72,77 @@ grafo:
     etiqueta: SIMULADO
     nota: Mas lejos que esto, el pueblo no se cuelga de esa red (se reporta como pendiente)
 
+pesos:
+  t_hielo_c:
+    valor: 4.0
+    rango: [0.0, 6.0]
+    etiqueta: SIMULADO
+    nota: Temperatura del pescado en icopor mientras dura el hielo (adenda §3.4)
+  factor_temporada_via:
+    valor: {aguas_bajas: 1.0, aguas_altas: 0.8}
+    etiqueta: CONFIRMAR
+    nota: Factor de la velocidad en carretera por temporada (invierno mas lento, adenda §3.2)
+  factor_clase_via:
+    valor: {pavimentada: 1.0, destapada: 0.75, por_confirmar: 1.0}
+    etiqueta: SIMULADO
+    nota: Factor de la velocidad segun la clase de via; mientras la clase este por confirmar vale 1
+  vehiculo_capa:
+    valor: {hielo: comprador_carro, frio: camion_refrigerado, congelado: camion_refrigerado}
+    etiqueta: SIMULADO
+    nota: Vehiculo de la carretera segun como viaja el pescado (en frio va en camion refrigerado)
+  espera_h:
+    valor: 0.0
+    etiqueta: SIMULADO
+    nota: Horas del arco de espera de un pueblo cuando el pescado solo pasa (R5 lo varia)
+
+busqueda_grafo:
+  pares_comparacion:
+    valor:
+      - [P01, MER_CP01]
+      - [P02, MER_CP01]
+      - [C01, MER_CP01]
+      - [P01, CP03:entra]
+      - [P02, CP03:entra]
+      - [P02, CP02:entra]
+      - [C01, CP02:entra]
+      - [P01, CP02:entra]
+    etiqueta: SIMULADO
+    nota: Pares origen → destino para la tabla Dijkstra vs A* vs BFS (grafo v4)
+
+acopios_grafo:
+  p_min_habitantes:
+    valor: 100
+    etiqueta: SIMULADO
+    nota: Poblacion minima de un centro poblado candidato a acopio (adenda §4.1); la sensibilidad la varia
+  criterio_acceso:
+    valor: estricto
+    etiqueta: SIMULADO
+    nota: estricto = solo acceso confirmado; permisivo = por_confirmar cuenta como si
+  actuales:
+    valor: [CP01, CP03, CP02]
+    etiqueta: DATO
+    nota: "Acopios de hoy: la plaza de Puerto Gaitan, San Miguel y La Cristalina (antes Puente Arimena)"
+  reinicios_busqueda_local:
+    valor: 30
+    etiqueta: SIMULADO
+    nota: Reinicios aleatorios de Teitz–Bart (semilla general.semilla)
+  umbral_codo:
+    valor: 0.05
+    etiqueta: SIMULADO
+    nota: El codo es el menor p tal que abrir uno mas baja f menos que esta fraccion de f(1)
+  corridas_montecarlo:
+    valor: 200
+    etiqueta: SIMULADO
+    nota: Corridas del Monte Carlo de viabilidad de los acopios del grafo
+  p_min_sensibilidad:
+    valor: [0, 100, 200, 500]
+    etiqueta: SIMULADO
+    nota: Valores de P_min que prueba la sensibilidad (adenda §4.8)
+  costo_sin_destino:
+    valor: 1.0
+    etiqueta: DATO
+    nota: c_ij de una zona que no llega a ningun acopio = pierde todo el lote
+
 busqueda:
   pares_comparacion:
     valor:

@@ -410,7 +410,10 @@ def texto_resumen() -> str:
 
 
 def escribir_resumen() -> None:
+    from pesca import decision
+
     destino = (config.DIR_REPO / "outputs") if config.DIR_REPO is not None else config.DIR_PRECALCULADO
     destino.mkdir(parents=True, exist_ok=True)
-    (destino / ARCHIVO_RESUMEN).write_text(texto_resumen(), encoding="utf-8")
+    texto = texto_resumen() + "\n" + decision.texto_resumen_grafo() + "\n"
+    (destino / ARCHIVO_RESUMEN).write_text(texto, encoding="utf-8")
     print(f"  resumen: {destino / ARCHIVO_RESUMEN}")

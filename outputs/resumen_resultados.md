@@ -139,3 +139,67 @@ Propuesta: Rehabilitar San Miguel + Acopio nuevo (R4), con los pescadores siguie
 En aguas bajas, la mejora de $1.332.437/día se reparte así: $884.568/día por solo seguir el recomendador (R3, sin invertir) y $447.869/día por la inversión (R5).
 
 Valor salvado al año con la propuesta (Monte Carlo de R5): 111,5 M (90 %: 8,4 M a 280,9 M); VPN 85,9 M, positivo en el 52 % de las corridas (la regla de R4 pide 70 %).
+
+## Grafo y acopios
+
+Grafo construido desde `datos/grafo/` (fuentes: SIMULADO): 19 nodos y 20 arcos en el CSV; 22 nodos y 42 arcos dirigidos en el grafo (con inversos y nodos divididos).
+
+| tipo de nodo | n |
+|---|---|
+| punto_via | 5 |
+| punto_rio | 4 |
+| centro_poblado | 3 |
+| embarcadero | 3 |
+| zona_pesca | 2 |
+| mercado | 1 |
+| comunidad | 1 |
+
+| tipo de arco | n |
+|---|---|
+| via | 8 |
+| acceso | 5 |
+| rio | 3 |
+| transbordo | 3 |
+| venta | 1 |
+
+**Calibración (Dijkstra por distancia):**
+
+| id | modo | km_medido | km_grafo | error_pct |
+|---|---|---|---|---|
+| M01 | via | 15.14 | 15.14 | 0.0 |
+| M02 | rio | 17.38 | 17.38 | 0.0 |
+| M03 | via | 38.9 | 38.9 | 0.0 |
+| M04 | rio | 41.65 | 41.65 | 0.0 |
+
+**Candidatos (centros poblados):** Puerto Gaitán, La Cristalina, San Miguel. Excluidos: Domo Planas (sin acceso confirmado por río ni por vía; sin coordenadas); San Pedro de Arimena (sin acceso confirmado por río ni por vía; sin coordenadas); El Porvenir (sin acceso confirmado por río ni por vía; sin coordenadas); Puente Arimena (sin coordenadas); Murujuy (76 habitantes < P_min = 100; sin acceso confirmado por río ni por vía; sin coordenadas); Puerto Trujillo (58 habitantes < P_min = 100; sin acceso confirmado por río ni por vía; sin coordenadas).
+
+**Acopios elegidos (`S*`, p = 2 en el codo):** Puerto Gaitán, San Miguel, con 2.261 kg equivalentes perdidos por día [SIMULADO].
+
+| metodo | S | f | gap_pct |
+|---|---|---|---|
+| enumeracion | Puerto Gaitán, San Miguel | 2.261 | 0.0 |
+| ilp | Puerto Gaitán, San Miguel | 2.261 | 0.0 |
+| busqueda_local | Puerto Gaitán, San Miguel | 2.261 | 0.0 |
+
+- Costo de exigir pueblos (`S*` − p-mediana libre): 0.000 kg/día.
+- Centroide de las zonas (R002): 7.294 kg/día, contra 4.042 de la p-mediana con 1 acopio.
+- Acopios de hoy (Puerto Gaitán, San Miguel, La Cristalina): 2.261 kg/día.
+
+**Sensibilidad:**
+
+| variable | valor | candidatos | p | S | f | cambia |
+|---|---|---|---|---|---|---|
+| P_min | 0 | 3 | 2 | Puerto Gaitán, San Miguel | 2.261 | False |
+| P_min | 100 | 3 | 2 | Puerto Gaitán, San Miguel | 2.261 | False |
+| P_min | 200 | 3 | 2 | Puerto Gaitán, San Miguel | 2.261 | False |
+| P_min | 500 | 3 | 2 | Puerto Gaitán, San Miguel | 2.261 | False |
+| criterio_acceso | estricto | 3 | 2 | Puerto Gaitán, San Miguel | 2.261 | False |
+| criterio_acceso | permisivo | 3 | 2 | Puerto Gaitán, San Miguel | 2.261 | False |
+| temporada | aguas_altas | 3 | 1 | San Miguel | 5.211 | True |
+| temporada | aguas_bajas | 3 | 2 | Puerto Gaitán, San Miguel | 2.261 | False |
+| embarcacion | madera_remo | 3 | 2 | Puerto Gaitán, San Miguel | 2.586 | False |
+| embarcacion | madera_motor | 3 | 1 | Puerto Gaitán | 0.526 | True |
+| embarcacion | aluminio_motor | 3 | 1 | Puerto Gaitán | 0.324 | True |
+
+`S*` cambia con: temporada, embarcacion.
+
