@@ -154,6 +154,8 @@ def cargar_puntos_kml() -> pd.DataFrame:
     mapa = _validar_columnas(pd.read_csv(DIR_DATOS / "puntos_kml.csv"), COLUMNAS_PUNTOS_KML, "puntos_kml.csv")
     leidos = [leer_puntos_kml(r) for r in sorted(DIR_KML.glob("*.kml"))]
     puntos = pd.concat(leidos, ignore_index=True) if leidos else pd.DataFrame(columns=COLUMNAS_KML)
+    # Un punto repetido en varios KML (p. ej. una version nueva del archivo) vale el del ultimo archivo por nombre
+    puntos = puntos.drop_duplicates("nombre_kml", keep="last").reset_index(drop=True)
     sin_uso = set(puntos["nombre_kml"]) - set(mapa["nombre_kml"])
     if sin_uso:
         raise ValueError(f"Puntos KML sin uso definido en puntos_kml.csv: {sorted(sin_uso)}")
