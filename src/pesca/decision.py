@@ -154,7 +154,7 @@ def texto_resumen_grafo() -> str:
         mc = pre_mc["mc"]
         for j, sub in mc.groupby("acopio"):
             positivo = 100 * (sub["vpn"] > 0).mean()
-            lineas.append(f"- {nombres.get(j, j)} en el grafo (comparado con ir directo a la plaza): VPN medio {_n(sub['vpn'].mean() / 1e6, 1)} M COP, "
+            lineas.append(f"- {acopios.nombre_acopio(an, j)} en el grafo (comparado con ir directo a la plaza): VPN medio {_n(sub['vpn'].mean() / 1e6, 1)} M COP, "
                           f"positivo en el {_n(positivo, 0)} % de {len(sub)} corridas [SIMULADO].")
         lineas.append("")
     metodos = an["metodos"].assign(S=lambda d: d["S"].map(conj))
@@ -166,6 +166,23 @@ def texto_resumen_grafo() -> str:
     lineas += [f"- Costo de exigir pueblos (`S*` − p-mediana libre): {_n(max(0.0, an['costo_exigir_pueblos']))} kg/día.",
                f"- Centroide de las zonas ({g.nodes[an['centroide']]['nombre'] if an['centroide'] in g else an['centroide']}): {_n(an['f_centroide_p1'])} kg/día, contra {_n(an['f_p1'])} de la p-mediana con 1 acopio.",
                f"- Acopios de hoy ({conj(an['actuales'])}): {_n(an['f_actuales'])} kg/día.", ""]
+    # Propuesta del equipo: acopio del Manacacias en vez de La Cristalina y puntos frios en pueblos de la ruta
+    nom = lambda j: acopios.nombre_acopio(an, j)  # noqa: E731
+    m, pf = an["manacacias"], an["puntos_frios"]
+    lineas += ["**Propuesta de reacomodo** (decisión del equipo: La Cristalina pasa a punto frío y su acopio va al Manacacías):", "",
+               f"- Hoy: {', '.join(nom(j) for j in an['actuales'])} → {_n(an['f_actuales'])} kg/día.",
+               f"- Propuesta: {', '.join(nom(j) for j in an['propuesta'])}; puntos fríos: {', '.join(nom(j) for j in pf['todos'])} "
+               f"→ {_n(an['f_propuesta'])} kg/día.", "",
+               "Acopio del Manacacías (búsqueda exhaustiva sobre los puntos del Manacacías, con Puerto Gaitán y San Miguel fijos):", ""]
+    lineas += _tabla_md(m["tabla"][["punto", "nombre", "f", "si_todos"]]) + [""]
+    lineas += [f"Elegido: {nom(m['punto'])}; baja la pérdida en {_n(m['ganancia'])} kg/día.", "",
+               f"Puntos fríos (búsqueda exhaustiva sobre {', '.join(nom(j) for j in pf['candidatos'])}, con La Cristalina fija):", ""]
+    lineas += _tabla_md(pf["curva"].assign(S=lambda d: d["S"].map(lambda t: ", ".join(nom(j) for j in t) or "ninguno"))) + [""]
+    rutas = an["algoritmos"]["rutas"].assign(zona=lambda d: d["zona"].map(lambda i: g.nodes[i]["nombre"]), acopio=lambda d: d["acopio"].map(nom))
+    lineas += ["**Rutas de la propuesta: Dijkstra, A\\* y BFS** (zona → acopio asignado, bote más común de la flota, escenario base):", ""]
+    lineas += _tabla_md(rutas[["zona", "acopio", "dq_dijkstra", "dq_a_estrella", "expandidos_dijkstra", "expandidos_a_estrella", "tramos_bfs"]]) + [""]
+    alg = an["algoritmos"]
+    lineas += [f"DFS: {alg['componentes']} componente(s) conexa(s); Tarjan: {len(alg['articulaciones'])} puntos de articulación.", ""]
     pre = acopios.cargar_precalculado()
     if pre is not None:
         sens = pre["sensibilidad"].assign(S=lambda d: d["S"].map(conj))

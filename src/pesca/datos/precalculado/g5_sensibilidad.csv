@@ -1,12 +1,12 @@
 variable,valor,candidatos,p,S,f,cambia
-P_min,0,6,2,CP01 CP03,23.87422215399106,False
-P_min,100,6,2,CP01 CP03,23.87422215399106,False
-P_min,200,6,2,CP01 CP03,23.87422215399106,False
-P_min,500,3,2,CP01 CP03,23.87422215399106,False
-criterio_acceso,estricto,6,2,CP01 CP03,23.87422215399106,False
-criterio_acceso,permisivo,6,2,CP01 CP03,23.87422215399106,False
-temporada,aguas_altas,6,2,CP01 CP03,23.549081438176998,False
-temporada,aguas_bajas,6,1,CP01,8.774754506152505,True
-embarcacion,madera_remo,6,2,CP01 CP03,25.10727471678732,False
-embarcacion,madera_motor,6,1,CP01,2.1891966841741635,True
-embarcacion,aluminio_motor,6,1,CP01,1.3797646625006608,True
+P_min,0,5,2,CP01 CP03,23.87422215399106,False
+P_min,100,5,2,CP01 CP03,23.87422215399106,False
+P_min,200,5,2,CP01 CP03,23.87422215399106,False
+P_min,500,2,2,CP01 CP03,23.87422215399106,False
+criterio_acceso,estricto,5,2,CP01 CP03,23.87422215399106,False
+criterio_acceso,permisivo,5,2,CP01 CP03,23.87422215399106,False
+temporada,aguas_altas,5,2,CP01 CP03,23.549081438176998,False
+temporada,aguas_bajas,5,1,CP01,8.774754506152505,True
+embarcacion,madera_remo,5,2,CP01 CP03,25.10727471678732,False
+embarcacion,madera_motor,5,1,CP01,2.1891966841741635,True
+embarcacion,aluminio_motor,5,1,CP01,1.3797646625006608,True

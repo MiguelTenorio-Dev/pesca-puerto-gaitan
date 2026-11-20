@@ -147,7 +147,7 @@ def f5_pareto() -> None:
         ax.axvline(b / 1e6, color=GRIS, ls=":", lw=1)
     ax.set_xlabel("inversión inicial (millones de COP)")
     ax.set_ylabel("valor salvado al año (millones de COP)")
-    ax.set_title("Portafolios I1–I7: inversión vs valor salvado (líneas: presupuestos)")
+    ax.set_title("Portafolios I1–I8: inversión vs valor salvado (líneas: presupuestos)")
     ax.legend(frameon=False, loc="lower right")
     ax.spines[["top", "right"]].set_visible(False)
     _guardar(fig, "f5_pareto.png")
@@ -167,7 +167,7 @@ def f6_hoy_vs_propuesta() -> None:
         ax.set_title(texto)
         ax.spines[["top", "right"]].set_visible(False)
     ejes[0].legend(frameon=False)
-    fig.suptitle("Hoy vs propuesta (San Miguel + mejorar el desembarque, con el recomendador)", y=1.04)
+    fig.suptitle("Hoy vs propuesta (San Miguel + acopio del Manacacías + puntos fríos, con el recomendador)", y=1.04)
     _guardar(fig, "f6_hoy_vs_propuesta.png")
 
 

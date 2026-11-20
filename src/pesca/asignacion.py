@@ -226,13 +226,27 @@ def _evaluar(tipo: str, destino: str, origen: str, perfil: transporte.Perfil, kg
     horas_via = tramos.loc[tramos["modo"] != red.CAPA_RIO, "horas"].sum()
     horas_faena = p("degradacion.horas_faena")
 
+    # Punto frio (I8): si la ruta pasa por un pueblo donde se recoge hielo, desde ahi el lote sigue con hielo nuevo
+    hielo_nuevo = p("degradacion.horas_hielo_nevera_nueva")
+    frios_rio = {red.clave(x, red.CAPA_RIO) for x in escenario.puntos_frios}
+    k_frio = next((k for k, n in enumerate(viaje_rio.ruta) if n in frios_rio), None)
+    tramos_rio = tramos[tramos["modo"] == red.CAPA_RIO]
+    horas_antes_frio = float(tramos_rio["horas"].iloc[:k_frio].sum()) if k_frio is not None else horas_rio
+    frio_en_via = any(red.clave(x, red.CAPA_VIA) in ruta_via for x in escenario.puntos_frios)
+
     def lote_hasta_el_destino() -> dg.Lote:
         lote = dg.Lote(kg=kg, hielo_restante_h=hielo_h)
         _avanzar_rio(lote, horas_faena, escenario, "faena")
-        _avanzar_rio(lote, horas_rio, escenario)
+        _avanzar_rio(lote, horas_antes_frio, escenario)
+        if k_frio is not None:
+            dg.poner_hielo(lote, hielo_nuevo)
+            _avanzar_rio(lote, horas_rio - horas_antes_frio, escenario)
         return lote
 
     def carretera(lote: dg.Lote, estado: str) -> dg.Lote:
+        if frio_en_via and estado == dg.AMBIENTE:
+            dg.poner_hielo(lote, hielo_nuevo)
+            estado = dg.ICOPOR_HIELO
         dg.avanzar(lote, horas_via, "carretera", estado)
         return lote
 

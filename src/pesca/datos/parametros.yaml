@@ -113,6 +113,30 @@ busqueda_grafo:
     etiqueta: SIMULADO
     nota: Pares origen → destino para la tabla Dijkstra vs A* vs BFS (grafo v4)
 
+puntos_frios:
+  fijos:
+    valor: [CP02]
+    etiqueta: DATO
+    nota: "Decision del equipo (19 nov): La Cristalina deja de ser acopio y queda como punto frio, donde se recoge hielo"
+  inversion_cop:
+    valor: 35000000.0
+    rango: [20000000.0, 60000000.0]
+    etiqueta: SIMULADO
+    nota: Maquina de hielo en contenedor con paneles solares (referencia Puerto Carreño, estado del arte)
+  operacion_anual_cop:
+    valor: 6000000.0
+    rango: [3000000.0, 10000000.0]
+    etiqueta: SIMULADO
+    nota: Operacion, mantenimiento y reposicion de baterias de un punto frio
+  kwh_dia:
+    valor: 0.0
+    etiqueta: SIMULADO
+    nota: Energia de la red que gasta un punto frio solar (0 si es solar)
+  pueblo_manacacias:
+    valor: Puerto Trujillo / Murujuy
+    etiqueta: CONFIRMAR
+    nota: Inspecciones de Puerto Gaitan sugeridas por el equipo para el acopio del Manacacias; sin coordenadas
+
 acopios_grafo:
   p_min_habitantes:
     valor: 100
@@ -564,9 +588,9 @@ inversiones:
 
 propuesta:
   portafolio:
-    valor: [I3a, I7]
+    valor: [I3a, I4, I8]
     etiqueta: SIMULADO
-    nota: "Propuesta de R6 = el recomendado de R5 para los tres presupuestos (19 nov): San Miguel rehabilitado + mejorar el desembarque. El acopio nuevo de R4 (punto del rio) salio porque un acopio solo puede ir en un centro poblado"
+    nota: "Propuesta del equipo (20 nov): San Miguel rehabilitado + acopio en el Manacacías (reemplaza a La Cristalina) + puntos fríos (La Cristalina y los que elija el algoritmo). La solución es mover y mejorar la ubicación de los acopios"
   nevera_cartilla:
     valor: deteriorada
     etiqueta: SIMULADO

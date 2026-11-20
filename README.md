@@ -12,10 +12,9 @@ rutas, acopios, rutas bimodales río + carretera e inversión en frío, con graf
 Todas las cifras, con su intervalo del 90 % y su etiqueta, están en [`outputs/resumen_resultados.md`](outputs/resumen_resultados.md).
 
 - **La espera pesa más que el río**: en el 100 % de las corridas de Monte Carlo y con las 4 ubicaciones posibles del desembarque informal.
-- **Reacomodo de acopios** (p-mediana sobre los centros poblados del grafo, resuelta por enumeración, ILP y búsqueda local): **San Miguel y Puerto Gaitán**. San Miguel es el acopio clave: atiende las zonas del Meta, que en aguas altas no pueden remontar a Puerto Gaitán a remo. La Cristalina no tiene acceso por río y ningún pescador llega a ella con su bote.
-- Con solo seguir el **recomendador** ("¿A dónde llevo mi pescado?") la flota pierde cerca de 40 % menos, sin invertir nada.
-- La **propuesta final**: rehabilitar el cuarto frío de **San Miguel** y mejorar el desembarque informal (65 M COP de inversión). Con ella el valor perdido baja de ≈ 47 % a ≈ 16 % en aguas bajas.
-  - Su VPN es positivo en el 71 % de las corridas: pasa la regla del 70 %, pero por poco.
+- **Reacomodo de acopios con algoritmos de búsqueda** (BFS para los candidatos, Dijkstra para los costos, p-mediana por enumeración, ILP y búsqueda local, búsqueda exhaustiva, A\* y DFS para verificar): **San Miguel y Puerto Gaitán**. San Miguel es el acopio clave: atiende las zonas del Meta, que en aguas altas no pueden remontar a Puerto Gaitán a remo.
+- **Propuesta del equipo:** San Miguel rehabilitado, La Cristalina como **punto frío** (donde se recoge hielo) y un acopio nuevo junto al **Manacacías** (pueblo por confirmar). En aguas bajas el valor perdido baja de ≈ 46 % a ≈ 10 %.
+  - El modelo no encuentra pérdida evitada por el acopio del Manacacías ni por los puntos fríos: casi toda la mejora la pone San Miguel, que solo tiene VPN positivo en el 66 % de las corridas; la propuesta completa, en el 33 %.
 
 ## Pantallas
 
@@ -26,13 +25,13 @@ Todas las cifras, con su intervalo del 90 % y su etiqueta, están en [`outputs/r
 3. **Cómo se construye el grafo.** Grafo dirigido río + carretera desde archivos, calibrado con las rutas medidas, y su validación (BFS, DFS).
 4. **Cómo se calculan los pesos.** Pérdida de calidad de cada arco paso a paso: corriente, tiempo y hielo que se acaba.
 5. **Laboratorio de algoritmos.** Dijkstra, A\* y BFS propios sobre el grafo por capas de conservación (hielo y frío).
-6. **¿A dónde llevo mi pescado?** Recomendador para el pescador, con la ruta coloreada según la corriente.
-7. **Centros de acopio.** p-mediana sobre los centros poblados (enumeración, ILP y búsqueda local), curva del codo y VPN.
+6. **Centros de acopio.** El reacomodo paso a paso: BFS, Dijkstra, p-mediana, búsqueda exhaustiva del acopio del Manacacías y de los puntos fríos, A\* y DFS; hoy frente a la propuesta.
+7. **Hoy vs propuesta.** Todas las instalaciones de hoy y de la propuesta en el mapa, pescador por pescador, y la cartilla de rutas (PDF y CSV).
 
 **Cadena de hoy y propuesta:**
 
 8. **Diagnóstico: la situación hoy.** Pérdida por etapa, pescador por pescador, con Monte Carlo.
-9. **Mapa de la red, Toda la flota, Bimodal y cadena de frío, Hoy vs propuesta.** Red, reparto de la flota, medidas I1–I7 con frontera de Pareto y cartilla de rutas (PDF y CSV).
+9. **Mapa de la red, Bimodal y cadena de frío.** Red y medidas I1–I8 con frontera de Pareto.
 10. **Supuestos y datos.** Todos los parámetros, con su etiqueta y su fuente.
 
 El grafo usa las rutas que el equipo trazó en Google Earth (el Meta desde Puerto Gaitán hasta El Porvenir y las vías a

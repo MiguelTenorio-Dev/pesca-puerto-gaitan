@@ -29,7 +29,7 @@ portafolio = comparacion.portafolio_propuesta()
 clave = frio_bimodal.clave(portafolio)
 st.markdown(
     "**La propuesta:** " + " + ".join(frio_bimodal.describir(portafolio))
-    + ", con cada pescador llevando su pescado a donde le recomienda «¿A dónde llevo mi pescado?»."
+    + ", con cada pescador llevando su pescado al destino que más le conviene (el recomendador)."
 )
 temporada = st.radio("Temporada", comparacion.TEMPORADAS, horizontal=True, key="temporada_r6",
                      index=comparacion.TEMPORADAS.index(escenario.temporada), format_func=comparacion.TEXTO_TEMPORADA.get)
@@ -71,22 +71,26 @@ if temporada == config.parametro("escenario_base.temporada"):  # R5 se calculo e
     )
 st.caption(
     f"{comun.etiqueta('SIMULADO')}: población de ejemplo y valores esperados del recomendador (la misma base de "
-    "«Toda la flota», «Centros de acopio» y «Bimodal»). El diagnóstico simula día a día un ciclo del comprador, por eso "
+    "«Centros de acopio» y «Bimodal»). El diagnóstico simula día a día un ciclo del comprador, por eso "
     "sus cifras de hoy no son idénticas a estas."
 )
 
 # ---------------------------------------------------------------- mapa doble
+st.header("Qué hay hoy y qué proponemos")
+st.dataframe(comparacion.tabla_hoy_vs_propuesta(escenario), hide_index=True, width="stretch")
 st.header("Por dónde va el pescado")
 grafo = red.construir_red()
 flujos = datos["flujos"][temporada]
+inst = comparacion.instalaciones(escenario)
 c1, c2 = st.columns(2)
 for col, lado, titulo in ((c1, "hoy", "Hoy"), (c2, "propuesta", "Con la propuesta")):
     with col:
         st.subheader(titulo)
-        st_folium(visualizacion.mapa_recorridos(grafo, flujos[lado], flujos["marcar"][lado]),
+        st_folium(visualizacion.mapa_recorridos(grafo, flujos[lado], flujos["marcar"][lado], inst[inst["lado"] == lado]),
                   height=420, use_container_width=True, returned_objects=[], key=f"mapa_{lado}")
 st.caption("Grosor = kg al día. Verde: a favor de la corriente · rojo: en contra · gris punteado: carretera. "
-           "Círculos: dónde se deja el pescado (morado = acopio nuevo).")
+           "Marcadores: 🏠 acopio · ⭐ acopio nuevo (Manacacías) · ✳ punto frío (hielo) · gris: cuarto frío sin uso · "
+           "naranja: desembarque informal. Todas las instalaciones de cada lado se muestran, reciban o no pescado.")
 
 # ---------------------------------------------------------------- pescador por pescador
 st.header("Pescador por pescador")

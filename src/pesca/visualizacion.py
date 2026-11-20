@@ -192,7 +192,25 @@ COLOR_TEXTO_SECUNDARIO = "#52514e"
 COLOR_SITIO = {"malecon": "#2a78d6", "san_miguel": "#eb6834", "senora": "#1baf7a", "vichada": "#eda100", "acopio": "#8f5bd6"}
 
 
-def mapa_recorridos(grafo: nx.DiGraph, flujos: dict[tuple[str, str], float], desembarques: dict[str, str]) -> folium.Map:
+ICONO_INSTALACION = {
+    "acopio": ("blue", "home", "Acopio"),
+    "acopio_nuevo": ("purple", "star", "Acopio nuevo"),
+    "sin_uso": ("gray", "remove", "Cuarto frío sin uso"),
+    "punto_frio": ("lightblue", "asterisk", "Punto frío (hielo)"),
+    "desembarque": ("orange", "inbox", "Desembarque informal"),
+}
+
+
+def marcar_instalaciones(mapa: folium.Map, instalaciones) -> None:
+    """Un marcador por instalacion (acopio, punto frio, cuarto frio sin uso, desembarque), siempre visible."""
+    for f in instalaciones.itertuples():
+        color, icono, texto = ICONO_INSTALACION[f.rol]
+        folium.Marker([f.lat, f.lon], tooltip=f"{texto}: {f.descripcion}",
+                      icon=folium.Icon(color=color, icon=icono)).add_to(mapa)
+
+
+def mapa_recorridos(grafo: nx.DiGraph, flujos: dict[tuple[str, str], float], desembarques: dict[str, str],
+                    instalaciones=None) -> folium.Map:
     """Recorridos de hoy: grosor proporcional a los kg; rio por sentido y carretera en gris.
 
     `desembarques` es {lugar: sitio} para marcar cada desembarque con el color de su sitio.
@@ -227,6 +245,8 @@ def mapa_recorridos(grafo: nx.DiGraph, flujos: dict[tuple[str, str], float], des
                             fill_color=COLOR_SITIO[sitio], fill_opacity=1, tooltip=f"{a['nombre']} ({sitio})").add_to(mapa)
     plaza = grafo.nodes["A01@via"]
     folium.Marker([plaza["lat"], plaza["lon"]], tooltip=plaza["nombre"], icon=folium.Icon(color="red")).add_to(mapa)
+    if instalaciones is not None:
+        marcar_instalaciones(mapa, instalaciones)
     return mapa
 
 
@@ -568,10 +588,12 @@ def mapa_busqueda_capas(grafo: nx.DiGraph, resultado, paso: int | None = None) -
     return mapa
 
 
-def mapa_acopios_grafo(grafo: nx.DiGraph, actuales: list[str], propuestos: list[str], asignacion: dict) -> folium.Map:
-    """Acopios de hoy (rojo) y propuestos (azul) sobre los centros poblados, y el area de influencia de cada uno."""
+def mapa_acopios_grafo(grafo: nx.DiGraph, actuales: list[str], propuestos: list[str], asignacion: dict,
+                       puntos_frios: list[str] = (), nombres: dict | None = None) -> folium.Map:
+    """Acopios de hoy (rojo), propuestos (azul), puntos frios (celeste) y el area de influencia de cada acopio."""
     mapa = _mapa_vacio(grafo)
     _fondo_grafo(mapa, grafo)
+    nombres = nombres or {}
 
     def lugar(j: str) -> list[float]:
         return _punto(grafo, f"{j}:entra" if f"{j}:entra" in grafo else j)
@@ -579,9 +601,12 @@ def mapa_acopios_grafo(grafo: nx.DiGraph, actuales: list[str], propuestos: list[
     for i, j in asignacion.items():
         folium.PolyLine([_punto(grafo, i), lugar(j)], color=COLOR_VALOR, weight=1.5, opacity=0.7).add_to(mapa)
         folium.CircleMarker(_punto(grafo, i), radius=4, color=COLOR_NODO_V4["zona_pesca"], fill=True,
-                            tooltip=f"{grafo.nodes[i]['nombre']} → {j}").add_to(mapa)
+                            tooltip=f"{grafo.nodes[i]['nombre']} → {nombres.get(j, j)}").add_to(mapa)
     for j in actuales:
-        folium.Marker(lugar(j), tooltip=f"Hoy: {j}", icon=folium.Icon(color="red", icon="home")).add_to(mapa)
+        folium.Marker(lugar(j), tooltip=f"Hoy: {nombres.get(j, j)}", icon=folium.Icon(color="red", icon="home")).add_to(mapa)
     for j in propuestos:
-        folium.Marker(lugar(j), tooltip=f"Propuesto: {j}", icon=folium.Icon(color="blue", icon="star")).add_to(mapa)
+        folium.Marker(lugar(j), tooltip=f"Propuesto: {nombres.get(j, j)}", icon=folium.Icon(color="blue", icon="star")).add_to(mapa)
+    for j in puntos_frios:
+        folium.Marker(lugar(j), tooltip=f"Punto frío (hielo): {nombres.get(j, j)}",
+                      icon=folium.Icon(color="lightblue", icon="asterisk")).add_to(mapa)
     return mapa

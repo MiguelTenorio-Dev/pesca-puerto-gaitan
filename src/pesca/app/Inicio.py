@@ -32,8 +32,8 @@ st.markdown(
 - **Del dato a la decisión:** el recorrido completo del modelo de grafos en cinco pasos, con números del escenario.
 - **Datos del grafo → Cómo se construye el grafo → Cómo se calculan los pesos → Laboratorio de algoritmos → Centros de acopio:**
   de dónde sale cada arista, cada peso y cada acopio.
-- **¿A dónde llevo mi pescado?:** el recomendador para el pescador.
-- **Diagnóstico, Toda la flota, Bimodal y cadena de frío, Hoy vs propuesta:** la cadena de hoy y la propuesta de inversión.
+- **Centros de acopio:** el reacomodo de los acopios y los puntos fríos, decidido con Dijkstra, A*, BFS, DFS y la p-mediana.
+- **Diagnóstico, Bimodal y cadena de frío, Hoy vs propuesta:** la cadena de hoy y la propuesta, con todas sus instalaciones.
 - **Supuestos y datos:** de dónde sale cada número: qué es medido, qué es oficial y qué es simulado.
 """
 )

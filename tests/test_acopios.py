@@ -55,7 +55,8 @@ def test_costos_entre_0_y_1():
     c = AN["c"]
     assert ((c >= 0) & (c <= 1 + 1e-12)).all().all()
     # La Cristalina no tiene acceso por rio: ningun pescador llega con su bote (promedio ponderado de unos)
-    assert list(c["CP02"]) == pytest.approx([config.parametro("acopios_grafo.costo_sin_destino")] * len(c))
+    todo = AN["c_todo"]
+    assert list(todo["CP02"]) == pytest.approx([config.parametro("acopios_grafo.costo_sin_destino")] * len(todo))
 
 
 def test_enumeracion_igual_a_ilp():
@@ -139,3 +140,40 @@ def test_sensibilidad():
     base = sens[(sens["variable"] == "P_min") & (sens["valor"] == str(config.parametro("acopios_grafo.p_min_habitantes")))]
     assert not base["cambia"].any()
     assert sens.apply(lambda r: set(r["S"]) <= set(CENTROS["id"]), axis=1).all()
+
+
+# ---------------------------------------------------------------- reacomodo del equipo (20 nov)
+
+
+def test_la_cristalina_es_punto_frio_y_no_acopio():
+    assert "CP02" not in AN["candidatos"]
+    assert "punto frío" in AN["tabla_candidatos"].set_index("id").at["CP02", "motivo"]
+    assert "CP02" in AN["puntos_frios"]["todos"]
+    assert "CP02" not in AN["propuesta"]
+
+
+def test_acopio_del_manacacias():
+    m = AN["manacacias"]
+    assert G.nodes[m["punto"]]["tipo"] == "punto_rio" and "Manacacías" in G.nodes[m["punto"]]["nombre"]
+    assert m["punto"] in AN["propuesta"]
+    assert m["ganancia"] >= -1e-12
+    assert "CONFIRMAR" in acopios.nombre_acopio(AN, m["punto"])
+    # busqueda exhaustiva: ninguno de los puntos del Manacacias da menos perdida que el elegido
+    assert m["f"] == pytest.approx(m["tabla"]["f"].min())
+
+
+def test_puntos_frios_por_busqueda_exhaustiva():
+    pf = AN["puntos_frios"]
+    assert set(pf["elegidos"]) <= set(pf["candidatos"])
+    assert not set(pf["candidatos"]) & set(AN["propuesta"])
+    # un punto frio nunca empeora: el pescador puede no desviarse
+    assert (pf["curva"]["f"] <= pf["curva"]["f"].iloc[0] + 1e-9).all()
+
+
+def test_rutas_del_reacomodo_con_dijkstra_a_estrella_y_bfs():
+    rutas = AN["algoritmos"]["rutas"]
+    assert set(rutas["zona"]) == set(AN["w"].index)
+    assert (rutas["dq_dijkstra"] - rutas["dq_a_estrella"]).abs().max() < 1e-12
+    assert (rutas["expandidos_a_estrella"] <= rutas["expandidos_dijkstra"]).all()
+    assert (rutas["tramos_bfs"] >= 1).all()
+    assert AN["algoritmos"]["componentes"] == 1

@@ -33,11 +33,15 @@ NOMBRE_MEDIDA = {
     "I2": "Fábrica de hielo (hielo a bordo)",
     "I3a": "Rehabilitar San Miguel",
     "I3b": "Rehabilitar La Cristalina",
-    "I4": "Acopio nuevo (R4)",
+    "I4": "Acopio en el Manacacías (reemplaza a La Cristalina)",
     "I5": "Camión refrigerado con ruta",
     "I6": "Subsidio de motor",
     "I7": "Mejorar el desembarque de la señora",
+    "I8": "Puntos fríos en pueblos de la ruta (La Cristalina y los que elija el algoritmo)",
 }
+# Medidas que ya no se ofrecen (decision del equipo, 20 nov): la solucion es mover y mejorar los acopios.
+# I3b: La Cristalina pasa a ser punto frio; I7: el desembarque de la señora no es solucion.
+RETIRADAS = {"I3b", "I7"}
 ACOPIO_DE = {"I3a": "A02", "I3b": "A03"}
 SEPARADOR = "+"
 HOY = "hoy"
@@ -68,8 +72,8 @@ def validar(portafolio: frozenset[str]) -> None:
     for m in portafolio:
         if m not in conocidas and not m.startswith("I5:"):
             raise ValueError(f"Medida desconocida: {m}")
-    if "I4" in portafolio and acopio_nuevo() is None:
-        raise ValueError("I4 (acopio nuevo) no está disponible: no hay un centro poblado candidato que no sea acopio")
+    if portafolio & RETIRADAS:
+        raise ValueError(f"Medidas retiradas (la solución es mover y mejorar los acopios): {sorted(portafolio & RETIRADAS)}")
     if "I2" in portafolio and "I1" not in portafolio:
         raise ValueError("I2 (fábrica de hielo) exige I1 (cajas térmicas): sin cajas el hielo no dura")
     ciclo_camion(portafolio)
@@ -100,7 +104,7 @@ def enumerar_portafolios() -> list[frozenset[str]]:
     """Todas las combinaciones validas: I2 solo con I1 y a lo sumo un ciclo de camion."""
     opciones_hielo = [(), ("I1",), ("I1", "I2")]
     opciones_camion = [()] + [(codigo_camion(n),) for n in config.parametro("inversiones.ciclos_camion_dias")]
-    binarias = ["I3a", "I3b", *(["I4"] if acopio_nuevo() else []), "I6", "I7"]
+    binarias = ["I3a", *(["I4"] if acopio_nuevo() else []), "I6", "I8"]
     portafolios = []
     for hielo in opciones_hielo:
         for camion in opciones_camion:
@@ -112,47 +116,53 @@ def enumerar_portafolios() -> list[frozenset[str]]:
 
 def medidas_solas() -> list[frozenset[str]]:
     """Cada medida sola (I2 va con I1, que exige) y cada ciclo del camion."""
-    solas = [frozenset({"I1"}), frozenset({"I1", "I2"}), frozenset({"I3a"}), frozenset({"I3b"})]
+    solas = [frozenset({"I1"}), frozenset({"I1", "I2"}), frozenset({"I3a"}), frozenset({"I8"})]
     solas += [frozenset({"I4"})] if acopio_nuevo() else []
     solas += [frozenset({codigo_camion(n)}) for n in config.parametro("inversiones.ciclos_camion_dias")]
-    return solas + [frozenset({"I6"}), frozenset({"I7"})]
+    return solas + [frozenset({"I6"})]
 
 
 # ---------------------------------------------------------------- efecto en el escenario
 
 
 @cache
-def pueblo_nuevo() -> str | None:
-    """Mejor centro poblado que todavia no es acopio (p-mediana sobre pueblos, modo agregar k = 1), o None."""
+def _analisis_grafo() -> dict:
     from pesca import acopios
 
-    an = acopios.analizar()
-    if not len(an["agregar"]):
-        return None
-    k1 = an["agregar"].set_index("k").loc[1]
-    # solo si agregar ese pueblo baja de verdad la perdida (con un empate no hay a donde poner el acopio)
-    if k1["f"] >= an["f_actuales"] * (1 - config.parametro("acopios_grafo.umbral_codo")):
-        return None
-    return next(j for j in k1["S"] if j not in an["actuales"])
+    return acopios.analizar()
+
+
+def pueblo_nuevo() -> str | None:
+    """Punto del Manacacias del grafo v4 donde va el acopio que reemplaza a La Cristalina (busqueda exhaustiva)."""
+    return _analisis_grafo()["manacacias"]["punto"]
 
 
 @cache
 def acopio_nuevo() -> str | None:
-    """Punto del rio de la red v3.1 frente al pueblo nuevo de I4 (o None si no hay pueblo candidato nuevo)."""
-    pueblo = pueblo_nuevo()
-    if pueblo is None:
+    """Punto del rio de la red de simulacion frente al acopio del Manacacias (I4)."""
+    punto = pueblo_nuevo()
+    if punto is None:
         return None
-    c = config.cargar_centros_poblados().set_index("id").loc[pueblo]
-    return red.separar(red.nodo_rio_mas_cercano(c["lat"], c["lon"]))[0]
+    a = _analisis_grafo()["grafo"].nodes[punto]
+    return red.separar(red.nodo_rio_mas_cercano(a["lat"], a["lon"]))[0]
+
+
+# Pueblos del grafo v4 -> lugares de la red de simulacion (los que existen en ella)
+LUGAR_DE_PUEBLO = {"CP01": "A01", "CP02": "A03", "CP03": "A02", "C01": "C01"}
+
+
+@cache
+def puntos_frios() -> tuple[frozenset[str], frozenset[str]]:
+    """(lugares de la red de simulacion, pueblos del grafo v4) de los puntos frios: La Cristalina y los elegidos."""
+    todos = frozenset(_analisis_grafo()["puntos_frios"]["todos"])
+    return frozenset(LUGAR_DE_PUEBLO[x] for x in todos if x in LUGAR_DE_PUEBLO), todos
 
 
 def texto_acopio_nuevo() -> str:
-    pueblo = pueblo_nuevo()
-    if pueblo is None:
-        return ("No disponible: ningún pueblo candidato que no sea acopio baja la pérdida (San Pedro de Arimena y El Porvenir "
-                "quedan lejos río abajo; La Cristalina y Domo Planas no tienen acceso por río)")
-    nombre = config.cargar_centros_poblados().set_index("id").at[pueblo, "nombre"]
-    return f"Cuarto frío en {nombre}, el mejor pueblo nuevo de la p-mediana sobre centros poblados"
+    an = _analisis_grafo()
+    m = an["manacacias"]
+    return (f"Cuarto frío junto al Manacacías ({m['pueblo']}, [CONFIRMAR]) en {m['nombre']}, el mejor punto del río según la "
+            f"búsqueda exhaustiva; reemplaza al acopio de La Cristalina")
 
 
 def escenario_con(base: Escenario, portafolio: frozenset[str]) -> Escenario:
@@ -169,7 +179,9 @@ def escenario_con(base: Escenario, portafolio: frozenset[str]) -> Escenario:
         camion_refrigerado=base.camion_refrigerado or ciclo is not None,
         ciclo_camion_dias=ciclo if ciclo is not None else base.ciclo_camion_dias,
         subsidio_motor=base.subsidio_motor or "I6" in portafolio,
-        desembarque_mejorado=base.desembarque_mejorado or "I7" in portafolio,
+        desembarque_mejorado=base.desembarque_mejorado,
+        puntos_frios=frozenset(base.puntos_frios | (puntos_frios()[0] if "I8" in portafolio else set())),
+        puntos_frios_grafo=frozenset(base.puntos_frios_grafo | (puntos_frios()[1] if "I8" in portafolio else set())),
         inversiones=frozenset(base.inversiones | portafolio),
     )
 
@@ -242,9 +254,11 @@ def costos(portafolio: frozenset[str], escenario: Escenario, pob: pd.DataFrame) 
     if "I6" in portafolio:
         motores = int((poblacion.aplicar_subsidio_motor(pob)["embarcacion"] != pob["embarcacion"]).sum())
         inversion += motores * p("inversiones.motor_cop") * p("inversiones.fraccion_subsidio_motor")
-    if "I7" in portafolio:
-        inversion += p("inversiones.desembarque_mejorado_cop")
-        operacion += p("inversiones.operacion_anual_desembarque_cop")
+    if "I8" in portafolio:
+        n_frios = len(puntos_frios()[1])
+        inversion += n_frios * p("puntos_frios.inversion_cop")
+        operacion += n_frios * p("puntos_frios.operacion_anual_cop")
+        kwh_dia += n_frios * p("puntos_frios.kwh_dia")
     energia = kwh_dia * DIAS_ANIO * p("economia.cop_kwh")
     return {"inversion": inversion, "operacion_anual": operacion + energia, "energia_anual": energia,
             "km_ruta_camion": km_ruta, "motores_subsidiados": motores}
@@ -430,9 +444,10 @@ def precalcular(n: int | None = None) -> None:
     presupuestos = config.parametro("inversiones.presupuestos_cop")
     elegidos = {float(b): recomendado(tabla, b)["portafolio"] for b in presupuestos}
     candidatos = [frozenset(), *medidas_solas()]
-    for pf in elegidos.values():
-        if desde_clave(pf) not in candidatos:
-            candidatos.append(desde_clave(pf))
+    # la propuesta del equipo tambien pasa por el Monte Carlo, la recomiende o no el VPN
+    for pf in [frozenset(config.parametro("propuesta.portafolio")), *map(desde_clave, elegidos.values())]:
+        if pf not in candidatos:
+            candidatos.append(pf)
     mc = montecarlo_portafolios(candidatos, n)
     mc.to_csv(config.DIR_PRECALCULADO / ARCHIVO_MONTECARLO, index=False, float_format="%.6g")
     print(f"  r5 Monte Carlo: {mc['corrida'].nunique()} corridas × {len(candidatos)} portafolios")

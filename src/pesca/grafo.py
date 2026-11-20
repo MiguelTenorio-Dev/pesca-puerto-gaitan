@@ -80,6 +80,11 @@ def construir_grafo(
             agregar(salida(d), entrada(o), fila["id"] + INVERSO, fila, -int(fila["sentido"]))
         elif tipo in TIPOS_DOBLES:
             agregar(salida(d), entrada(o), fila["id"] + VUELTA, fila, 0)
+        if tipo == "transbordo":
+            # el pueblo del transbordo: si es punto frio, ahi se recoge hielo nuevo (pesos.capa_nueva)
+            pueblo = d if g.nodes[entrada(d)]["tipo"] in ("centro_poblado", "comunidad") else o
+            for u, v in ((salida(o), entrada(d)), (salida(d), entrada(o))):
+                g.edges[u, v]["pueblo"] = pueblo
 
     for c in sorted(divididos):
         fila = {

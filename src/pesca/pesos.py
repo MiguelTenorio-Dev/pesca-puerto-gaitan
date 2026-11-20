@@ -41,6 +41,7 @@ class Condiciones:
     acopios: frozenset[str] = field(default_factory=lambda: frozenset({"CP01"}))
     camion_refrigerado: bool = False
     espera_h: float | None = None  # None = pesos.espera_h
+    puntos_frios: frozenset[str] = field(default_factory=frozenset)  # pueblos donde se recoge hielo nuevo
 
     def __post_init__(self) -> None:
         if self.bote not in config.cargar_parametros()["embarcaciones"]:
@@ -50,6 +51,7 @@ class Condiciones:
         if self.nevera not in NEVERAS:
             raise ValueError(f"Nevera desconocida: {self.nevera}")
         object.__setattr__(self, "acopios", frozenset(self.acopios))
+        object.__setattr__(self, "puntos_frios", frozenset(self.puntos_frios))
 
     def con(self, **cambios) -> Condiciones:
         return replace(self, **cambios)
@@ -64,6 +66,7 @@ def condiciones(escenario, bote: str = "madera_remo", nevera: str = "deteriorada
         nevera="buena" if escenario.hielo_a_bordo else nevera,
         acopios=frozenset(acopios),
         camion_refrigerado=escenario.camion_refrigerado,
+        puntos_frios=frozenset(getattr(escenario, "puntos_frios_grafo", frozenset())),
     )
 
 
@@ -138,9 +141,18 @@ def tiempo_arco(arco: dict, cond: Condiciones, capa: str = "hielo") -> float | N
 
 
 def capa_nueva(arco: dict, capa: str, cond: Condiciones) -> str:
-    """La capa solo cambia en el arco de espera de un pueblo con equipo: hielo → frio."""
+    """La capa solo cambia de hielo a frio, nunca al reves:
+    - en el arco de espera de un pueblo con equipo (cuarto frio de un acopio activo, o camion refrigerado);
+    - al pasar por un punto frio (transbordo o espera de ese pueblo): se recoge hielo nuevo, que dura mas
+      que cualquier tramo que falte, asi que el resto del viaje va como en frio.
+    """
+    if capa != "hielo":
+        return capa
     con_equipo = arco.get("centro") in cond.acopios or cond.camion_refrigerado
-    if arco["tipo"] == "espera" and capa == "hielo" and con_equipo:
+    if arco["tipo"] == "espera" and con_equipo:
+        return "frio"
+    pueblo = arco.get("pueblo") if arco["tipo"] == "transbordo" else arco.get("centro") if arco["tipo"] == "espera" else None
+    if pueblo is not None and pueblo in cond.puntos_frios:
         return "frio"
     return capa
 

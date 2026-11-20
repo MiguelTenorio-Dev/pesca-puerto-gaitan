@@ -19,8 +19,8 @@ def solas():
 
 def test_enumeracion_valida():
     portafolios = fb.enumerar_portafolios()
-    # I3a, I3b, I6 e I7 (e I4 solo si hay un pueblo nuevo candidato), cada una si o no
-    binarias = 5 if fb.acopio_nuevo() else 4
+    # I3a, I4 (acopio del Manacacias), I6 e I8 (puntos frios), cada una si o no; I3b e I7 ya no se ofrecen
+    binarias = 4
     assert len(portafolios) == len(set(portafolios)) == 3 * 4 * 2**binarias
     assert frozenset() in portafolios
     for pf in portafolios:
@@ -42,10 +42,12 @@ def test_clave_ida_y_vuelta():
 
 
 def test_escenario_con_enciende_cada_medida():
-    esc = fb.escenario_con(BASE, frozenset({"I1", "I2", "I3a", "I3b", "I5:3", "I6", "I7"}))
+    esc = fb.escenario_con(BASE, frozenset({"I1", "I2", "I3a", "I4", "I5:3", "I6", "I8"}))
     assert esc.cajas_termicas and esc.hielo_a_bordo and esc.camion_refrigerado
-    assert esc.ciclo_camion_dias == 3 and esc.subsidio_motor and esc.desembarque_mejorado
-    assert {"A02", "A03"} <= esc.acopios_activos
+    assert esc.ciclo_camion_dias == 3 and esc.subsidio_motor
+    assert "A02" in esc.acopios_activos and "A03" not in esc.acopios_activos
+    assert fb.acopio_nuevo() in esc.acopios_nuevos
+    assert "A03" in esc.puntos_frios  # La Cristalina queda como punto frio
     assert fb.escenario_con(BASE, frozenset()) == BASE
 
 
@@ -53,7 +55,7 @@ def test_hoy_no_cambia_con_todo_apagado():
     # Sin medidas el resultado es el mismo de R3/R4: no se rompe el diagnostico
     hoy = asg.problema_transporte(BASE, POB, con_hoy=False)["costo_optimo_dia"]
     assert asg.problema_transporte(fb.escenario_con(BASE, frozenset()), POB, con_hoy=False)["costo_optimo_dia"] == hoy
-    assert cadena_actual.escenario_hoy(fb.escenario_con(BASE, frozenset({"I5:1", "I7", "I6"}))) == BASE
+    assert cadena_actual.escenario_hoy(fb.escenario_con(BASE, frozenset({"I5:1", "I8", "I6"}))) == BASE
 
 
 def test_camion_mas_seguido_menos_espera():
@@ -119,7 +121,7 @@ def test_precalculado_respeta_los_presupuestos():
 
 
 def test_pasos_combinados_suman_el_portafolio(solas):
-    pf = frozenset({"I3a", "I6", "I7"})
+    pf = frozenset({"I3a", "I6", "I8"})
     subtabla = fb.tabla_portafolios(BASE, POB, [frozenset(s) for n in range(1, 4) for s in _subconjuntos(pf, n)])
     tabla = pd.concat([solas.reset_index(), subtabla]).drop_duplicates("portafolio")
     pasos = fb.pasos_combinados(tabla, pf)
@@ -133,21 +135,31 @@ def _subconjuntos(pf, n):
 
 
 def test_montecarlo_reproducible():
-    pfs = [frozenset(), frozenset({"I7"})]
+    pfs = [frozenset(), frozenset({"I8"})]
     with config.sobrescribir({}):
         a = fb.montecarlo_portafolios(pfs, n=2, semilla=7)
         b = fb.montecarlo_portafolios(pfs, n=2, semilla=7)
     pd.testing.assert_frame_equal(a, b)
-    assert set(fb.resumen_montecarlo(a)["portafolio"]) == {"hoy", "I7"}
+    assert set(fb.resumen_montecarlo(a)["portafolio"]) == {"hoy", "I8"}
 
 
-def test_acopio_nuevo_solo_en_un_centro_poblado():
-    """I4 va en el mejor pueblo que todavia no es acopio; hoy los tres candidatos ya lo son, asi que no esta."""
-    if fb.pueblo_nuevo() is None:
-        assert fb.acopio_nuevo() is None
-        assert not any("I4" in pf for pf in fb.enumerar_portafolios())
-        with pytest.raises(ValueError, match="I4"):
-            fb.validar(frozenset({"I4"}))
-        assert "No disponible" in fb.texto_acopio_nuevo()
-    else:
-        assert fb.pueblo_nuevo() in set(config.cargar_centros_poblados()["id"])
+def test_acopio_nuevo_en_el_manacacias_y_medidas_retiradas():
+    """I4 reemplaza a La Cristalina con un acopio junto al Manacacias; I3b e I7 ya no son solucion."""
+    from pesca import grafo
+
+    punto = fb.pueblo_nuevo()
+    assert "Manacacías" in grafo.construir_grafo().nodes[punto]["nombre"]
+    assert "CONFIRMAR" in fb.texto_acopio_nuevo()
+    for retirada in ("I3b", "I7"):
+        assert not any(retirada in pf for pf in fb.enumerar_portafolios())
+        with pytest.raises(ValueError, match="retiradas"):
+            fb.validar(frozenset({retirada}))
+
+
+def test_punto_frio_pone_hielo_nuevo_en_la_ruta():
+    """Un pescador de Yucao con icopor deteriorado: con un punto frio en Yucao sale con hielo nuevo y llega mejor."""
+    sin = asg.recomendar("C01@rio", "madera_remo", 20, BASE, "sin_hielo")
+    con = asg.recomendar("C01@rio", "madera_remo", 20, BASE.con(puntos_frios=frozenset({"C01"})), "sin_hielo")
+    plaza_sin = next(o for o in sin.alternativas if o.tipo == "plaza")
+    plaza_con = next(o for o in con.alternativas if o.tipo == "plaza")
+    assert plaza_con.calidad > plaza_sin.calidad

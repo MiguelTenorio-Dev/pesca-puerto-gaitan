@@ -29,24 +29,20 @@ def test_laboratorio_cambia_de_algoritmo():
         assert not at.exception, at.exception
 
 
-def test_recomendador_cambia_la_nevera():
-    pagina = config.DIR_APP / "pages" / "05_A_donde_llevo_mi_pescado.py"
-    at = AppTest.from_file(str(pagina), default_timeout=30).run()
-    for nevera in ("sin_hielo", "buena"):
-        at.radio(key="nevera").set_value(nevera).run()
-        assert not at.exception, at.exception
-
 
 def test_centros_de_acopio_activa_la_propuesta():
     pagina = config.DIR_APP / "pages" / "07_Centros_de_acopio.py"
     at = AppTest.from_file(str(pagina), default_timeout=60).run()
     assert not at.exception, at.exception
-    for modo in ("agregar", "evaluar", "reubicar"):
-        at.radio(key="modo_pmediana").set_value(modo).run()
-        assert not at.exception, at.exception
     at.button(key="activar_propuesta").click().run()
     assert not at.exception, at.exception
     assert at.session_state["escenario"].acopios_grafo
+    assert set(config.parametro("puntos_frios.fijos")) <= at.session_state["escenario"].puntos_frios_grafo
+
+
+def test_ya_no_estan_el_recomendador_ni_toda_la_flota():
+    nombres = {p.name for p in (config.DIR_APP / "pages").glob("*.py")}
+    assert not any(n.startswith(("05_", "06_")) for n in nombres)
 
 
 def test_pesos_carga_el_ejemplo():
@@ -56,13 +52,6 @@ def test_pesos_carga_el_ejemplo():
     assert not at.exception, at.exception
     assert any("0,4978" in m.value or "0,1134" in m.value for m in at.markdown)
 
-
-def test_recomendador_respeta_la_corriente():
-    pagina = config.DIR_APP / "pages" / "05_A_donde_llevo_mi_pescado.py"
-    at = AppTest.from_file(str(pagina), default_timeout=30).run()
-    at.radio(key="nevera").set_value("sin_hielo").run()
-    assert not at.exception, at.exception
-    assert any("corriente" in m.value for m in at.markdown)
 
 
 def test_bimodal_cambia_presupuesto_y_usa_el_portafolio():

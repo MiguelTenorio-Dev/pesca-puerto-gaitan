@@ -43,6 +43,52 @@ def escenario_propuesta(base: Escenario) -> Escenario:
     return frio_bimodal.escenario_con(base, portafolio_propuesta())
 
 
+# ---------------------------------------------------------------- instalaciones de cada lado
+
+
+def _punto(grafo, lugar: str) -> tuple[float, float]:
+    n = red.clave(lugar, red.CAPA_RIO) if red.clave(lugar, red.CAPA_RIO) in grafo else red.clave(lugar, red.CAPA_VIA)
+    return grafo.nodes[n]["lat"], grafo.nodes[n]["lon"]
+
+
+def instalaciones(base: Escenario) -> pd.DataFrame:
+    """Acopios, puntos frios y desembarque de hoy y de la propuesta, para los mapas y la tabla de Hoy vs propuesta."""
+    grafo = red.construir_red()
+    nodos = config.cargar_nodos().set_index("id")
+    prop = escenario_propuesta(base)
+    filas = [
+        ("hoy", "A01", "acopio", "Plaza de Puerto Gaitán: funciona"),
+        ("hoy", "A02", "sin_uso", "San Miguel: cuarto frío abandonado (no se pagó la luz)"),
+        ("hoy", "A03", "sin_uso", "La Cristalina: cuarto frío sin uso"),
+        ("hoy", base.desembarque_senora, "desembarque", "Desembarque informal de la señora (congeladores caseros)"),
+        ("propuesta", "A01", "acopio", "Plaza de Puerto Gaitán: sigue funcionando"),
+    ]
+    filas += [("propuesta", a, "acopio", f"{nodos.at[a, 'nombre']}: acopio rehabilitado (cuarto frío)")
+              for a in sorted(prop.acopios_activos - {asignacion.ACOPIO_PLAZA})]
+    filas += [("propuesta", a, "acopio_nuevo", f"Acopio nuevo junto al Manacacías ({config.parametro('puntos_frios.pueblo_manacacias')}) "
+               "[CONFIRMAR], reemplaza a La Cristalina") for a in sorted(prop.acopios_nuevos)]
+    filas += [("propuesta", a, "punto_frio", f"{nodos.at[a, 'nombre']}: punto frío, donde se recoge hielo")
+              for a in sorted(prop.puntos_frios)]
+    filas.append(("propuesta", base.desembarque_senora, "desembarque", "Desembarque informal: sigue existiendo, pero no es parte de la solución"))
+    tabla = pd.DataFrame(filas, columns=["lado", "lugar", "rol", "descripcion"])
+    tabla[["lat", "lon"]] = [list(_punto(grafo, x)) for x in tabla["lugar"]]
+    return tabla
+
+
+def tabla_hoy_vs_propuesta(base: Escenario) -> pd.DataFrame:
+    """Por lugar: que hay hoy y que se propone."""
+    t = instalaciones(base)
+    nombres = config.cargar_nodos().set_index("id")["nombre"]
+    lugares = list(dict.fromkeys(t["lugar"]))
+    filas = []
+    for x in lugares:
+        hoy = t[(t["lado"] == "hoy") & (t["lugar"] == x)]["descripcion"]
+        prop = t[(t["lado"] == "propuesta") & (t["lugar"] == x)]["descripcion"]
+        filas.append({"lugar": nombres.get(x, x), "hoy": hoy.iloc[0] if len(hoy) else "—",
+                      "con la propuesta": prop.iloc[0] if len(prop) else "—"})
+    return pd.DataFrame(filas)
+
+
 # ---------------------------------------------------------------- hoy vs propuesta
 
 
@@ -217,7 +263,7 @@ def cartilla_pdf(tabla: pd.DataFrame) -> bytes:
         for zona, sub in tabla.groupby("zona", sort=False):
             fig = plt.figure(figsize=(11.69, 8.27))  # A4 horizontal
             fig.text(0.04, 0.95, f"Cartilla de rutas: {sub['lugar'].iloc[0]}", fontsize=20, weight="bold")
-            fig.text(0.04, 0.915, "¿A dónde llevo mi pescado? Con San Miguel y el acopio nuevo funcionando.", fontsize=12)
+            fig.text(0.04, 0.915, "¿A dónde llevo mi pescado? Con San Miguel, el acopio del Manacacías y los puntos fríos.", fontsize=12)
             celdas = []
             for f in sub.itertuples():
                 valores = [f.temporada, f.bote, f.lleva_a, f.como,

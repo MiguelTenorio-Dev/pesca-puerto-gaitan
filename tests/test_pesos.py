@@ -142,3 +142,14 @@ def test_heuristica_admisible_por_construccion():
     cond = pesos.Condiciones(bote="aluminio_motor", temporada="aguas_altas")
     assert pesos.v_max(cond) >= config.parametro("embarcaciones.aluminio_motor") + config.parametro("rio.corriente_aguas_altas_kmh")
     assert pesos.rrs_min() == pytest.approx(1.96)
+
+
+def test_punto_frio_solo_cambia_la_capa_en_su_pueblo():
+    cond = REMO_BAJAS.con(acopios=frozenset(), puntos_frios=frozenset({"C01"}))
+    transbordo_yucao = {"tipo": "transbordo", "modo": "interno", "d_km": 0.0, "sentido": 0, "pueblo": "C01"}
+    transbordo_otro = {**transbordo_yucao, "pueblo": "CP03"}
+    espera_frio = {"tipo": "espera", "modo": "interno", "d_km": 0.0, "sentido": 0, "centro": "C01"}
+    assert pesos.capa_nueva(transbordo_yucao, "hielo", cond) == "frio"
+    assert pesos.capa_nueva(espera_frio, "hielo", cond) == "frio"
+    assert pesos.capa_nueva(transbordo_otro, "hielo", cond) == "hielo"
+    assert pesos.capa_nueva(M04, "hielo", cond) == "hielo"  # pasar por el rio frente al pueblo no basta: hay que entrar

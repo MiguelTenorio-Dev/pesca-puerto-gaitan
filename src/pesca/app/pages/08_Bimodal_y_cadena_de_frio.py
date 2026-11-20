@@ -130,7 +130,7 @@ st.header("4. Todas las combinaciones: frontera de Pareto")
 recomendados = list(datos["meta"]["recomendados"].values())
 st.altair_chart(visualizacion.grafico_pareto(tabla, presupuestos, recomendados), width="stretch")
 st.caption(
-    f"Cada punto es una de las {len(tabla)} combinaciones de I1–I7. La **frontera** (azul) son las que no tienen otra más "
+    f"Cada punto es una de las {len(tabla)} combinaciones de I1–I8. La **frontera** (azul) son las que no tienen otra más "
     "barata que salve lo mismo o más. Las líneas punteadas son los presupuestos; en naranja, la recomendada para cada uno "
     "(la de mayor VPN que cabe). Calculado con la población de ejemplo."
 )
@@ -147,9 +147,9 @@ with st.expander("¿Qué hace cada medida en el modelo?"):
     st.dataframe(pd.DataFrame([
         {"código": "I1", "medida": "Cajas térmicas", "efecto": "Todo pescador con nevera buena: el hielo dura 48 h en vez de 12 h"},
         {"código": "I2", "medida": "Fábrica de hielo", "efecto": "Hielo a bordo: el pescado va a 4 °C en el río (exige I1)"},
-        {"código": "I3a / I3b", "medida": "Rehabilitar San Miguel / La Cristalina", "efecto": "Acopio con cuarto frío; sigue por carretera. La Cristalina no tiene acceso por río"},
+        {"código": "I3a", "medida": "Rehabilitar San Miguel", "efecto": "Acopio con cuarto frío; sigue por carretera"},
         {"código": "I4", "medida": "Acopio nuevo", "efecto": frio_bimodal.texto_acopio_nuevo()},
         {"código": "I5:N", "medida": "Camión refrigerado con ruta", "efecto": "Lleva lo de los acopios a 4 °C y recoge en los desembarques cada N días: la espera baja de ~6 días a (N+1)/2"},
         {"código": "I6", "medida": "Subsidio de motor", "efecto": "La mitad del motor para parte de los botes a remo; el pescador paga la gasolina"},
-        {"código": "I7", "medida": "Mejorar el desembarque", "efecto": "Donde la señora: todo cabe en el congelador y no hay cortes de luz"},
+        {"código": "I8", "medida": "Puntos fríos", "efecto": "En La Cristalina (y los pueblos que elija el algoritmo) se recoge hielo: desde ahí el pescado sigue con hielo nuevo"},
     ]), hide_index=True, width="stretch")

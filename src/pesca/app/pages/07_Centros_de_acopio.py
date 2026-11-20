@@ -9,7 +9,7 @@ comun.configurar_pagina("Centros de acopio")
 escenario = comun.barra_lateral()
 
 
-@st.cache_data(show_spinner="Calculando c_ij con Dijkstra por capas…")
+@st.cache_data(show_spinner="Reacomodando los acopios con Dijkstra, A*, BFS y DFS…")
 def analisis():
     an = acopios.analizar()
     an.pop("grafo")
@@ -25,104 +25,117 @@ an = analisis()
 g = grafo.construir_grafo()
 an["grafo"] = g
 pre = precalculado()
-nombres = config.cargar_centros_poblados().set_index("id")["nombre"]
 
 
 def nombre(j: str) -> str:
-    return nombres.get(j, g.nodes[j]["nombre"] if j in g else j)
+    return acopios.nombre_acopio(an, j)
 
 
 def conjunto(s) -> str:
     return ", ".join(nombre(j) for j in s)
 
 
-st.title("Centros de acopio: ¿dónde ponerlos y por qué ahí?")
+st.title("Centros de acopio: reacomodo con algoritmos de búsqueda")
 st.markdown(
-    "Un acopio solo puede estar en un **centro poblado** (ahí hay comprador, energía y carretera). Entre ellos se elige "
-    "con la **p-mediana sobre los vértices del grafo**: el conjunto de pueblos que hace mínima la calidad perdida, "
-    "ponderada por los kilos de cada zona. El costo de cada zona a cada pueblo (c_ij) lo calcula **Dijkstra por capas**."
+    "Un acopio solo puede estar en un **centro poblado** (ahí hay comprador, energía y carretera). El reacomodo se decide "
+    "con **algoritmos de búsqueda sobre el grafo**: **BFS** dice qué pueblos se alcanzan, **Dijkstra** calcula cuánta calidad "
+    "pierde cada zona yendo a cada pueblo, la **p-mediana** (búsqueda exhaustiva, ILP y búsqueda local) escoge los pueblos, "
+    "**A\\*** verifica cada ruta asignada y **DFS** revisa qué tramos son críticos."
 )
 
-st.subheader("1. ¿Qué pueblos pueden ser acopio?")
+st.header("La propuesta")
+frios = an["puntos_frios"]
+filas = []
+for j in an["actuales"]:
+    rol = "punto frío (se recoge hielo)" if j in frios["todos"] else ("acopio" if j in an["propuesta"] else "sale")
+    filas.append({"lugar": nombre(j), "hoy": "acopio" if j != "CP02" else "acopio (cuarto frío sin uso)", "con la propuesta": rol})
+for j in an["propuesta"]:
+    if j not in an["actuales"]:
+        filas.append({"lugar": nombre(j), "hoy": "—", "con la propuesta": "acopio nuevo (reemplaza a La Cristalina)"})
+for j in frios["todos"]:
+    if j not in an["actuales"]:
+        filas.append({"lugar": nombre(j), "hoy": "—", "con la propuesta": "punto frío (se recoge hielo)"})
+st.dataframe(pd.DataFrame(filas), hide_index=True, width="stretch")
+c1, c2 = st.columns(2)
+c1.metric("kg perdidos por día, hoy", f"{an['f_actuales']:.3f}")
+c2.metric("kg perdidos por día, con la propuesta", f"{an['f_propuesta']:.3f}", delta=f"{an['f_propuesta'] - an['f_actuales']:.3f}",
+          delta_color="inverse")
+st_folium(visualizacion.mapa_acopios_grafo(g, list(an["actuales"]), [j for j in an["propuesta"] if j not in an["actuales"]],
+                                           an["voronoi_propuesta"].to_dict(), list(frios["todos"]),
+                                           {j: nombre(j) for j in set(an["actuales"]) | set(an["propuesta"]) | set(frios["todos"])}),
+          height=440, use_container_width=True, returned_objects=[])
+st.caption("🏠 rojo: acopios de hoy · ⭐ azul: acopio nuevo · ✳ celeste: punto frío · líneas: a qué acopio va cada zona.")
+
+st.header("1. ¿Qué pueblos pueden ser acopio? (BFS)")
 tabla = an["tabla_candidatos"].copy()
 tabla["entra"] = tabla["candidato"].map({True: "✅ candidato", False: "❌ excluido"})
 st.dataframe(tabla[["nombre", "habitantes_2018", "acceso_rio", "acceso_via", "entra", "motivo", "marca"]], hide_index=True, width="stretch")
-st.caption(f"Regla: cabecera o centro poblado, ≥ {config.parametro('acopios_grafo.p_min_habitantes')} habitantes, "
-           f"acceso {config.parametro('acopios_grafo.criterio_acceso')} por río o vía, con coordenadas y alcanzable por BFS. "
-           "[CONFIRMAR] = coordenadas, acceso o energía sin confirmar.")
+st.caption("BFS desde cada zona de pesca: un pueblo es candidato si se llega a él. La Cristalina es punto frío por decisión del equipo.")
 
-st.subheader("2. ¿Cuánto se pierde llevando cada zona a cada pueblo? (c_ij)")
+st.header("2. ¿Cuánto se pierde llevando cada zona a cada pueblo? (Dijkstra)")
 c = an["c"].rename(columns=nombre, index=lambda i: g.nodes[i]["nombre"])
 st.dataframe(c, width="stretch", column_config={col: st.column_config.NumberColumn(format="%.3f") for col in c.columns})
-st.caption("c_ij = ΔQ de la ida por río (con hielo) + ΔQ de la espera en el cuarto frío + ΔQ de la vuelta a la plaza en frío. "
-           "Promedio sobre la flota y las neveras [SIMULADO]. 1 = no se llega o se pierde todo.")
+st.caption("c_ij = calidad que se pierde en la ida por río (con hielo) + la espera en el cuarto frío + la vuelta a la plaza en frío. "
+           "Dijkstra por capas desde cada zona; promedio de la flota, las neveras y las dos temporadas [SIMULADO]. 1 = no se llega.")
 
-st.subheader("3. ¿Cuántos acopios valen la pena? (curva del codo)")
+st.header("3. ¿Cuántos acopios y dónde? (p-mediana: búsqueda exhaustiva, ILP y búsqueda local)")
 curva = an["curva"].assign(S=lambda d: d["S"].map(conjunto))
 c1, c2 = st.columns([2, 1])
 c1.line_chart(an["curva"].set_index("p")["f"], x_label="número de acopios p", y_label="kg perdidos por día f(p)")
 c2.dataframe(curva, hide_index=True, width="stretch", column_config={"f": st.column_config.NumberColumn(format="%.3f")})
-st.markdown(f"El codo está en **p = {an['p_codo']}**: abrir uno más ya casi no reduce la pérdida. "
-            f"Los acopios elegidos son **{conjunto(an['S'])}**.")
-
-st.subheader("4. Tres métodos, el mismo resultado")
 st.dataframe(an["metodos"].assign(S=lambda d: d["S"].map(conjunto)), hide_index=True, width="stretch",
              column_config={"f": st.column_config.NumberColumn(format="%.4f"), "gap_pct": st.column_config.NumberColumn("gap (%)", format="%.2f")})
-st.caption("Enumeración: todas las combinaciones (óptimo garantizado). ILP: PuLP/CBC. Búsqueda local Teitz–Bart: heurística, "
-           "por eso se reporta su gap contra la enumeración.")
+st.markdown(f"El codo está en **p = {an['p_codo']}**: **{conjunto(an['S'])}**. San Miguel atiende las zonas del Meta, que en aguas "
+            "altas no pueden remontar a Puerto Gaitán a remo.")
 
-st.subheader("5. ¿Por qué estos pueblos y no otro punto?")
+st.header("4. El acopio del Manacacías (búsqueda exhaustiva)")
+m = an["manacacias"]
+st.dataframe(m["tabla"].assign(nombre=m["tabla"]["nombre"]), hide_index=True, width="stretch",
+             column_config={"f": st.column_config.NumberColumn("kg perdidos/día con ese acopio", format="%.3f"),
+                            "si_todos": st.column_config.NumberColumn("pérdida si todas las zonas entregaran ahí", format="%.3f")})
+st.markdown(f"El mejor punto del Manacacías es **{m['nombre']}** ({m['pueblo']} [CONFIRMAR]). Con los otros dos acopios, baja la pérdida "
+            f"en **{m['ganancia']:.3f} kg/día**: las zonas del Manacacías ya bajan rápido a Puerto Gaitán.")
+
+st.header("5. Puntos fríos: dónde recoger hielo en la ruta (búsqueda exhaustiva)")
+st.dataframe(frios["curva"].assign(S=lambda d: d["S"].map(conjunto)), hide_index=True, width="stretch",
+             column_config={"p": "puntos fríos extra", "f": st.column_config.NumberColumn("kg perdidos/día", format="%.3f")})
+st.markdown(f"Candidatos (pueblos con embarcadero que no son acopio): {conjunto(frios['candidatos'])}. La Cristalina queda fija. "
+            f"Elegidos por el algoritmo: **{conjunto(frios['elegidos']) or 'ninguno además de La Cristalina'}**.")
+
+st.header("6. Verificación de las rutas: Dijkstra, A*, BFS y DFS")
+alg = an["algoritmos"]
+rutas = alg["rutas"].assign(zona=lambda d: d["zona"].map(lambda i: g.nodes[i]["nombre"]), acopio=lambda d: d["acopio"].map(nombre))
+st.dataframe(rutas, hide_index=True, width="stretch",
+             column_config={"dq_dijkstra": st.column_config.NumberColumn("ΔQ Dijkstra", format="%.4f"),
+                            "dq_a_estrella": st.column_config.NumberColumn("ΔQ A*", format="%.4f")})
+st.markdown(f"A\\* llega al mismo costo que Dijkstra en todas las rutas. DFS (Tarjan): la red tiene {alg['componentes']} componente(s) y "
+            f"{len(alg['articulaciones'])} puntos críticos; si uno de ellos se corta, alguna zona se queda sin su acopio.")
+
+st.header("7. Referencias: ¿por qué pueblos y no otro punto?")
 libre = an["libre"]
-filas = [
-    {"referencia": "Propuesta (p-mediana sobre pueblos)", "S": conjunto(an["S"]), "kg perdidos/día": acopios.f(an["c"], an["w"], an["S"])},
+ref = pd.DataFrame([
+    {"referencia": "Propuesta", "S": conjunto(an["propuesta"]), "kg perdidos/día": an["f_propuesta"]},
     {"referencia": "Acopios de hoy", "S": conjunto(an["actuales"]), "kg perdidos/día": an["f_actuales"]},
-    {"referencia": "p-mediana libre (cualquier punto del río, cota inferior)", "S": conjunto(libre["S"]) if libre else "—",
-     "kg perdidos/día": libre["f"] if libre else None},
+    {"referencia": "p-mediana libre (cualquier punto del río)", "S": conjunto(libre["S"]) if libre else "—", "kg perdidos/día": libre["f"] if libre else None},
     {"referencia": "Centroide de las zonas (1 acopio)", "S": nombre(an["centroide"]), "kg perdidos/día": an["f_centroide_p1"]},
-    {"referencia": "p-mediana con 1 acopio", "S": conjunto(an["curva"]["S"].iloc[0]), "kg perdidos/día": an["f_p1"]},
-]
-st.dataframe(pd.DataFrame(filas), hide_index=True, width="stretch", column_config={"kg perdidos/día": st.column_config.NumberColumn(format="%.3f")})
-st.markdown(
-    f"- **Costo de exigir pueblos:** {an['costo_exigir_pueblos']:.3f} kg/día (propuesta − p-mediana libre).\n"
-    f"- **El punto medio no sirve:** el centroide cae en {nombre(an['centroide'])} y pierde "
-    f"{an['f_centroide_p1']:.2f} kg/día contra {an['f_p1']:.2f} del mejor pueblo."
-)
+])
+st.dataframe(ref, hide_index=True, width="stretch", column_config={"kg perdidos/día": st.column_config.NumberColumn(format="%.3f")})
 
-st.subheader("6. Mapa: hoy, propuesta y área de influencia")
-modo = st.radio("Modo", ["evaluar", "agregar", "reubicar"], horizontal=True, key="modo_pmediana",
-                format_func={"evaluar": "Evaluar los de hoy", "agregar": "Mantener y agregar", "reubicar": "Reubicar (p libre)"}.get)
-if modo == "evaluar":
-    propuesta = list(an["actuales"])
-elif modo == "agregar":
-    if len(an["agregar"]):
-        k = st.select_slider("¿Cuántos agregar?", list(an["agregar"]["k"]), key="k_agregar")
-        propuesta = list(an["agregar"].set_index("k").at[k, "S"])
-    else:
-        st.info("No hay más candidatos que agregar: los demás pueblos no tienen coordenadas o acceso confirmado [CONFIRMAR].")
-        propuesta = list(an["actuales"])
-else:
-    propuesta = list(an["S"])
-asignacion = acopios.voronoi(an["c"], propuesta).to_dict()
-st_folium(visualizacion.mapa_acopios_grafo(g, an["actuales"], [j for j in propuesta if j not in an["actuales"]] or propuesta, asignacion),
-          height=420, use_container_width=True, returned_objects=[])
-
-st.subheader("7. Veredicto por acopio")
+st.header("8. Veredicto por acopio")
 mc = pre["mc"] if pre is not None else None
-via = acopios.viabilidad(an, propuesta, mc)
-via["nombre"] = via["acopio"].map(nombre)
+via = acopios.viabilidad(an, list(an["propuesta"]), mc)
 st.dataframe(via.drop(columns=["acopio"]), hide_index=True, width="stretch",
              column_config={c: st.column_config.NumberColumn(format="%,.0f") for c in ("beneficio_anual", "inversion", "vpn", "vpn_p5", "vpn_p95")})
 umbral = 100 * config.parametro("economia.umbral_vpn_positivo")
-st.caption(f"Regla: vale la pena si el VPN a {config.parametro('economia.horizonte_anios')} años es positivo en al menos el {umbral:.0f} % "
-           "de las corridas de Monte Carlo. Pérdida evitada = f(S sin el acopio) − f(S). Costos e inversiones: SIMULADO.")
-if mc is None:
-    st.info("Falta el Monte Carlo: córrelo con `python scripts/correr_todo.py --solo g5`.")
+st.caption(f"Regla: vale la pena si el VPN a {config.parametro('economia.horizonte_anios')} años es positivo en al menos el {umbral:.0f} % de las "
+           "corridas de Monte Carlo. Pérdida evitada = f(sin el acopio) − f(con todos). Costos: SIMULADO.")
 
 if pre is not None:
-    st.subheader("8. ¿Cambia la conclusión? (sensibilidad)")
-    sens = pre["sensibilidad"].assign(S=lambda d: d["S"].map(conjunto))
-    st.dataframe(sens, hide_index=True, width="stretch")
+    st.header("9. ¿Cambia la conclusión? (sensibilidad)")
+    st.dataframe(pre["sensibilidad"].assign(S=lambda d: d["S"].map(conjunto)), hide_index=True, width="stretch")
 
 if st.button("Activar esta propuesta en el escenario", key="activar_propuesta"):
-    st.session_state["escenario"] = escenario.con(acopios_grafo=frozenset(propuesta))
+    centros = set(config.cargar_centros_poblados()["id"])
+    st.session_state["escenario"] = escenario.con(acopios_grafo=frozenset(j for j in an["propuesta"] if j in centros),
+                                                  puntos_frios_grafo=frozenset(frios["todos"]))
     st.rerun()

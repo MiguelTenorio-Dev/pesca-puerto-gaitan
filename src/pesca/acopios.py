@@ -58,11 +58,12 @@ def pesos_zonas(g: nx.DiGraph) -> pd.Series:
     return pd.Series(w, name="kg_dia")
 
 
-TIPOS_IDA = {"rio", "acceso", "transbordo"}
+# el pescador va en su bote por rio y accesos; puede entrar a un pueblo (transbordo y espera) a recoger hielo
+TIPOS_IDA = {"rio", "acceso", "transbordo", "espera"}
 
 
 def grafo_ida(g: nx.DiGraph) -> nx.DiGraph:
-    """Lo que recorre el pescador con su bote: rio y accesos, y el transbordo para dejar el lote en el pueblo."""
+    """Lo que recorre el pescador con su bote: rio y accesos, y los pueblos donde entra (dejar el lote o recoger hielo)."""
     return g.edge_subgraph([(u, v) for u, v, a in g.edges(data=True) if a["tipo"] in TIPOS_IDA]).copy()
 
 
@@ -77,6 +78,10 @@ def salida(g: nx.DiGraph, j: str) -> str:
 # ---------------------------------------------------------------- candidatos (§4.1)
 
 
+def puntos_frios_fijos() -> frozenset[str]:
+    return frozenset(config.parametro("puntos_frios.fijos"))
+
+
 def candidatos(
     centros: pd.DataFrame, g: nx.DiGraph, p_min: float | None = None, criterio_acceso: str | None = None
 ) -> tuple[list[str], pd.DataFrame]:
@@ -89,6 +94,8 @@ def candidatos(
     filas, elegidos = [], []
     for c in centros.itertuples():
         motivos, confirmar = [], False
+        if c.id in puntos_frios_fijos():
+            motivos.append("es punto frío (decisión del equipo): ahí se recoge hielo, no se acopia")
         if c.clase_dane not in ("cabecera", "centro_poblado"):
             motivos.append("no es cabecera ni centro poblado")
         if c.habitantes_2018 < p_min:
@@ -139,10 +146,12 @@ def tramos_costo(g: nx.DiGraph, i: str, destinos: list[str], cond: pesos.Condici
     w, t, previo = busqueda.dijkstra_todos(gc_ida, (i, "hielo"), pesos.funcion_costo(ida_cond))
     salida_tabla = {}
     for j in destinos:
-        estado = (entrada(g, j), "hielo")
-        if estado not in w:
+        # el lote puede llegar con hielo o, si paso por un punto frio, ya en frio: vale la llegada mas barata
+        llegadas = [(entrada(g, j), capa) for capa in pesos.CAPAS_GRAFO if (entrada(g, j), capa) in w]
+        if not llegadas:
             salida_tabla[j] = None
             continue
+        estado = min(llegadas, key=lambda e: w[e])
         vuelta = _vuelta(g, j, cond, mercado)
         tiene_plaza = any(g.nodes[m].get("centro_id") == j for m in grafo.mercados(g))
         espera = 0.0 if tiene_plaza else pesos.perdida(p("acopios.horas_espera_acopio"), "frio", 0.0, cond)
@@ -190,7 +199,8 @@ def _temporadas(temporada: str | None) -> list[tuple[str, float]]:
     return [("aguas_altas", altas), ("aguas_bajas", 1 - altas)]
 
 
-def matriz_costos(g: nx.DiGraph, cands: list[str], temporada: str | None = None, bote: str | None = None) -> pd.DataFrame:
+def matriz_costos(g: nx.DiGraph, cands: list[str], temporada: str | None = None, bote: str | None = None,
+                  puntos_frios: frozenset[str] = frozenset()) -> pd.DataFrame:
     """c_ij: fraccion del lote que se pierde si la zona i entrega en j y el lote sigue a la plaza.
 
     Promedio ponderado sobre la flota, las neveras y las dos temporadas (o un solo bote o una sola temporada si se
@@ -202,7 +212,7 @@ def matriz_costos(g: nx.DiGraph, cands: list[str], temporada: str | None = None,
     total = sum(w for *_, w in combos)
     c = pd.DataFrame(0.0, index=zonas(g), columns=cands)
     for b, nevera, temporada_combo, peso_combo in combos:
-        cond = pesos.Condiciones(bote=b, temporada=temporada_combo, nevera=nevera)
+        cond = pesos.Condiciones(bote=b, temporada=temporada_combo, nevera=nevera, puntos_frios=frozenset(puntos_frios))
         for i in c.index:
             tramos = tramos_costo(g, i, cands, cond)
             for j in cands:
@@ -353,40 +363,156 @@ def centroide(g: nx.DiGraph, w: pd.Series) -> str:
 # ---------------------------------------------------------------- analisis completo
 
 
-def actuales(cands: list[str]) -> list[str]:
-    return [j for j in config.parametro("acopios_grafo.actuales") if j in cands]
+def puntos_manacacias(g: nx.DiGraph) -> list[str]:
+    """Puntos del rio Manacacias aguas arriba de Puerto Gaitan (a mas de distancia_max_pueblo_km de un acopio de hoy):
+    donde puede ir el acopio que reemplaza a La Cristalina."""
+    lejos = config.parametro("grafo.distancia_max_pueblo_km")
+    hoy = [entrada(g, j) for j in actuales() if entrada(g, j) in g]
+
+    def separado(n) -> bool:
+        a = g.nodes[n]
+        return all(haversine_km(a["lat"], a["lon"], g.nodes[h]["lat"], g.nodes[h]["lon"]) > lejos for h in hoy)
+
+    return sorted(n for n, a in g.nodes(data=True) if a["tipo"] == "punto_rio" and "Manacacías" in a["nombre"] and separado(n))
+
+
+def acopio_manacacias(g: nx.DiGraph, c: pd.DataFrame, w: pd.Series, fijos) -> dict:
+    """Busqueda exhaustiva sobre los puntos del Manacacias: el que mas baja f con los acopios fijos.
+
+    Si ninguno baja f (las zonas del Manacacias ya bajan facil a Puerto Gaitan), gana el que menos pierde si todas las
+    zonas entregaran ahi (el mas central del rio). El pueblo cercano queda [CONFIRMAR].
+    """
+    fijos = list(fijos)
+    base = f(c, w, fijos)
+    filas = [{"punto": j, "nombre": g.nodes[j]["nombre"], "f": f(c, w, fijos + [j]),
+              "si_todos": float((w * c[j]).sum() / w.sum())} for j in puntos_manacacias(g) if j in c.columns]
+    tabla = pd.DataFrame(filas).sort_values(["f", "si_todos"]).reset_index(drop=True)
+    mejor = tabla.iloc[0]
+    return {"punto": mejor["punto"], "nombre": mejor["nombre"], "f": float(mejor["f"]), "ganancia": base - float(mejor["f"]),
+            "tabla": tabla, "pueblo": config.parametro("puntos_frios.pueblo_manacacias")}
+
+
+def candidatos_punto_frio(g: nx.DiGraph, acopios_abiertos) -> list[str]:
+    """Pueblos y comunidades con embarcadero (se llega en bote) que no son acopio: donde se puede recoger hielo."""
+    pueblos = {a["centro_id"] for _, a in g.nodes(data=True) if a["tipo"] == "embarcadero"}
+    return sorted(pueblos - set(acopios_abiertos))
+
+
+def elegir_puntos_frios(g: nx.DiGraph, acopios_abiertos, w: pd.Series, temporada: str | None = None) -> dict:
+    """Busqueda exhaustiva de los puntos frios (subconjuntos de pueblos de la ruta) con los acopios ya ubicados.
+
+    Para cada subconjunto se recalcula c_ij con Dijkstra por capas (el pescador puede desviarse al pueblo a recoger hielo)
+    y se mide f. Los fijos (La Cristalina) siempre estan. Se elige con la regla del codo.
+    """
+    abiertos = list(acopios_abiertos)
+    fijos = puntos_frios_fijos()
+    cands = candidatos_punto_frio(g, abiertos)
+    filas = []
+    for k in range(0, len(cands) + 1):
+        for extra in itertools.combinations(cands, k):
+            pf = frozenset(fijos | set(extra))
+            c = matriz_costos(g, abiertos, temporada, puntos_frios=pf)
+            filas.append({"k": k, "puntos": tuple(sorted(extra)), "f": f(c, w, abiertos)})
+    tabla = pd.DataFrame(filas)
+    curva = tabla.loc[tabla.groupby("k")["f"].idxmin()].rename(columns={"k": "p", "puntos": "S"}).reset_index(drop=True)
+    k_codo = codo(curva) if curva["f"].iloc[0] > 0 else 0
+    # con k = 0 en la curva, el codo cuenta desde 0
+    elegido = curva.set_index("p").at[k_codo, "S"] if k_codo in set(curva["p"]) else ()
+    if curva["f"].iloc[0] - curva["f"].min() < config.parametro("acopios_grafo.umbral_codo") * curva["f"].iloc[0]:
+        elegido = ()
+    return {"candidatos": cands, "curva": curva, "elegidos": tuple(elegido), "todos": tuple(sorted(fijos | set(elegido))),
+            "f_sin": float(curva["f"].iloc[0]), "f_con": float(tabla.set_index("puntos").loc[[tuple(sorted(elegido))], "f"].iloc[0])}
+
+
+def algoritmos_del_reacomodo(g: nx.DiGraph, w: pd.Series, propuesta, puntos_frios, asignacion: pd.Series) -> dict:
+    """Que hace cada algoritmo de busqueda en el reacomodo, con su resultado sobre la propuesta (escenario base)."""
+    p = config.parametro
+    bote = max(p("flota.mezcla"), key=p("flota.mezcla").get)
+    cond = pesos.Condiciones(bote=bote, temporada=p("escenario_base.temporada"), puntos_frios=frozenset(puntos_frios))
+    ida = cond.con(acopios=frozenset(), camion_refrigerado=False)
+    gc = pesos.expandir_capas(grafo_ida(g), ida)
+    costo = pesos.funcion_costo(ida)
+    filas_ruta = []
+    for i in w.index:
+        # la ruta de cada zona hasta el acopio que le asigno la p-mediana
+        destino = entrada(g, asignacion[i])
+        destinos = {(destino, c) for c in pesos.CAPAS_GRAFO if (destino, c) in gc}
+        if (i, "hielo") not in gc or not destinos:
+            continue
+        d = busqueda.dijkstra_capas(gc, (i, "hielo"), destinos, costo)
+        if not d.alcanzable:
+            continue
+        a = busqueda.a_estrella_capas(gc, (i, "hielo"), {(destino, c) for c in pesos.CAPAS_GRAFO}, costo,
+                                       pesos.heuristica(gc, destino, ida))
+        b, _ = busqueda.bfs_niveles(gc, (i, "hielo"), {(destino, c) for c in pesos.CAPAS_GRAFO}, costo)
+        pasa_frio = sorted({gc.nodes[n].get("centro_id") for n, _ in [(x, None) for x in d.camino]
+                            if gc.nodes[n].get("centro_id") in puntos_frios and gc.nodes[n]["tipo"] in ("centro_poblado", "comunidad")})
+        filas_ruta.append({"zona": i, "acopio": destino.split(":")[0], "dq_dijkstra": d.costo, "dq_a_estrella": a.costo,
+                           "expandidos_dijkstra": d.nodos_expandidos, "expandidos_a_estrella": a.nodos_expandidos,
+                           "tramos_bfs": b.tramos, "puntos_frios_en_ruta": ", ".join(pasa_frio)})
+    rutas = pd.DataFrame(filas_ruta)
+    no_dirigido = g.to_undirected()
+    articulaciones, puentes = busqueda.puntos_articulacion(no_dirigido)
+    criticos = sorted(n for n in articulaciones if g.nodes[n]["tipo"] in ("punto_rio", "embarcadero", "centro_poblado", "comunidad"))
+    componentes = busqueda.componentes_dfs(g)
+    return {"rutas": rutas, "articulaciones": criticos, "puentes": len(puentes), "componentes": len(componentes)}
+
+
+def actuales(cands: list[str] | None = None) -> list[str]:
+    """Acopios de hoy (con La Cristalina, aunque ya no sea candidata: hoy existe como acopio)."""
+    hoy = config.parametro("acopios_grafo.actuales")
+    return list(hoy) if cands is None else [j for j in hoy if j in cands]
 
 
 def analizar(g: nx.DiGraph | None = None, centros: pd.DataFrame | None = None, temporada: str | None = None) -> dict:
-    """Todo lo de §4 para el escenario base: candidatos, c_ij, curva del codo, modos, referencias."""
+    """El reacomodo completo: candidatos (BFS), c_ij (Dijkstra por capas), p-mediana (enumeracion, ILP y Teitz–Bart),
+    acopio del Manacacias y puntos frios (busqueda exhaustiva), y la verificacion con A*, BFS y DFS."""
     g = g if g is not None else grafo.construir_grafo()
     centros = centros if centros is not None else config.cargar_centros_poblados()
     cands, tabla_cands = candidatos(centros, g)
     w = pesos_zonas(g)
+    hoy = actuales()
     libres = puntos_libres(g, cands)
-    c_todo = matriz_costos(g, sorted(set(cands) | set(libres)), temporada)
+    columnas = sorted(set(cands) | set(libres) | set(hoy) | set(puntos_manacacias(g)))
+    c_todo = matriz_costos(g, columnas, temporada)
     c = c_todo[cands]
     curva = pd.DataFrame(
         [{"p": p, **p_mediana_enumeracion(c, w, p)} for p in range(1, len(cands) + 1)]
     )[["p", "S", "f"]]
     p_codo = codo(curva)
     s_estrella = curva.set_index("p").at[p_codo, "S"]
-    hoy = actuales(cands)
+    hoy_candidatos = [j for j in hoy if j in cands]
     agregar = []
     for k in range(1, config.parametro("ubicacion.k_max_agregar") + 1):
-        if len(hoy) + k <= len(cands):
-            agregar.append({"k": k, **p_mediana_enumeracion(c, w, len(hoy) + k, tuple(hoy))})
+        if len(hoy_candidatos) + k <= len(cands):
+            agregar.append({"k": k, **p_mediana_enumeracion(c, w, len(hoy_candidatos) + k, tuple(hoy_candidatos))})
     libre = p_mediana_enumeracion(c_todo[libres], w, min(p_codo, len(libres))) if libres else None
     j_centro = centroide(g, w)
     c_centro = matriz_costos(g, [j_centro], temporada) if j_centro not in c_todo.columns else c_todo[[j_centro]]
+    # Reacomodo del equipo: el acopio de La Cristalina pasa al Manacacias y La Cristalina queda como punto frio
+    mana = acopio_manacacias(g, c_todo, w, s_estrella)
+    propuesta = tuple(s_estrella) + ((mana["punto"],) if mana["punto"] not in s_estrella else ())
+    frios = elegir_puntos_frios(g, propuesta, w, temporada)
+    c_propuesta = matriz_costos(g, list(propuesta), temporada, puntos_frios=frozenset(frios["todos"]))
     return {
-        "grafo": g, "candidatos": cands, "tabla_candidatos": tabla_cands, "w": w, "c": c, "c_libres": c_todo[libres],
-        "curva": curva, "p_codo": p_codo, "S": s_estrella, "metodos": tres_metodos(c, w, p_codo),
-        "actuales": hoy, "f_actuales": f(c, w, hoy), "agregar": pd.DataFrame(agregar),
+        "grafo": g, "candidatos": cands, "tabla_candidatos": tabla_cands, "w": w, "c": c, "c_todo": c_todo,
+        "c_libres": c_todo[libres], "curva": curva, "p_codo": p_codo, "S": s_estrella, "metodos": tres_metodos(c, w, p_codo),
+        "actuales": hoy, "f_actuales": f(c_todo, w, hoy), "agregar": pd.DataFrame(agregar),
         "libre": libre, "costo_exigir_pueblos": (f(c, w, s_estrella) - libre["f"]) if libre else math.nan,
         "centroide": j_centro, "f_centroide_p1": f(c_centro, w, [j_centro]), "f_p1": curva["f"].iloc[0],
-        "voronoi": voronoi(c, s_estrella),
+        "voronoi": voronoi(c, s_estrella), "manacacias": mana, "propuesta": propuesta, "puntos_frios": frios,
+        "c_propuesta": c_propuesta, "f_propuesta": f(c_propuesta, w, propuesta),
+        "voronoi_propuesta": voronoi(c_propuesta, propuesta),
+        "algoritmos": algoritmos_del_reacomodo(g, w, propuesta, frios["todos"], voronoi(c_propuesta, propuesta)),
     }
+
+
+def nombre_acopio(an: dict, j: str) -> str:
+    """Nombre para mostrar: el pueblo, o el acopio del Manacacias con su pueblo por confirmar."""
+    if j == an["manacacias"]["punto"] and an["grafo"].nodes[j]["tipo"] == "punto_rio":
+        return f"Acopio del Manacacías ({an['manacacias']['pueblo']}) [CONFIRMAR]"
+    nombres = config.cargar_centros_poblados().set_index("id")["nombre"]
+    return nombres.get(j, an["grafo"].nodes[entrada(an["grafo"], j)]["nombre"])
 
 
 # ---------------------------------------------------------------- viabilidad (§4.7)
@@ -440,8 +566,9 @@ def viabilidad(analisis: dict, abiertos=None, mc: pd.DataFrame | None = None) ->
     from pesca.ubicacion import vale_la_pena, vpn
 
     p = config.parametro
-    g, c, w = analisis["grafo"], analisis["c"], analisis["w"]
-    abiertos = list(abiertos if abiertos is not None else analisis["S"])
+    g, w = analisis["grafo"], analisis["w"]
+    abiertos = list(abiertos if abiertos is not None else analisis["propuesta"])
+    c = analisis["c_todo"] if set(abiertos) <= set(analisis["c_todo"].columns) else analisis["c_propuesta"]
     asign = voronoi(c, abiertos)
     area = metricas_area(g, asign, w)
     k = capacidad(config.cargar_centros_poblados())
@@ -450,12 +577,12 @@ def viabilidad(analisis: dict, abiertos=None, mc: pd.DataFrame | None = None) ->
     filas = []
     for j in abiertos:
         carga = float(w[asign == j].sum())
-        evitada = f([] if False else c, w, [x for x in abiertos if x != j]) - f_s
+        evitada = f(c, w, [x for x in abiertos if x != j]) - f_s
         inversion, operacion, kwh = costos(j)
         beneficio = evitada * precio_base() * p("volumen.dias_pesca_anio")
         energia = kwh * DIAS_ANIO * p("economia.cop_kwh")
         fila = {
-            "acopio": j, "nombre": g.nodes[entrada(g, j)]["nombre"], "kg_dia": carga, "capacidad_kg": k.get(j, math.nan),
+            "acopio": j, "nombre": nombre_acopio(analisis, j), "kg_dia": carga, "capacidad_kg": k.get(j, math.nan),
             "uso_pct": 100 * carga / k[j] if j in k and k[j] > 0 else math.nan,
             "perdida_evitada_kg_dia": evitada, "beneficio_anual": beneficio, "inversion": inversion,
             "vpn": vpn(inversion, beneficio - operacion - energia, anios, tasa) if j != PLAZA else math.nan,
@@ -533,7 +660,7 @@ def sensibilidad(analisis: dict) -> pd.DataFrame:
 
 def precalcular(n: int | None = None) -> None:
     analisis = analizar()
-    mc = montecarlo_viabilidad(analisis["S"], n)
+    mc = montecarlo_viabilidad(analisis["propuesta"], n)
     destino = config.DIR_PRECALCULADO
     destino.mkdir(parents=True, exist_ok=True)
     mc.to_csv(destino / "g5_viabilidad_mc.csv", index=False)

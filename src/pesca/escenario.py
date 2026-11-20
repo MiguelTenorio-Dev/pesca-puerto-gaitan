@@ -23,6 +23,8 @@ class Escenario:
     desembarque_mejorado: bool = False  # donde la señora: congelador con capacidad y energia confiables
     subsidio_motor: bool = False  # parte de los botes a remo pasa a motor
     acopios_grafo: frozenset[str] = field(default_factory=frozenset)  # centros poblados activados en el grafo v4 (G5)
+    puntos_frios: frozenset[str] = field(default_factory=frozenset)  # lugares de la red donde se recoge hielo (I8)
+    puntos_frios_grafo: frozenset[str] = field(default_factory=frozenset)  # los mismos, como pueblos del grafo v4
 
     def __post_init__(self) -> None:
         nodos = config.cargar_nodos().set_index("id")
@@ -51,6 +53,10 @@ class Escenario:
         if set(self.acopios_grafo) - centros:
             raise ValueError(f"Los acopios del grafo deben ser centros poblados: {sorted(set(self.acopios_grafo) - centros)}")
         object.__setattr__(self, "acopios_grafo", frozenset(self.acopios_grafo))
+        if set(self.puntos_frios) - set(nodos.index):
+            raise ValueError(f"Puntos fríos desconocidos: {sorted(set(self.puntos_frios) - set(nodos.index))}")
+        object.__setattr__(self, "puntos_frios", frozenset(self.puntos_frios))
+        object.__setattr__(self, "puntos_frios_grafo", frozenset(self.puntos_frios_grafo))
 
     @classmethod
     def base(cls) -> Escenario:
