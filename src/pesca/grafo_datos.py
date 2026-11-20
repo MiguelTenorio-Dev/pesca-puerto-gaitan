@@ -24,6 +24,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 import networkx as nx
+import numpy as np
 import pandas as pd
 
 from pesca import config
@@ -42,14 +43,21 @@ ORDEN_ETIQUETAS = ["MEDIDO", "DATO", "OFICIAL", "CALIBRADO", "SIMULADO", "CONFIR
 CUENCA_RIO = {"meta": "meta", "manacacias": "meta", "yucao": "meta", "planas": "vichada", "muco": "vichada", "guarrojo": "vichada"}
 
 # Lugares de distancias_medidas.csv -> id del pueblo en el grafo v4
-LUGARES_MEDIDOS = {"yucao_pueblo": "C01", "san_miguel": "CP03", "puerto_gaitan": "CP01"}
+LUGARES_MEDIDOS = {
+    "yucao_pueblo": "C01", "san_miguel": "CP03", "puerto_gaitan": "CP01", "san_pedro_de_arimena": "CP05",
+    "el_porvenir": "CP06", "la_cristalina": "CP02", "domo_planas": "CP04",
+}
 
 # Esqueleto SIMULADO: lo minimo de rios.csv, vias.csv y nodos.csv (v3.1) para reproducir M01–M04
-ESQUELETO_RIOS = {"meta": ("C01", "A02"), "manacacias": ("D_MALECON", "X01")}
+# Cuenca de las trazas y zonas del esqueleto: la del Vichada no tiene todavia un pueblo con coordenadas y
+# acceso por rio, asi que sus zonas no llegarian a ningun acopio (quedan como pendientes)
+ESQUELETO_CUENCA = "meta"
 ESQUELETO_VIAS = ("via_yucao", "via_san_miguel")
-# Vias sin traza en vias.csv: linea recta entre dos centros poblados (la sinuosidad la pone el escalado)
-ESQUELETO_VIAS_RECTAS = {"vía Puerto Gaitán–La Cristalina": ("CP01", "CP02")}
-ESQUELETO_ZONAS = ("P01", "P02")
+# Rutas medidas por el equipo en KML: por agua son el Meta real desde Puerto Gaitan aguas abajo; por tierra, las vias.
+# Donde hay traza KML, la traza simulada se corta: el Meta simulado llega hasta la boca del Manacacias y el
+# Manacacias simulado hasta el malecon.
+KML_RUTAS = "rutas que faltan .kml"
+CORTE_SIMULADO = {"meta": "X01", "manacacias": "D_MALECON"}
 
 FUENTE_INTERNO = "SIMULADO: arco interno (d = 0); el tiempo sale de parametros.yaml"
 FUENTE_ACCESO_ZONA = "SIMULADO: línea recta al punto del río más cercano"
@@ -63,6 +71,7 @@ class Linea:
     nombre: str
     coords: list[tuple[float, float]]
     fuente: str
+    cuenca: str | None = None  # None: se deduce del nombre del rio
 
 
 # ---------------------------------------------------------------- utilidades
@@ -198,7 +207,7 @@ def _red(lineas: list[Linea], modo: str, pueblos: pd.DataFrame, paso_km: float, 
     p = config.parametro
     tol_conf, tol_vert = p("grafo.tolerancia_confluencia_km"), p("grafo.tolerancia_vertice_km")
     d_max = p("grafo.distancia_max_pueblo_km")
-    lineas = [Linea(l.nombre, list(l.coords), l.fuente) for l in lineas]
+    lineas = [Linea(l.nombre, list(l.coords), l.fuente, l.cuenca) for l in lineas]
     cortes: dict[tuple[float, float], str] = {}
     pendientes: list[str] = []
 
@@ -241,7 +250,7 @@ def _red(lineas: list[Linea], modo: str, pueblos: pd.DataFrame, paso_km: float, 
             nodos.append(
                 {
                     "id": ids[k], "nombre": cortes.get(k, f"{linea.nombre}, km {km:.1f} de la traza"), "tipo": f"punto_{modo}",
-                    "cuenca": cuenca_de(linea.nombre) if modo == "rio" else None, "lat": k[0], "lon": k[1],
+                    "cuenca": (linea.cuenca or cuenca_de(linea.nombre)) if modo == "rio" else None, "lat": k[0], "lon": k[1],
                     "centro_id": None, "peso_kg_dia": None, "validado": "no", "fuente": linea.fuente, "notas": None,
                 }
             )
@@ -369,6 +378,17 @@ def _grafo_tipo(aristas: pd.DataFrame, tipo: str) -> nx.Graph:
     return g
 
 
+def es_enlace(fuente: str) -> bool:
+    """Enlace en linea recta del pueblo a su punto de la via (no es traza: no se calibra ni decide)."""
+    return FUENTE_ENLACE_VIA.split(": ", 1)[1] in str(fuente)
+
+
+def _manda_kml(aristas: pd.DataFrame, filas: list) -> bool:
+    """Una ruta que va por trazas KML (sin contar los enlaces del pueblo a la via) no se calibra: manda el KML."""
+    trazas = [i for i in filas if not es_enlace(aristas.at[i, "fuente"]) and aristas.at[i, "distancia_km"] > 0]
+    return bool(trazas) and all(etiqueta(aristas.at[i, "fuente"]) == "MEDIDO" for i in trazas)
+
+
 def nodo_medido(aristas: pd.DataFrame, lugar: str, modo: str) -> str:
     """Nodo de la red donde empieza o termina una ruta medida: el punto del rio frente al pueblo o el pueblo."""
     pueblo = LUGARES_MEDIDOS[lugar]
@@ -379,50 +399,72 @@ def nodo_medido(aristas: pd.DataFrame, lugar: str, modo: str) -> str:
 
 
 def comparar_medidas(aristas: pd.DataFrame) -> pd.DataFrame:
-    """km de M01–M04 en el grafo (ruta mas corta dentro de su modo) contra lo medido."""
+    """km de cada ruta medida en el grafo (ruta mas corta dentro de su modo) contra lo medido.
+
+    manda = "KML" cuando todo el camino va por trazas KML: ahi vale la traza y la diferencia solo se reporta.
+    """
     filas = []
     for m in config.cargar_distancias_medidas().itertuples():
         g = _grafo_tipo(aristas, m.modo)
         o, d = nodo_medido(aristas, m.origen, m.modo), nodo_medido(aristas, m.destino, m.modo)
-        km = nx.shortest_path_length(g, o, d, weight="km") if o in g and d in g and nx.has_path(g, o, d) else math.nan
+        km, manda = math.nan, "medición"
+        if o in g and d in g and nx.has_path(g, o, d):
+            ruta = nx.shortest_path(g, o, d, weight="km")
+            km = nx.path_weight(g, ruta, weight="km")
+            manda = "KML" if _manda_kml(aristas, [g.edges[u, v]["fila"] for u, v in zip(ruta, ruta[1:])]) else "medición"
         filas.append(
-            {"id": m.id, "modo": m.modo, "km_medido": float(m.distancia_km), "km_grafo": km, "error_pct": 100 * (km / m.distancia_km - 1)}
+            {"id": m.id, "modo": m.modo, "km_medido": float(m.distancia_km), "km_grafo": km,
+             "error_pct": 100 * (km / m.distancia_km - 1), "manda": manda}
         )
     return pd.DataFrame(filas)
 
 
 def _escalar(aristas: pd.DataFrame, tipo: str) -> None:
-    """Escala los arcos de `tipo` para que reproduzcan M01–M04, como la calibracion de red.py.
+    """Escala los arcos SIMULADOS de `tipo` para que las rutas medidas cierren, como la calibracion de red.py.
 
-    Los arcos compartidos por varias rutas medidas usan la sinuosidad comun (acotada para que las
-    demas rutas cierren); los exclusivos de una ruta la cierran; los demas usan la sinuosidad comun.
+    Los arcos de trazas KML (MEDIDO) no se tocan: se descuentan de lo medido. Los simulados compartidos por
+    varias rutas usan la sinuosidad comun (acotada para que las demas rutas cierren); los exclusivos de una ruta
+    la cierran; los demas usan la sinuosidad comun. Una ruta que va toda por KML no se calibra (manda el KML).
     Ningun factor puede ser menor que 1: cada arco mide al menos la linea recta.
     """
     medidas = config.cargar_distancias_medidas()
     medidas = medidas[medidas["modo"] == tipo]
     g = _grafo_tipo(aristas, tipo)
     km = aristas["distancia_km"].to_dict()
-    caminos = {}
+    # los enlaces del pueblo a la via (linea recta, a veces 0 km) tampoco se escalan
+    escalables = {i for i in aristas.index[aristas["tipo"] == tipo]
+                  if etiqueta(aristas.at[i, "fuente"]) == "SIMULADO" and km[i] > 0 and not es_enlace(aristas.at[i, "fuente"])}
+    caminos, objetivo = {}, {}
     for m in medidas.itertuples():
-        ruta = nx.shortest_path(g, nodo_medido(aristas, m.origen, tipo), nodo_medido(aristas, m.destino, tipo), weight="km")
-        caminos[m.id] = [g.edges[u, v]["fila"] for u, v in zip(ruta, ruta[1:])]
+        o, d = nodo_medido(aristas, m.origen, tipo), nodo_medido(aristas, m.destino, tipo)
+        if o not in g or d not in g or not nx.has_path(g, o, d):
+            continue
+        ruta = nx.shortest_path(g, o, d, weight="km")
+        filas = [g.edges[u, v]["fila"] for u, v in zip(ruta, ruta[1:])]
+        simulados = [i for i in filas if i in escalables]
+        if simulados:
+            caminos[m.id] = simulados
+            objetivo[m.id] = m.distancia_km - sum(km[i] for i in filas if i not in escalables)
+    if not caminos:
+        return
     uso = Counter(i for c in caminos.values() for i in c)
-    s = medidas["distancia_km"].sum() / sum(km[i] for c in caminos.values() for i in c)
+    s = sum(objetivo.values()) / sum(km[i] for c in caminos.values() for i in c)
     compartido = s
-    for m in medidas.itertuples():
-        comp = sum(km[i] for i in caminos[m.id] if uso[i] > 1)
-        excl = sum(km[i] for i in caminos[m.id] if uso[i] == 1)
+    for mid, camino in caminos.items():
+        comp = sum(km[i] for i in camino if uso[i] > 1)
+        excl = sum(km[i] for i in camino if uso[i] == 1)
         if comp > 0 and excl > 0:
-            compartido = min(compartido, (m.distancia_km - excl) / comp)
-    factor = {i: compartido if uso[i] > 1 else s for i in aristas.index[aristas["tipo"] == tipo]}
-    nota = {i: f"sinuosidad común de {' y '.join(medidas['id'])}" for i in factor}
-    for m in medidas.itertuples():
-        excl = [i for i in caminos[m.id] if uso[i] == 1]
+            compartido = min(compartido, (objetivo[mid] - excl) / comp)
+    ids = " y ".join(caminos)
+    factor = {i: compartido if uso[i] > 1 else max(s, 1.0) for i in escalables}
+    nota = {i: f"sinuosidad común de {ids}" for i in factor}
+    for mid, camino in caminos.items():
+        excl = [i for i in camino if uso[i] == 1]
         if excl:
-            fijo = sum(km[i] * factor[i] for i in caminos[m.id] if uso[i] > 1)
-            f = (m.distancia_km - fijo) / sum(km[i] for i in excl)
+            fijo = sum(km[i] * factor[i] for i in camino if uso[i] > 1)
+            f = (objetivo[mid] - fijo) / sum(km[i] for i in excl)
             factor.update({i: f for i in excl})
-            nota.update({i: f"cierra {m.id}" for i in excl})
+            nota.update({i: f"cierra {mid}" for i in excl})
     if min(factor.values()) < 1 - 1e-9:
         raise ValueError(f"Escalar {tipo} pide un factor < 1: las trazas miden más que las rutas medidas")
     for i, f in factor.items():
@@ -439,7 +481,8 @@ def _linea_de_traza(trazas: pd.DataFrame, traza: str, archivo: str, desde: str |
     if desde is not None:
         i, j = (filas.index[filas["id_nodo"] == x][0] for x in (desde, hasta))
         filas = filas.iloc[i : j + 1]
-    return Linea(filas["nombre"].iloc[0], list(zip(filas["lat"], filas["lon"])), f"SIMULADO: {archivo}, traza aproximada")
+    cuenca = filas["cuenca"].iloc[0] if "cuenca" in filas else None
+    return Linea(filas["nombre"].iloc[0], list(zip(filas["lat"], filas["lon"])), f"SIMULADO: {archivo}, traza aproximada", cuenca)
 
 
 def comunidades_v31() -> pd.DataFrame:
@@ -447,28 +490,93 @@ def comunidades_v31() -> pd.DataFrame:
     return nodos[nodos["tipo"] == "comunidad"]
 
 
-def esqueleto_simulado(centros: pd.DataFrame | None = None) -> tuple[pd.DataFrame, pd.DataFrame, list[str]]:
-    """Esqueleto minimo mientras llega el KML: Yucao, Puerto Gaitan, San Miguel y La Cristalina.
+def _sin_superposicion(lineas: list[tuple[str, list]]) -> list[tuple[str, list]]:
+    """Varias rutas KML recorren el mismo cauce o la misma via. La mas larga queda entera; de las demas solo
+    queda su tramo propio, desde el pueblo (primer vertice) hasta donde se junta con una traza ya aceptada."""
+    tol = config.parametro("grafo.tolerancia_confluencia_km")
+    aceptadas: list[tuple[str, list]] = []
+    for nombre, coords in sorted(lineas, key=lambda x: -longitud_km(x[1])):
+        for k, punto in enumerate(coords):
+            if any(_proyectar(punto, otra)[0] <= tol for _, otra in aceptadas):
+                coords = coords[: k + 1]
+                break
+        if len(coords) >= 2:
+            aceptadas.append((nombre, coords))
+    return aceptadas
 
-    Usa solo coordenadas que ya existen (rios.csv, vias.csv, nodos.csv v3.1 y los puntos KML) y escala
-    los km para reproducir M01–M04. Todas las filas quedan SIMULADO y validado = no.
+
+def lineas_kml_rutas() -> tuple[list[Linea], list[Linea]]:
+    """Rutas KML del equipo: las de agua como rio (de Puerto Gaitan aguas abajo) y las de tierra como vias."""
+    ruta = config.DIR_KML / KML_RUTAS
+    if not ruta.is_file():
+        return [], []
+    agua, tierra = [], []
+    for linea in leer_lineas_kml(ruta):
+        (agua if "agua" in _normalizar(linea.nombre) else tierra).append((linea.nombre, linea.coords))
+    rio = [
+        # trazadas del pueblo hacia Puerto Gaitan, es decir aguas arriba: se invierten para que vayan aguas abajo
+        Linea(f"río Meta (traza KML de {n.split('-')[0].strip()})", c[::-1], f"MEDIDO: {KML_RUTAS}", ESQUELETO_CUENCA)
+        for n, c in _sin_superposicion(agua)
+    ]
+    via = [Linea(f"vía {n.split('-')[0].strip()}–Puerto Gaitán (traza KML)", c, f"MEDIDO: {KML_RUTAS}") for n, c in _sin_superposicion(tierra)]
+    return rio, via
+
+
+def _empalmar(lineas: list[Linea], kml: list[Linea], extremos: tuple[int, ...]) -> None:
+    """Lleva el extremo de cada traza simulada hasta la traza KML mas cercana si queda a menos de distancia_empalme_km."""
+    if not kml:
+        return
+    p = config.parametro
+    for linea in lineas:
+        for extremo in extremos:
+            punto = linea.coords[extremo]
+            d, _, q = min((_proyectar(punto, k.coords) for k in kml), key=lambda x: x[0])
+            if p("grafo.tolerancia_confluencia_km") < d <= p("grafo.distancia_empalme_km"):
+                if extremo == 0:
+                    linea.coords.insert(0, q)
+                else:
+                    linea.coords.append(q)
+
+
+def esqueleto_simulado(centros: pd.DataFrame | None = None) -> tuple[pd.DataFrame, pd.DataFrame, list[str]]:
+    """Esqueleto del grafo: rios, caños y zonas de la cuenca del Meta, y las vias.
+
+    - Donde el equipo midio rutas en KML (el Meta desde Puerto Gaitan hasta San Pedro de Arimena y El Porvenir,
+      y las vias a esos pueblos, a La Cristalina y a Domo Planas), se usan esas trazas (MEDIDO).
+    - Lo demas sale de rios.csv y vias.csv (SIMULADO): se empalma con las trazas KML y se escala para
+      reproducir las rutas medidas. Las zonas de pesca son estimaciones del equipo con imagenes (DATO).
     """
     centros = centros if centros is not None else config.cargar_centros_poblados()
     rios, vias, v31 = config.cargar_rios(), config.cargar_vias(), config.cargar_nodos()
-    lineas_rio = [_linea_de_traza(rios, t, "rios.csv", *extremos) for t, extremos in ESQUELETO_RIOS.items()]
-    lineas_via = [_linea_de_traza(vias, t, "vias.csv") for t in ESQUELETO_VIAS]
-    puntos = centros.set_index("id")
-    for nombre, extremos in ESQUELETO_VIAS_RECTAS.items():
-        coords = [(puntos.at[c, "lat"], puntos.at[c, "lon"]) for c in extremos]
-        lineas_via.append(Linea(nombre, coords, "SIMULADO: línea recta entre centros_poblados.csv, vía sin trazar"))
-    zonas = v31[v31["id"].isin(ESQUELETO_ZONAS)][["id", "nombre", "lat", "lon"]].assign(fuente="SIMULADO: nodos.csv (v3.1)")
+    kml_rio, kml_via = lineas_kml_rutas()
+    trazas = rios.loc[rios["cuenca"] == ESQUELETO_CUENCA, "traza"].unique()
+    simuladas_rio = []
+    for t in trazas:
+        hasta = CORTE_SIMULADO.get(t) if kml_rio else None
+        if hasta is None:
+            simuladas_rio.append(_linea_de_traza(rios, t, "rios.csv"))
+        else:
+            primero = rios.loc[rios["traza"] == t].sort_values("orden")["id_nodo"].dropna().iloc[0]
+            simuladas_rio.append(_linea_de_traza(rios, t, "rios.csv", primero, hasta))
+    simuladas_via = [_linea_de_traza(vias, t, "vias.csv") for t in ESQUELETO_VIAS]
+    _empalmar(simuladas_rio, kml_rio, (-1,))
+    _empalmar(simuladas_via, kml_via, (0, -1))
+    lineas_rio = kml_rio + simuladas_rio
+    lineas_via = kml_via + simuladas_via
+    es_zona = v31["tipo"] == "zona_pesca"
+    zonas = v31[es_zona & (v31["cuenca"] == ESQUELETO_CUENCA)][["id", "nombre", "lat", "lon"]].assign(
+        fuente="DATO: zona estimada por el equipo con imágenes")
+    fuera = v31[es_zona & (v31["cuenca"] != ESQUELETO_CUENCA)]
     pueblos, pendientes = lugares(centros, comunidades_v31())
+    pendientes += [f"{z.nombre} ({z.id}, cuenca del {z.cuenca.capitalize()}): no hay un pueblo con coordenadas y acceso por río en su cuenca"
+                   for z in fuera.itertuples()]
     nodos, aristas, mas = construir(lineas_rio, lineas_via, pueblos, zonas, config.parametro("grafo.paso_esqueleto_km"))
     for tipo in ("rio", "via"):
         _escalar(aristas, tipo)
     for tabla in (nodos, aristas):
-        tabla["fuente"] = [
-            f"SIMULADO: esqueleto G1 ({f.split(':', 1)[1].strip() if etiqueta(f) == 'SIMULADO' else f})" for f in tabla["fuente"]
+        datos = tabla["fuente"].map(etiqueta).isin(["DATO", "MEDIDO"])
+        tabla.loc[~datos, "fuente"] = [
+            f"SIMULADO: esqueleto ({f.split(':', 1)[1].strip() if etiqueta(f) == 'SIMULADO' else f})" for f in tabla.loc[~datos, "fuente"]
         ]
         tabla["validado"] = "no"
     return nodos, aristas, pendientes + mas
@@ -598,7 +706,9 @@ def escribir(nodos: pd.DataFrame, aristas: pd.DataFrame, salida: Path) -> None:
     salida = Path(salida)
     salida.mkdir(parents=True, exist_ok=True)
     nodos = nodos.assign(lat=nodos["lat"].astype(float).round(6), lon=nodos["lon"].astype(float).round(6))
-    aristas = aristas.assign(distancia_km=aristas["distancia_km"].astype(float).round(4), sentido=aristas["sentido"].astype(int))
+    # hacia arriba: un arco nunca debe medir menos que la linea recta (eso hace admisible la heuristica de A*)
+    km = np.ceil(aristas["distancia_km"].astype(float) * 1e4 - 1e-6) / 1e4
+    aristas = aristas.assign(distancia_km=km, sentido=aristas["sentido"].astype(int))
     nodos.to_csv(salida / "nodos.csv", index=False)
     aristas.to_csv(salida / "aristas.csv", index=False)
 

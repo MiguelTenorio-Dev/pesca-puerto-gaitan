@@ -32,9 +32,6 @@ TEXTO_MODO = {"rio": "río", "via": "carretera", "transbordo": "transbordo"}
 
 TEXTO_SENTIDO = {"aguas_abajo": "a favor de la corriente", "aguas_arriba": "contra la corriente"}
 
-# A03 era Puente Arimena; desde el 19 nov el acopio queda en La Cristalina (en el grafo v4, CP02)
-NOMBRE_ACOPIO = {"A03": "La Cristalina / Puente Arimena (A03)"}
-
 TEXTO_ETIQUETA = {
     "MEDIDO": "🟢 MEDIDO",
     "DATO": "🔵 DATO",
@@ -69,7 +66,7 @@ def barra_lateral() -> Escenario:
             "Acopios activos",
             acopios,
             default=sorted(actual.acopios_activos),
-            format_func=lambda i: NOMBRE_ACOPIO.get(i, nodos.at[i, "nombre"]),
+            format_func=lambda i: nodos.at[i, "nombre"],
         )
         senora = st.selectbox(
             "¿Dónde está el desembarque de la señora?",

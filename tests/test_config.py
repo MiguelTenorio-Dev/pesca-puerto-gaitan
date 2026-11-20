@@ -58,9 +58,9 @@ def test_nodos_validos():
     assert nodos["lat"].between(3.5, 5.0).all()
     assert nodos["lon"].between(-73.0, -70.5).all()
     assert set(nodos["validado"]) <= {"no", "si"}
-    # Solo lo medido en KML queda validado
+    # Solo queda validado lo medido en KML o lo que el equipo confirmo
     validados = nodos[nodos["validado"] == "si"]
-    assert validados["fuente"].str.startswith("KML medido").all()
+    assert (validados["fuente"].str.startswith("KML medido") | validados["fuente"].str.startswith("confirmado por el equipo")).all()
 
 
 def test_puntos_kml_tienen_uso_definido():
@@ -100,7 +100,9 @@ def test_nodos_esperados():
     nodos = config.cargar_nodos().set_index("id")
     assert set(nodos.index[nodos["tipo"] == "acopio"]) == {"A01", "A02", "A03"}
     assert nodos.at["C01", "tipo"] == "comunidad"
-    assert nodos.at["A03", "cuenca"] == "vichada"
+    # El tercer acopio es La Cristalina (antes Puente Arimena): solo por carretera
+    assert nodos.at["A03", "nombre"] == "La Cristalina"
+    assert nodos.at["V03", "tipo"] == "punto_via"
     assert {f"P{i:02d}" for i in range(1, 13)} <= set(nodos.index)
     candidatas = config.parametro("cadena_actual.candidatas_desembarque_senora")
     assert 3 <= len(candidatas) <= 4
@@ -116,7 +118,11 @@ def test_san_miguel_rio_abajo_al_noreste():
 
 def test_distancias_medidas():
     dist = config.cargar_distancias_medidas().set_index("id")
-    assert dist["distancia_km"].to_dict() == {"M01": 15.14, "M02": 17.38, "M03": 38.9, "M04": 41.65}
+    km = dist["distancia_km"].to_dict()
+    assert {k: km[k] for k in ("M01", "M02", "M03", "M04")} == {"M01": 15.14, "M02": 17.38, "M03": 38.9, "M04": 41.65}
+    # M05–M10: rutas KML del equipo a San Pedro de Arimena, El Porvenir, La Cristalina y Domo Planas
+    assert {f"M{i:02d}" for i in range(5, 11)} <= set(dist.index)
+    assert (dist.loc[[f"M{i:02d}" for i in range(5, 11)], "herramienta"] == "Google Earth - Ruta (KML)").all()
     assert dist.at["M04", "sentido_rio_origen_a_destino"] == "aguas_arriba"
     assert set(dist["modo"]) <= config.MODOS
 

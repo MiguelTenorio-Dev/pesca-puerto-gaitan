@@ -126,16 +126,29 @@ def test_componentes_dfs_igual_a_networkx(g):
 
 def test_calibracion_reproduce_lo_medido(g):
     cal = grafo.calibrar(g)
-    assert set(cal["id"]) == {"M01", "M02", "M03", "M04"}
+    assert {"M01", "M02", "M03", "M04"} <= set(cal["id"])
     assert cal["dentro"].all(), cal
-    assert (cal["error_pct"].abs() <= 100 * TOLERANCIA).all()
+    # lo que va por trazas simuladas reproduce la medicion; donde hay traza KML manda la traza (M04 se reporta)
+    medicion = cal[cal["manda"] == "medición"]
+    assert (medicion["error_pct"].abs() <= 100 * TOLERANCIA).all()
+    assert set(medicion["id"]) >= {"M01", "M02", "M03"}
+    assert cal.set_index("id").at["M04", "manda"] == "KML"
     assert g.graph["ajustes"] == []
 
 
+def _simulado_de_m02() -> str:
+    """El tramo de rio SIMULADO mas largo de M02 (Yucao → Puerto Gaitan); M04 va toda por la traza KML."""
+    g = grafo.construir_grafo()
+    r = grafo._por_distancia(g, "rio", "E_C01", "E_CP01")
+    ids = {g.edges[u, v]["id"].split("~")[0] for u, v in zip(r.ruta, r.ruta[1:])
+           if g.edges[u, v]["tipo"] == "rio" and g.edges[u, v]["etiqueta"] == "SIMULADO"}
+    return ARISTAS[ARISTAS["id"].isin(ids)].sort_values("distancia_km")["id"].iloc[-1]
+
+
 def test_calibrar_escala_solo_los_accesos():
-    # M04 queda 1 km corta en su tramo exclusivo y el acceso de San Miguel mide 0,2 km: para cerrar M04 el acceso debe pasar a 1,0 km
-    corto = ARISTAS.loc[(ARISTAS["tipo"] == "rio") & (ARISTAS["distancia_km"] > 30), "id"].item()
-    acceso = ARISTAS.loc[(ARISTAS["tipo"] == "acceso") & (ARISTAS["destino"] == "E_CP03"), "id"].item()
+    # M02 queda 1 km corta en un tramo simulado y el acceso de Yucao mide 0,2 km: para cerrar M02 el acceso debe pasar a 1,0 km
+    corto = _simulado_de_m02()
+    acceso = ARISTAS.loc[(ARISTAS["tipo"] == "acceso") & (ARISTAS["destino"] == "E_C01"), "id"].item()
     aristas = ARISTAS.copy()
     aristas.loc[aristas["id"] == corto, "distancia_km"] -= 1.0
     aristas.loc[aristas["id"] == acceso, "distancia_km"] = 0.2
@@ -144,20 +157,20 @@ def test_calibrar_escala_solo_los_accesos():
 
     cal = grafo.calibrar(g).set_index("id")
     assert cal["dentro"].all(), cal
-    assert acceso in cal.at["M04", "ajuste"]
+    assert acceso in cal.at["M02", "ajuste"]
     assert len(g.graph["ajustes"]) == 1
     escalado = [a["d_km"] for *_, a in g.edges(data=True) if a["id"].startswith(acceso)]
-    assert escalado == pytest.approx([1.0, 1.0])
+    assert escalado == pytest.approx([1.0, 1.0], abs=1e-3)  # el CSV guarda los km con 4 decimales
     assert rio_antes == {a["id"]: a["d_km"] for *_, a in g.edges(data=True) if a["tipo"] in ("rio", "via")}
-    assert (config.cargar_distancias_medidas()["distancia_km"] == [15.14, 17.38, 38.9, 41.65]).all()
+    assert (config.cargar_distancias_medidas()["distancia_km"].head(4) == [15.14, 17.38, 38.9, 41.65]).all()
 
 
 def test_calibrar_reporta_cuando_no_alcanza():
     aristas = ARISTAS.copy()
-    aristas.loc[(aristas["tipo"] == "rio") & (aristas["distancia_km"] > 30), "distancia_km"] -= 5.0
+    aristas.loc[aristas["id"] == _simulado_de_m02(), "distancia_km"] -= 5.0
     cal = grafo.calibrar(grafo.construir_grafo(NODOS, aristas, CENTROS)).set_index("id")
-    assert not cal.at["M04", "dentro"]
-    assert cal.at["M04", "ajuste"].startswith("no calibra")
+    assert not cal.at["M02", "dentro"]
+    assert cal.at["M02", "ajuste"].startswith("no calibra")
 
 
 # ---------------------------------------------------------------- texto, pasos y mapa
@@ -167,7 +180,8 @@ def test_ruta_a_texto_san_miguel_a_puerto_gaitan_por_rio(g):
     # solo por agua: por carretera es mas corto (38,9 km)
     r = grafo._por_distancia(g, "rio", "E_CP03", "E_CP01")
     rio = [(u, v) for u, v in zip(r.ruta, r.ruta[1:]) if g.edges[u, v]["tipo"] == "rio"]
-    assert sum(g.edges[e]["d_km"] for e in rio) == pytest.approx(41.65, rel=TOLERANCIA)
+    km_m04 = grafo.calibrar(g).set_index("id").at["M04", "km_grafo"]  # por la traza KML del Meta
+    assert sum(g.edges[e]["d_km"] for e in rio) == pytest.approx(km_m04)
     texto = grafo.ruta_a_texto(g, r.ruta)
     assert len(texto) == 1
     assert "contra la corriente" in texto[0] and texto[0].startswith("Por río")

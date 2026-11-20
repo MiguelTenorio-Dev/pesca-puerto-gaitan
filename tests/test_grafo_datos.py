@@ -173,13 +173,19 @@ def test_centros_poblados_del_dane():
         "Puerto Gaitán": 20659, "La Cristalina": 904, "San Miguel": 569, "Domo Planas": 446,
         "San Pedro de Arimena": 235, "El Porvenir": 209, "Puente Arimena": 207, "Murujuy": 76, "Puerto Trujillo": 58,
     }
-    assert (CENTROS["validado"] == "no").all()
+    # validados: los que tienen coordenada medida en KML (rutas del equipo y el malecon)
+    assert set(CENTROS.loc[CENTROS["validado"] == "si", "nombre"]) == {
+        "Puerto Gaitán", "La Cristalina", "Domo Planas", "San Pedro de Arimena", "El Porvenir"}
     assert (CENTROS["fuente"] == "OFICIAL: DANE CNPV 2018, vía citypopulation.de").all()
 
 
 def test_tres_centros_con_coordenadas_y_ningun_acceso_inventado():
     con = CENTROS.dropna(subset=["lat"])
-    assert set(con["nombre"]) == {"Puerto Gaitán", "San Miguel", "La Cristalina"}
+    assert set(con["nombre"]) == {"Puerto Gaitán", "San Miguel", "La Cristalina", "Domo Planas", "San Pedro de Arimena", "El Porvenir"}
+    centros = CENTROS.set_index("nombre")
+    assert centros.at["La Cristalina", "acceso_rio"] == "no"  # confirmado por el equipo
+    # acceso por rio solo donde hay ruta por agua medida; Domo Planas solo tiene ruta por tierra
+    assert centros.at["Domo Planas", "acceso_rio"] == "por_confirmar"
     otros = CENTROS[CENTROS["lat"].isna() & (CENTROS["nombre"] != "Puente Arimena")]
     assert (otros[["acceso_rio", "acceso_via"]] == "por_confirmar").all().all()
     assert otros["capacidad_frio_kg"].isna().all()
@@ -191,16 +197,29 @@ def test_tres_centros_con_coordenadas_y_ningun_acceso_inventado():
 
 
 def test_esqueleto_todo_simulado_y_sin_validar():
+    # todo es SIMULADO salvo las zonas de pesca (estimaciones del equipo con imagenes) y los pueblos que el
+    # equipo confirmo (La Cristalina): esos son DATO
+    # zonas y pueblos confirmados: DATO; trazas KML del equipo: MEDIDO; lo demas: SIMULADO
+    confirmados = set(CENTROS.loc[CENTROS["validado"] == "si", "id"])
+    # (la plaza de mercado toma la fuente de su pueblo)
+    dato = (NODOS["tipo"] == "zona_pesca") | NODOS["id"].isin(confirmados) | ((NODOS["tipo"] == "mercado") & NODOS["centro_id"].isin(confirmados))
+    assert (NODOS.loc[dato, "fuente"].map(gd.etiqueta) == "DATO").all()
+    assert set(NODOS.loc[~dato, "fuente"].map(gd.etiqueta)) <= {"SIMULADO", "MEDIDO"}
+    assert set(ARISTAS["fuente"].map(gd.etiqueta)) == {"SIMULADO", "MEDIDO"}
+    medidos = ARISTAS[ARISTAS["fuente"].map(gd.etiqueta) == "MEDIDO"]
+    assert medidos["fuente"].str.contains("rutas que faltan").all()
     for tabla in (NODOS, ARISTAS):
-        assert (tabla["fuente"].map(gd.etiqueta) == "SIMULADO").all()
         assert (tabla["validado"] == "no").all()
 
 
-def test_esqueleto_minimo():
-    tipos = NODOS["tipo"].value_counts()
-    assert 3 <= tipos["punto_rio"] <= 5
-    assert 3 <= tipos["punto_via"] <= 5
+def test_esqueleto_cuenca_del_meta():
+    v31 = config.cargar_nodos()
+    zonas_meta = set(v31.loc[(v31["tipo"] == "zona_pesca") & (v31["cuenca"] == "meta"), "id"])
+    assert set(NODOS.loc[NODOS["tipo"] == "zona_pesca", "id"]) == zonas_meta
+    assert (NODOS.loc[NODOS["tipo"] == "punto_rio", "cuenca"] == "meta").all()
     assert {"Puerto Gaitán", "San Miguel", "La Cristalina", "pueblo Yucao"} <= set(NODOS["nombre"])
+    # La Cristalina no tiene acceso por rio: no tiene embarcadero
+    assert "E_CP02" not in set(NODOS["id"])
 
 
 def test_esqueleto_arcos_no_mas_cortos_que_la_linea_recta():
@@ -212,9 +231,12 @@ def test_esqueleto_arcos_no_mas_cortos_que_la_linea_recta():
 
 def test_esqueleto_reproduce_lo_medido():
     tabla = gd.comparar_medidas(ARISTAS)
-    assert set(tabla["id"]) == {"M01", "M02", "M03", "M04"}
+    assert {f"M{i:02d}" for i in range(1, 11)} == set(tabla["id"])
     tolerancia = config.parametro("red.tolerancia_calibracion")
-    assert (tabla["error_pct"].abs() <= 100 * tolerancia).all(), tabla
+    medicion = tabla[tabla["manda"] == "medición"]
+    assert (medicion["error_pct"].abs() <= 100 * tolerancia).all(), tabla
+    # donde manda el KML la diferencia con la medicion a mano es chica (M04: la traza mide un poco menos)
+    assert (tabla["error_pct"].abs() <= 3).all(), tabla
 
 
 def test_esqueleto_versionado_es_el_que_genera_el_codigo(tmp_path):
@@ -227,7 +249,8 @@ def test_esqueleto_versionado_es_el_que_genera_el_codigo(tmp_path):
 def test_resumen_de_fuentes():
     resumen = gd.resumen_fuentes({"centros": CENTROS, "nodos": NODOS, "aristas": ARISTAS})
     assert resumen.loc["OFICIAL", "centros"] == 9
-    assert resumen.loc["SIMULADO", "nodos"] == len(NODOS)
+    assert resumen.loc[["SIMULADO", "DATO", "MEDIDO"], "nodos"].sum() == len(NODOS)
+    assert resumen.loc["DATO", "nodos"] >= (NODOS["tipo"] == "zona_pesca").sum()
     assert list(resumen.index) == gd.ORDEN_ETIQUETAS
     tabla = gd.con_etiqueta(NODOS)
     assert list(tabla.columns[1:3]) == ["etiqueta", "detalle"]

@@ -112,6 +112,8 @@ def objetivos_medidos(dir_kml: Path = config.DIR_KML) -> pd.DataFrame:
     filas = []
     for m in config.cargar_distancias_medidas().itertuples():
         lugares = LUGARES_MEDIDOS[m.modo]
+        if m.origen not in lugares or m.destino not in lugares:
+            continue  # rutas a pueblos que solo estan en el grafo v4 (M05–M10)
         km, fuente = float(m.distancia_km), "medido en Google Earth (distancias_medidas.csv)"
         kml = sorted(Path(dir_kml).glob(f"{m.id}*.kml"))
         if kml:

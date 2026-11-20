@@ -8,4 +8,6 @@ via_san_miguel,vía Puerto Gaitán–San Miguel,3,A02,4.5000,-71.8800,estimado p
 via_arimena,vía Puerto Gaitán–Puente Arimena,1,A01,4.3136,-72.0825,estimado por Claude (Fase 1)
 via_arimena,vía Puerto Gaitán–Puente Arimena,2,V01,4.2769,-71.9660,estimado por Claude (Fase 1)
 via_arimena,vía Puerto Gaitán–Puente Arimena,3,V02,4.2034,-71.7330,estimado por Claude (Fase 1)
-via_arimena,vía Puerto Gaitán–Puente Arimena,4,A03,4.1300,-71.5000,estimado por Claude (Fase 1)
+via_arimena,vía Puerto Gaitán–Puente Arimena,4,V03,4.1300,-71.5000,estimado por Claude (Fase 1)
+via_cristalina,vía Puerto Gaitán–La Cristalina,1,A01,4.3136,-72.0825,estimado por Claude (Fase 1)
+via_cristalina,vía Puerto Gaitán–La Cristalina,2,A03,4.2625,-71.6358,KML medido (rutas que faltan .kml)

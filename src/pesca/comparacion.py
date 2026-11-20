@@ -26,7 +26,7 @@ LADOS = ("hoy", "propuesta")
 TEXTO_ALGORITMO = {"dijkstra": "Dijkstra", "a_estrella": "A*", "bfs": "BFS"}
 EMBARCACION_ALGORITMOS = "madera_motor"  # la del laboratorio de algoritmos de la app
 # Sitio de cada desembarque o acopio para colorear el mapa (visualizacion.COLOR_SITIO)
-SITIO_MAPA = {"D_MALECON": "malecon", "A02": "san_miguel", "A03": "vichada"}
+SITIO_MAPA = {"D_MALECON": "malecon", "A02": "san_miguel", "V01": "vichada", "V02": "vichada", "V03": "vichada"}
 
 ARCHIVO_PESCADORES = "r6_pescadores.csv"
 ARCHIVO_CARTILLA = "r6_cartilla.csv"
@@ -101,7 +101,7 @@ def comparar(base: Escenario, pob: pd.DataFrame | None = None) -> dict:
     tabla = lados["hoy"].merge(lados["propuesta"].drop(columns="kg_dia"), on="pescador", suffixes=("_hoy", "_propuesta"))
     tabla = pob[["id", "sitio", "zona", "embarcacion"]].rename(columns={"id": "pescador"}).merge(tabla, on="pescador")
     tabla.insert(0, "temporada", base.temporada)
-    nuevo = frio_bimodal.acopio_nuevo_r4()
+    nuevo = frio_bimodal.acopio_nuevo()
     marcar = {"hoy": {lugar: SITIO_MAPA.get(lugar, "senora") for lugar in hoy["destino"].unique() if lugar != asignacion.SIN_DESTINO},
               "propuesta": {lugar: SITIO_MAPA.get(lugar, "acopio" if lugar == nuevo else "senora")
                             for lugar in prop["destino"].unique() if lugar != asignacion.SIN_DESTINO}}
@@ -359,9 +359,7 @@ def texto_resumen() -> str:
     for f in ubicacion.resumen_viabilidad(r4["viabilidad"]).itertuples():
         lineas.append(f"| {f.nombre} | {_m(f.vpn_media)} (90 %: {_m(f.vpn_p5)} a {_m(f.vpn_p95)}) | {f.pct_vpn_positivo:.0f} % | "
                       f"{'vale la pena' if f.vale_la_pena else 'no vale la pena'} |")
-    k1 = next(r for r in r4["pmediana"]["resultados"] if r["modo"] == "agregar" and r["k"] == 1)
-    lineas += ["", f"p-mediana: con los 3 acopios de hoy, {_m(r4['pmediana']['costo_actuales_dia'])} COP/día; "
-               f"agregando uno en {', '.join(a['lugar'] for a in k1['acopios'] if not a['actual'])}, {_m(k1['costo_dia'])} COP/día.", ""]
+    lineas += ["", "Reubicación de los acopios: p-mediana sobre los centros poblados del grafo, en la sección «Grafo y acopios».", ""]
 
     # R5
     r5 = frio_bimodal.cargar_precalculado()

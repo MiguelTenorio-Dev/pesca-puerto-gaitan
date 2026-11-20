@@ -247,7 +247,12 @@ def calibrar(g: nx.DiGraph) -> pd.DataFrame:
         o, d = _extremos(g, m.origen, m.destino, m.modo)
         r = _por_distancia(g, m.modo, o, d)
         km, ajuste = r.costo, ""
-        if r.alcanzable and abs(km / m.distancia_km - 1) > tolerancia:
+        trazas = [g.edges[u, v] for u, v in zip(r.ruta, r.ruta[1:])
+                  if g.edges[u, v]["d_km"] > 0 and not grafo_datos.es_enlace(g.edges[u, v]["fuente"])]
+        manda = "KML" if trazas and all(a["etiqueta"] == "MEDIDO" for a in trazas) else "medición"
+        if manda == "KML":
+            ajuste = "manda la traza KML; la diferencia con la medición a mano solo se reporta"
+        elif r.alcanzable and abs(km / m.distancia_km - 1) > tolerancia:
             accesos = [(u, v) for u, v in zip(r.ruta, r.ruta[1:]) if g.edges[u, v]["tipo"] == "acceso" and g.edges[u, v]["d_km"] > 0]
             km_acceso = sum(g.edges[e]["d_km"] for e in accesos)
             factor = (m.distancia_km - (km - km_acceso)) / km_acceso if km_acceso > 0 else 0.0
@@ -265,11 +270,11 @@ def calibrar(g: nx.DiGraph) -> pd.DataFrame:
         filas.append(
             {
                 "id": m.id, "modo": m.modo, "km_medido": float(m.distancia_km), "km_grafo": km,
-                "error_pct": 100 * (km / m.distancia_km - 1), "ajuste": ajuste,
+                "error_pct": 100 * (km / m.distancia_km - 1), "manda": manda, "ajuste": ajuste,
             }
         )
     tabla = pd.DataFrame(filas)
-    tabla["dentro"] = tabla["error_pct"].abs() <= 100 * tolerancia
+    tabla["dentro"] = (tabla["error_pct"].abs() <= 100 * tolerancia) | (tabla["manda"] == "KML")
     return tabla
 
 

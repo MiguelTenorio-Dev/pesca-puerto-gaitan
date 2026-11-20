@@ -11,10 +11,11 @@ rutas, acopios, rutas bimodales río + carretera e inversión en frío, con graf
 
 Todas las cifras, con su intervalo del 90 % y su etiqueta, están en [`outputs/resumen_resultados.md`](outputs/resumen_resultados.md).
 
-- **La espera pesa más que el río**: en el 100 % de las corridas de Monte Carlo y con las 4 ubicaciones posibles del desembarque informal.
+- **La espera pesa más que el río**: en prácticamente todas las corridas de Monte Carlo (99,8 % en aguas bajas, 100 % en aguas altas) y con las 4 ubicaciones posibles del desembarque informal.
+- **Reacomodo de acopios** (p-mediana sobre los centros poblados del grafo, resuelta por enumeración, ILP y búsqueda local): bastan **Puerto Gaitán y San Miguel**. La Cristalina no tiene acceso por río y ningún pescador llega a ella con su bote.
 - Con solo seguir el **recomendador** ("¿A dónde llevo mi pescado?") la flota pierde cerca de 40 % menos, sin invertir nada.
-- La **propuesta final**: rehabilitar el cuarto frío de **San Miguel** y abrir un **acopio nuevo** sobre el Meta (130 M COP de inversión). Con ella el valor perdido baja de ≈ 46 % a ≈ 9 % en aguas bajas.
-  - Su VPN es positivo en la mitad de las corridas: es una apuesta con riesgo, no una certeza.
+- La **propuesta final**: rehabilitar el cuarto frío de **San Miguel** y mejorar el desembarque informal (65 M COP de inversión). Con ella el valor perdido baja de ≈ 47 % a ≈ 15 % en aguas bajas.
+  - Su VPN es positivo en el 69 % de las corridas, a un punto de la regla del 70 %: es una apuesta con riesgo, no una certeza.
 
 ## Pantallas
 

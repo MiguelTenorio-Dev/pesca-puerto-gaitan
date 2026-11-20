@@ -1,6 +1,8 @@
 import pandas as pd
 import pytest
 
+from pesca import config
+
 from pesca import asignacion as asg
 from pesca import cadena_actual, config, poblacion
 from pesca import frio_bimodal as fb
@@ -17,7 +19,9 @@ def solas():
 
 def test_enumeracion_valida():
     portafolios = fb.enumerar_portafolios()
-    assert len(portafolios) == len(set(portafolios)) == 3 * 4 * 2**5
+    # I3a, I3b, I6 e I7 (e I4 solo si hay un pueblo nuevo candidato), cada una si o no
+    binarias = 5 if fb.acopio_nuevo() else 4
+    assert len(portafolios) == len(set(portafolios)) == 3 * 4 * 2**binarias
     assert frozenset() in portafolios
     for pf in portafolios:
         fb.validar(pf)
@@ -38,10 +42,10 @@ def test_clave_ida_y_vuelta():
 
 
 def test_escenario_con_enciende_cada_medida():
-    esc = fb.escenario_con(BASE, frozenset({"I1", "I2", "I3a", "I4", "I5:3", "I6", "I7"}))
+    esc = fb.escenario_con(BASE, frozenset({"I1", "I2", "I3a", "I3b", "I5:3", "I6", "I7"}))
     assert esc.cajas_termicas and esc.hielo_a_bordo and esc.camion_refrigerado
     assert esc.ciclo_camion_dias == 3 and esc.subsidio_motor and esc.desembarque_mejorado
-    assert "A02" in esc.acopios_activos and fb.acopio_nuevo_r4() in esc.acopios_nuevos
+    assert {"A02", "A03"} <= esc.acopios_activos
     assert fb.escenario_con(BASE, frozenset()) == BASE
 
 
@@ -112,7 +116,7 @@ def test_precalculado_respeta_los_presupuestos():
 
 
 def test_pasos_combinados_suman_el_portafolio(solas):
-    pf = frozenset({"I3a", "I4", "I7"})
+    pf = frozenset({"I3a", "I6", "I7"})
     subtabla = fb.tabla_portafolios(BASE, POB, [frozenset(s) for n in range(1, 4) for s in _subconjuntos(pf, n)])
     tabla = pd.concat([solas.reset_index(), subtabla]).drop_duplicates("portafolio")
     pasos = fb.pasos_combinados(tabla, pf)
@@ -132,3 +136,15 @@ def test_montecarlo_reproducible():
         b = fb.montecarlo_portafolios(pfs, n=2, semilla=7)
     pd.testing.assert_frame_equal(a, b)
     assert set(fb.resumen_montecarlo(a)["portafolio"]) == {"hoy", "I7"}
+
+
+def test_acopio_nuevo_solo_en_un_centro_poblado():
+    """I4 va en el mejor pueblo que todavia no es acopio; hoy los tres candidatos ya lo son, asi que no esta."""
+    if fb.pueblo_nuevo() is None:
+        assert fb.acopio_nuevo() is None
+        assert not any("I4" in pf for pf in fb.enumerar_portafolios())
+        with pytest.raises(ValueError, match="I4"):
+            fb.validar(frozenset({"I4"}))
+        assert "No disponible" in fb.texto_acopio_nuevo()
+    else:
+        assert fb.pueblo_nuevo() in set(config.cargar_centros_poblados()["id"])

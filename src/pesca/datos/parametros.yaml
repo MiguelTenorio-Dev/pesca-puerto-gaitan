@@ -71,6 +71,10 @@ grafo:
     valor: 3.0
     etiqueta: SIMULADO
     nota: Mas lejos que esto, el pueblo no se cuelga de esa red (se reporta como pendiente)
+  distancia_empalme_km:
+    valor: 4.0
+    etiqueta: SIMULADO
+    nota: Una traza simulada que termina a menos de esto de una traza KML se empalma con ella (boca de un rio o caño, cruce de vias)
 
 pesos:
   t_hielo_c:
@@ -379,7 +383,7 @@ poblacion:
     etiqueta: SIMULADO
     nota: Zonas que desembarcan en cada sitio; dentro de cada sitio las zonas pesan igual
   desembarque_vichada:
-    valor: {P05: V02, P06: A03, P07: V01}
+    valor: {P05: V02, P06: V03, P07: V01}
     etiqueta: CONFIRMAR
     nota: En el Vichada el pescado se entrega donde el rio cruza la via
 
@@ -410,7 +414,7 @@ acopios:
   capacidad_puente_arimena_kg:
     valor: 400.0
     etiqueta: CONFIRMAR
-    nota: Tamaño del cuarto frio sin confirmar
+    nota: Cuarto frio de La Cristalina (antes Puente Arimena); tamaño sin confirmar
   capacidad_nuevo_kg:
     valor: 1600.0
     etiqueta: SIMULADO
@@ -560,9 +564,9 @@ inversiones:
 
 propuesta:
   portafolio:
-    valor: [I3a, I4]
+    valor: [I3a, I7]
     etiqueta: SIMULADO
-    nota: Propuesta final de R6 (decision del usuario, 16 nov) = San Miguel rehabilitado + acopio nuevo de R4, el recomendado de R5 para 250 M
+    nota: "Propuesta de R6 = el recomendado de R5 para los tres presupuestos (19 nov): San Miguel rehabilitado + mejorar el desembarque. El acopio nuevo de R4 (punto del rio) salio porque un acopio solo puede ir en un centro poblado"
   nevera_cartilla:
     valor: deteriorada
     etiqueta: SIMULADO

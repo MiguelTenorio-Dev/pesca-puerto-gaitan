@@ -57,7 +57,7 @@
     "P02@rio": "R_META_05@rio",
     "P03@rio": "R_META_03@rio",
     "P04@rio": "R_META_03@rio",
-    "P05@rio": "R_META_05@rio",
+    "P05@rio": "R_META_03@rio",
     "P07@rio": "R_META_03@rio",
     "P08@rio": "R_META_05@rio",
     "P09@rio": "R_META_03@rio",
@@ -66,7 +66,7 @@
     "R_CANO_CANOMORROCO_01@rio": "R_META_03@rio",
     "R_CANO_GUIVA_01@rio": "R_META_03@rio",
     "R_CANO_MAICIANA_01@rio": "R_META_03@rio",
-    "R_GUARROJO_01@rio": "R_META_05@rio",
+    "R_GUARROJO_01@rio": "R_META_03@rio",
     "R_META_01@rio": "R_META_03@rio",
     "R_META_03@rio": "R_META_03@rio",
     "R_META_05@rio": "R_META_05@rio",
@@ -120,7 +120,7 @@
     "R_CANO_CANOMORROCO_01@rio": "R_MANACACIAS_01@rio",
     "R_CANO_GUIVA_01@rio": "R_META_02@rio",
     "R_CANO_MAICIANA_01@rio": "R_MANACACIAS_01@rio",
-    "R_GUARROJO_01@rio": "R_META_05@rio",
+    "R_GUARROJO_01@rio": "R_META_02@rio",
     "R_META_01@rio": "R_META_02@rio",
     "R_META_03@rio": "R_META_02@rio",
     "R_META_05@rio": "R_META_05@rio",
@@ -176,7 +176,7 @@
     "P03@rio": "R_MANACACIAS_01@rio",
     "P04@rio": "R_META_02@rio",
     "P05@rio": "R_GUARROJO_01@rio",
-    "P07@rio": "R_MANACACIAS_01@rio",
+    "P07@rio": "R_GUARROJO_01@rio",
     "P08@rio": "R_META_05@rio",
     "P09@rio": "R_MANACACIAS_01@rio",
     "P10@rio": "R_MANACACIAS_01@rio",
@@ -410,12 +410,11 @@
   },
   {
    "modo": "agregar",
-   "p": 4,
+   "p": 3,
    "k": 1,
    "abiertos": [
     "D_MALECON@rio",
     "A02@rio",
-    "A03@rio",
     "R_META_03@rio"
    ],
    "asignacion": {
@@ -424,8 +423,8 @@
     "P02@rio": "A02@rio",
     "P03@rio": "D_MALECON@rio",
     "P04@rio": "R_META_03@rio",
-    "P05@rio": "A03@rio",
-    "P07@rio": "D_MALECON@rio",
+    "P05@rio": "R_META_03@rio",
+    "P07@rio": "R_META_03@rio",
     "P08@rio": "R_META_03@rio",
     "P09@rio": "D_MALECON@rio",
     "P10@rio": "D_MALECON@rio",
@@ -433,7 +432,7 @@
     "R_CANO_CANOMORROCO_01@rio": "D_MALECON@rio",
     "R_CANO_GUIVA_01@rio": "R_META_03@rio",
     "R_CANO_MAICIANA_01@rio": "D_MALECON@rio",
-    "R_GUARROJO_01@rio": "A02@rio",
+    "R_GUARROJO_01@rio": "D_MALECON@rio",
     "R_META_01@rio": "R_META_03@rio",
     "R_META_03@rio": "R_META_03@rio",
     "R_META_05@rio": "A02@rio",
@@ -462,15 +461,6 @@
      "lon": -71.8623361111111
     },
     {
-     "nodo": "A03@rio",
-     "lugar": "A03",
-     "actual": true,
-     "nombre": "Puente Arimena",
-     "rio": "muco",
-     "lat": 4.13,
-     "lon": -71.5
-    },
-    {
      "nodo": "R_META_03@rio",
      "lugar": "R_META_03",
      "actual": false,
@@ -483,12 +473,11 @@
   },
   {
    "modo": "agregar",
-   "p": 5,
+   "p": 4,
    "k": 2,
    "abiertos": [
     "D_MALECON@rio",
     "A02@rio",
-    "A03@rio",
     "R_META_02@rio",
     "R_META_05@rio"
    ],
@@ -498,7 +487,7 @@
     "P02@rio": "R_META_05@rio",
     "P03@rio": "D_MALECON@rio",
     "P04@rio": "R_META_02@rio",
-    "P05@rio": "A03@rio",
+    "P05@rio": "D_MALECON@rio",
     "P07@rio": "D_MALECON@rio",
     "P08@rio": "R_META_05@rio",
     "P09@rio": "D_MALECON@rio",
@@ -536,15 +525,6 @@
      "lon": -71.8623361111111
     },
     {
-     "nodo": "A03@rio",
-     "lugar": "A03",
-     "actual": true,
-     "nombre": "Puente Arimena",
-     "rio": "muco",
-     "lat": 4.13,
-     "lon": -71.5
-    },
-    {
      "nodo": "R_META_02@rio",
      "lugar": "R_META_02",
      "actual": false,
@@ -566,12 +546,11 @@
   },
   {
    "modo": "agregar",
-   "p": 6,
+   "p": 5,
    "k": 3,
    "abiertos": [
     "D_MALECON@rio",
     "A02@rio",
-    "A03@rio",
     "R_CANO_MAICIANA_01@rio",
     "R_META_02@rio",
     "R_META_05@rio"
@@ -582,7 +561,7 @@
     "P02@rio": "R_META_05@rio",
     "P03@rio": "R_CANO_MAICIANA_01@rio",
     "P04@rio": "R_META_02@rio",
-    "P05@rio": "R_CANO_MAICIANA_01@rio",
+    "P05@rio": "R_META_02@rio",
     "P07@rio": "R_META_05@rio",
     "P08@rio": "R_META_05@rio",
     "P09@rio": "D_MALECON@rio",
@@ -591,7 +570,7 @@
     "R_CANO_CANOMORROCO_01@rio": "D_MALECON@rio",
     "R_CANO_GUIVA_01@rio": "R_META_02@rio",
     "R_CANO_MAICIANA_01@rio": "R_CANO_MAICIANA_01@rio",
-    "R_GUARROJO_01@rio": "D_MALECON@rio",
+    "R_GUARROJO_01@rio": "R_META_02@rio",
     "R_META_01@rio": "R_META_02@rio",
     "R_META_03@rio": "R_META_02@rio",
     "R_META_05@rio": "R_META_05@rio",
@@ -618,15 +597,6 @@
      "rio": "meta",
      "lat": 4.511680555555555,
      "lon": -71.8623361111111
-    },
-    {
-     "nodo": "A03@rio",
-     "lugar": "A03",
-     "actual": true,
-     "nombre": "Puente Arimena",
-     "rio": "muco",
-     "lat": 4.13,
-     "lon": -71.5
     },
     {
      "nodo": "R_CANO_MAICIANA_01@rio",

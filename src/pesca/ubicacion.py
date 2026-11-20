@@ -25,7 +25,7 @@ ESCENARIOS = {
     "A03": frozenset({"A01", "A03"}),
     "todos": frozenset({"A01", "A02", "A03"}),
 }
-NOMBRE_ESCENARIO = {"A02": "San Miguel", "A03": "Puente Arimena", "todos": "Los tres (Puerto Gaitán + San Miguel + Puente Arimena)"}
+NOMBRE_ESCENARIO = {"A02": "San Miguel", "A03": "La Cristalina", "todos": "Los tres (Puerto Gaitán + San Miguel + La Cristalina)"}
 COSTOS = {
     "A02": ("economia.rehabilitacion_san_miguel_cop", "economia.operacion_anual_san_miguel_cop", "economia.kwh_dia_san_miguel"),
     "A03": ("economia.rehabilitacion_puente_arimena_cop", "economia.operacion_anual_puente_arimena_cop", "economia.kwh_dia_puente_arimena"),
@@ -114,7 +114,7 @@ def _corrida_viabilidad(i: int, rng: np.random.Generator) -> list[dict]:
 
 
 def viabilidad(n: int | None = None, semilla: int | None = None) -> pd.DataFrame:
-    """Monte Carlo de la viabilidad de rehabilitar San Miguel, Puente Arimena y los tres."""
+    """Monte Carlo de la viabilidad de rehabilitar San Miguel, La Cristalina y los tres."""
     n = n if n is not None else config.parametro("montecarlo.corridas_r4")
     semilla = semilla if semilla is not None else config.parametro("general.semilla")
     resultados = montecarlo.correr(_corrida_viabilidad, n, semilla)
@@ -148,7 +148,13 @@ def candidatos(grafo: nx.DiGraph | None = None) -> list[str]:
     """Puntos del rio (candidatos de §4.4) y los acopios actuales en el rio."""
     grafo = grafo if grafo is not None else red.construir_red()
     puntos = sorted(n for n, a in grafo.nodes(data=True) if a["tipo"] == "punto_rio")
-    return [*ACTUALES, *puntos]
+    return [*actuales_en_rio(grafo), *puntos]
+
+
+def actuales_en_rio(grafo: nx.DiGraph | None = None) -> list[str]:
+    """Acopios de hoy que estan sobre el rio (La Cristalina no tiene acceso por rio)."""
+    grafo = grafo if grafo is not None else red.construir_red()
+    return [n for n in ACTUALES if n in grafo]
 
 
 def demanda(escenario: Escenario | None = None) -> pd.Series:
@@ -241,14 +247,14 @@ def reubicar() -> dict:
     resultados = []
     for p in range(1, config.parametro("ubicacion.p_max_codo") + 1):
         resultados.append({"modo": "mover", "p": p, "k": None, **p_mediana(w, c, p)})
-    fijos = tuple(ACTUALES)
+    fijos = tuple(actuales_en_rio(grafo))
     for k in range(1, config.parametro("ubicacion.k_max_agregar") + 1):
         resultados.append({"modo": "agregar", "p": len(fijos) + k, "k": k, **p_mediana(w, c, len(fijos) + k, fijos)})
     for r in resultados:
         r["acopios"] = [_describir(grafo, j) for j in r["abiertos"]]
     return {
         "resultados": resultados,
-        "costo_actuales_dia": costo_con(w, c, list(ACTUALES)),
+        "costo_actuales_dia": costo_con(w, c, list(fijos)),
         "demanda": {i: float(v) for i, v in w.items()},
     }
 

@@ -141,6 +141,8 @@ def _destinos(origen: str, escenario: Escenario, grafo: nx.DiGraph) -> list[tupl
     candidatos += [("acopio", a) for a in sorted(activos) if a != ACOPIO_PLAZA]
     candidatos += [("acopio", a) for a in sorted(escenario.acopios_nuevos)]
     cuenca = grafo.nodes[origen]["cuenca"]
+    # Un acopio sin acceso por rio (La Cristalina) no lo alcanza el pescador con su bote
+    candidatos = [(t, l) for t, l in candidatos if t == "plaza" or red.clave(l, red.CAPA_RIO) in grafo]
     # La plaza se muestra siempre (aunque sea de otra cuenca); lo demas, solo en la misma cuenca
     return [(t, l) for t, l in candidatos if t == "plaza" or grafo.nodes[red.clave(l, red.CAPA_RIO)]["cuenca"] == cuenca]
 

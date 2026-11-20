@@ -1,20 +1,54 @@
 id,nombre,tipo,cuenca,lat,lon,centro_id,peso_kg_dia,validado,fuente,notas
-R001,río Meta frente a pueblo Yucao,punto_rio,meta,4.349,-72.162,,,no,"SIMULADO: esqueleto G1 (rios.csv, traza aproximada)",
-R002,confluencia de río Manacacías y río Meta,punto_rio,meta,4.36,-72.119,,,no,"SIMULADO: esqueleto G1 (rios.csv, traza aproximada)",
-R003,río Meta frente a San Miguel,punto_rio,meta,4.511681,-71.862336,,,no,"SIMULADO: esqueleto G1 (rios.csv, traza aproximada)",
-R004,río Manacacías frente a Puerto Gaitán,punto_rio,meta,4.311559,-72.076835,,,no,"SIMULADO: esqueleto G1 (rios.csv, traza aproximada)",
-V001,vía Puerto Gaitán–Yucao frente a pueblo Yucao,punto_via,,4.349,-72.162,,,no,"SIMULADO: esqueleto G1 (vias.csv, traza aproximada)",
-V002,vía Puerto Gaitán–Yucao frente a Puerto Gaitán,punto_via,,4.3136,-72.0825,,,no,"SIMULADO: esqueleto G1 (vias.csv, traza aproximada)",
-V003,vía Puerto Gaitán–San Miguel frente a San Miguel,punto_via,,4.511681,-71.862336,,,no,"SIMULADO: esqueleto G1 (vias.csv, traza aproximada)",
-V004,"vía Puerto Gaitán–La Cristalina, km 31.0 de la traza",punto_via,,4.4723,-71.85275,,,no,"SIMULADO: esqueleto G1 (línea recta entre centros_poblados.csv, vía sin trazar)",
-V005,vía Puerto Gaitán–La Cristalina frente a La Cristalina,punto_via,,4.631,-71.623,,,no,"SIMULADO: esqueleto G1 (línea recta entre centros_poblados.csv, vía sin trazar)",
-CP01,Puerto Gaitán,centro_poblado,meta,4.3136,-72.0825,CP01,,no,SIMULADO: esqueleto G1 (CONFIRMAR: coordenada de centros_poblados.csv sin validar),"Coordenada estimada en la Fase 0 (centro del pueblo, ±1 km); el equipo la da por buena. Acceso por río y vía (adenda §4.1). Capacidad = plaza, 1 500 kg/día (parametros.yaml, SIMULADO). Energía: se supone que sí hay (SIMULADO, el equipo no la puede confirmar)."
-E_CP01,Embarcadero de Puerto Gaitán,embarcadero,meta,4.311559,-72.076835,CP01,,no,SIMULADO: esqueleto G1 (punto de la traza más cercano a Puerto Gaitán),
-MER_CP01,Plaza de mercado de Puerto Gaitán,mercado,,4.3136,-72.0825,CP01,,no,SIMULADO: esqueleto G1 (CONFIRMAR: coordenada de centros_poblados.csv sin validar),Destino final de la venta
-CP02,La Cristalina,centro_poblado,por_confirmar,4.631,-71.623,CP02,,no,SIMULADO: esqueleto G1 (CONFIRMAR: coordenada de centros_poblados.csv sin validar),"Corregimiento al norte de Puente Arimena. Por decisión del equipo (19 nov), aquí queda el acopio que antes se ubicaba en Puente Arimena, porque es más real. Coordenada ESTIMADA por triangulación con distancias por carretera publicadas (~75 km desde Puerto Gaitán, calcularruta.com; ~69 km desde Puente Arimena, Wikiloc) y sinuosidad vial ~1,2 [CONFIRMAR en Google Earth]. Acceso por vía; por río [CONFIRMAR]. Cuarto frío de 400 kg trasladado desde Puente Arimena [CONFIRMAR]. Energía: se supone que sí hay (SIMULADO, el equipo no la puede confirmar)."
-CP03,San Miguel,centro_poblado,meta,4.51168,-71.86234,CP03,,no,SIMULADO: esqueleto G1 (CONFIRMAR: coordenada de centros_poblados.csv sin validar),"Coordenada del punto de desembarque medido en KML (transporte de cachama .kml); falta el centro del pueblo. Acceso por río y vía (M03, M04). Cuarto frío de 4 m³ sin uso (DATO). Energía: se supone que sí hay (SIMULADO, el equipo no la puede confirmar)."
-E_CP03,Embarcadero de San Miguel,embarcadero,meta,4.511681,-71.862336,CP03,,no,SIMULADO: esqueleto G1 (punto de la traza más cercano a San Miguel),
-C01,pueblo Yucao,comunidad,meta,4.349,-72.162,C01,,no,SIMULADO: esqueleto G1 (CONFIRMAR: comunidad de nodos.csv (v3.1); clase DANE por confirmar),No es candidato a acopio por defecto (adenda §4.1)
-E_C01,Embarcadero de pueblo Yucao,embarcadero,meta,4.349,-72.162,C01,,no,SIMULADO: esqueleto G1 (punto de la traza más cercano a pueblo Yucao),
-P01,Meta alto,zona_pesca,meta,4.37,-72.25,,,no,SIMULADO: esqueleto G1 (nodos.csv (v3.1)),
-P02,Meta bajo,zona_pesca,meta,4.45,-71.96,,,no,SIMULADO: esqueleto G1 (nodos.csv (v3.1)),
+R001,río Manacacías frente a Puerto Gaitán,punto_rio,meta,4.311559,-72.076835,,,no,MEDIDO: rutas que faltan .kml,
+R002,confluencia de río Meta y río Meta (traza KML de el porvenir),punto_rio,meta,4.36081,-72.083439,,,no,MEDIDO: rutas que faltan .kml,
+R003,confluencia de caño Canalete y río Meta (traza KML de el porvenir),punto_rio,meta,4.376444,-72.052137,,,no,MEDIDO: rutas que faltan .kml,
+R004,confluencia de caño Chayva y río Meta (traza KML de el porvenir),punto_rio,meta,4.467939,-71.914527,,,no,MEDIDO: rutas que faltan .kml,
+R005,río Meta (traza KML de el porvenir) frente a San Miguel,punto_rio,meta,4.515683,-71.863368,,,no,MEDIDO: rutas que faltan .kml,
+R006,confluencia de río Meta (traza KML de San Pedro de Arimena) y río Meta (traza KML de el porvenir),punto_rio,meta,4.61399,-71.657474,,,no,MEDIDO: rutas que faltan .kml,
+R007,río Meta (traza KML de el porvenir) frente a El Porvenir,punto_rio,meta,4.736788,-71.40458,,,no,MEDIDO: rutas que faltan .kml,
+R008,río Meta (traza KML de San Pedro de Arimena) frente a San Pedro de Arimena,punto_rio,meta,4.614595,-71.622662,,,no,MEDIDO: rutas que faltan .kml,
+R009,"caño Canalete, km 0.0 de la traza",punto_rio,meta,4.4,-72.05,,,no,"SIMULADO: esqueleto (rios.csv, traza aproximada)",
+R010,"caño Cañomorroco, km 0.0 de la traza",punto_rio,meta,4.27,-72.05,,,no,"SIMULADO: esqueleto (rios.csv, traza aproximada)",
+R011,confluencia de caño Cañomorroco y río Manacacías,punto_rio,meta,4.2775,-72.1045,,,no,"SIMULADO: esqueleto (rios.csv, traza aproximada)",
+R012,"caño Chayva, km 0.0 de la traza",punto_rio,meta,4.47,-71.92,,,no,"SIMULADO: esqueleto (rios.csv, traza aproximada)",
+R013,"caño Guiva, km 0.0 de la traza",punto_rio,meta,4.42,-72.2,,,no,"SIMULADO: esqueleto (rios.csv, traza aproximada)",
+R014,confluencia de caño Guiva y río Meta,punto_rio,meta,4.3595,-72.206,,,no,"SIMULADO: esqueleto (rios.csv, traza aproximada)",
+R015,"caño Maiciana, km 0.0 de la traza",punto_rio,meta,4.22,-72.2,,,no,"SIMULADO: esqueleto (rios.csv, traza aproximada)",
+R016,confluencia de caño Maiciana y río Manacacías,punto_rio,meta,4.204,-72.16,,,no,"SIMULADO: esqueleto (rios.csv, traza aproximada)",
+R017,"río Manacacías, km 0.0 de la traza",punto_rio,meta,4.18,-72.18,,,no,"SIMULADO: esqueleto (rios.csv, traza aproximada)",
+R018,"río Meta, km 0.0 de la traza",punto_rio,meta,4.37,-72.25,,,no,"SIMULADO: esqueleto (rios.csv, traza aproximada)",
+R019,río Meta frente a pueblo Yucao,punto_rio,meta,4.349,-72.162,,,no,"SIMULADO: esqueleto (rios.csv, traza aproximada)",
+R020,"río Yucao, km 0.0 de la traza",punto_rio,meta,4.3,-72.25,,,no,"SIMULADO: esqueleto (rios.csv, traza aproximada)",
+V001,vía doma planas–Puerto Gaitán (traza KML) frente a Domo Planas,punto_via,,4.184186,-71.326959,,,no,MEDIDO: rutas que faltan .kml,
+V002,vía doma planas–Puerto Gaitán (traza KML) frente a La Cristalina,punto_via,,4.261088,-71.635152,,,no,MEDIDO: rutas que faltan .kml,
+V003,"vía doma planas–Puerto Gaitán (traza KML), km 76.0 de la traza",punto_via,,4.189992,-71.910338,,,no,MEDIDO: rutas que faltan .kml,
+V004,cruce de vía el porvenir–Puerto Gaitán (traza KML) y vía doma planas–Puerto Gaitán (traza KML),punto_via,,4.313189,-72.029859,,,no,MEDIDO: rutas que faltan .kml,
+V005,vía doma planas–Puerto Gaitán (traza KML) frente a Puerto Gaitán,punto_via,,4.311695,-72.076994,,,no,MEDIDO: rutas que faltan .kml,
+V006,vía el porvenir–Puerto Gaitán (traza KML) frente a El Porvenir,punto_via,,4.734865,-71.401609,,,no,MEDIDO: rutas que faltan .kml,
+V007,cruce de vía San Pedro de Arimena–Puerto Gaitán (traza KML) y vía el porvenir–Puerto Gaitán (traza KML),punto_via,,4.595965,-71.617283,,,no,MEDIDO: rutas que faltan .kml,
+V008,"vía el porvenir–Puerto Gaitán (traza KML), km 62.2 de la traza",punto_via,,4.466863,-71.83845,,,no,MEDIDO: rutas que faltan .kml,
+V009,vía San Pedro de Arimena–Puerto Gaitán (traza KML) frente a San Pedro de Arimena,punto_via,,4.610533,-71.622279,,,no,MEDIDO: rutas que faltan .kml,
+V010,vía Puerto Gaitán–Yucao frente a pueblo Yucao,punto_via,,4.349,-72.162,,,no,"SIMULADO: esqueleto (vias.csv, traza aproximada)",
+V011,vía Puerto Gaitán–San Miguel frente a San Miguel,punto_via,,4.511681,-71.862336,,,no,"SIMULADO: esqueleto (vias.csv, traza aproximada)",
+CP01,Puerto Gaitán,centro_poblado,meta,4.311559,-72.076835,CP01,,no,DATO: centros_poblados.csv,"Coordenada del malecón medida en KML (transporte de cachama .kml): es el punto donde terminan todas las rutas medidas por el equipo (M02, M04–M10). El centro del pueblo queda a unos 0,7 km. Acceso por río y vía. Capacidad = plaza, 1 500 kg/día (parametros.yaml, SIMULADO). Energía: sí."
+E_CP01,Embarcadero de Puerto Gaitán,embarcadero,meta,4.311559,-72.076835,CP01,,no,MEDIDO: punto de la traza más cercano a Puerto Gaitán,
+MER_CP01,Plaza de mercado de Puerto Gaitán,mercado,,4.311559,-72.076835,CP01,,no,DATO: centros_poblados.csv,Destino final de la venta
+CP02,La Cristalina,centro_poblado,por_confirmar,4.262538,-71.635823,CP02,,no,DATO: centros_poblados.csv,"Coordenada del inicio de la ruta KML del equipo 'la cristalina-Pto gaitán' (rutas que faltan .kml, MEDIDO). Antes se usaba (4,631; −71,623), que en realidad es la ubicación de San Pedro de Arimena. Sin acceso por río (confirmado por el equipo); por vía, 75,84 km hasta Puerto Gaitán (M09). Aquí queda el acopio que antes se ubicaba en Puente Arimena. Cuarto frío de 400 kg [CONFIRMAR]. Energía: se supone que sí hay (SIMULADO, el equipo no la puede confirmar)."
+CP03,San Miguel,centro_poblado,meta,4.51168,-71.86234,CP03,,no,SIMULADO: esqueleto (CONFIRMAR: coordenada de centros_poblados.csv sin validar),"Coordenada del punto de desembarque medido en KML (transporte de cachama .kml); falta el centro del pueblo. Acceso por río y vía (M03, M04). Cuarto frío de 4 m³ sin uso (DATO). Energía: se supone que sí hay (SIMULADO, el equipo no la puede confirmar)."
+E_CP03,Embarcadero de San Miguel,embarcadero,meta,4.515683,-71.863368,CP03,,no,MEDIDO: punto de la traza más cercano a San Miguel,
+CP04,Domo Planas,centro_poblado,por_confirmar,4.184186,-71.326959,CP04,,no,DATO: centros_poblados.csv,"Coordenada del inicio de la ruta KML del equipo 'doma planas-Pto. Gaitán' (MEDIDO). Por vía, 117,08 km hasta Puerto Gaitán (M10); acceso por río [CONFIRMAR]. Sin cuarto frío. Energía: se supone que sí hay (SIMULADO, el equipo no la puede confirmar)."
+CP05,San Pedro de Arimena,centro_poblado,meta,4.614595,-71.622662,CP05,,no,DATO: centros_poblados.csv,"Coordenada del inicio de la ruta KML del equipo por agua (MEDIDO). Por río 73,03 km hasta Puerto Gaitán (M05) y por vía 67,25 km (M06). Sin cuarto frío. Energía: se supone que sí hay (SIMULADO, el equipo no la puede confirmar)."
+E_CP05,Embarcadero de San Pedro de Arimena,embarcadero,meta,4.614595,-71.622662,CP05,,no,MEDIDO: punto de la traza más cercano a San Pedro de Arimena,
+CP06,El Porvenir,centro_poblado,meta,4.736788,-71.40458,CP06,,no,DATO: centros_poblados.csv,"Coordenada del inicio de la ruta KML del equipo por agua (MEDIDO). Por río 100,80 km hasta Puerto Gaitán (M07) y por vía 98,14 km (M08). Sin cuarto frío. Energía: se supone que sí hay (SIMULADO, el equipo no la puede confirmar)."
+E_CP06,Embarcadero de El Porvenir,embarcadero,meta,4.736788,-71.40458,CP06,,no,MEDIDO: punto de la traza más cercano a El Porvenir,
+C01,pueblo Yucao,comunidad,meta,4.349,-72.162,C01,,no,SIMULADO: esqueleto (CONFIRMAR: comunidad de nodos.csv (v3.1); clase DANE por confirmar),No es candidato a acopio por defecto (adenda §4.1)
+E_C01,Embarcadero de pueblo Yucao,embarcadero,meta,4.349,-72.162,C01,,no,SIMULADO: esqueleto (punto de la traza más cercano a pueblo Yucao),
+P01,Meta alto,zona_pesca,meta,4.37,-72.25,,,no,DATO: zona estimada por el equipo con imágenes,
+P02,Meta bajo,zona_pesca,meta,4.45,-71.96,,,no,DATO: zona estimada por el equipo con imágenes,
+P03,Manacacías,zona_pesca,meta,4.18,-72.18,,,no,DATO: zona estimada por el equipo con imágenes,
+P04,Yucao,zona_pesca,meta,4.3,-72.25,,,no,DATO: zona estimada por el equipo con imágenes,
+P08,caño Canalete,zona_pesca,meta,4.4,-72.05,,,no,DATO: zona estimada por el equipo con imágenes,
+P09,caño Cañomorroco,zona_pesca,meta,4.27,-72.05,,,no,DATO: zona estimada por el equipo con imágenes,
+P10,caño Maiciana,zona_pesca,meta,4.22,-72.2,,,no,DATO: zona estimada por el equipo con imágenes,
+P11,caño Guiva,zona_pesca,meta,4.42,-72.2,,,no,DATO: zona estimada por el equipo con imágenes,
+P12,caño Chayva,zona_pesca,meta,4.47,-71.92,,,no,DATO: zona estimada por el equipo con imágenes,

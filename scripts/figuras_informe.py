@@ -16,7 +16,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
 
-from pesca import (busqueda, cadena_actual, comparacion, config, frio_bimodal, red, transporte,  # noqa: E402
+from pesca import (acopios, busqueda, cadena_actual, comparacion, config, frio_bimodal, red, transporte,  # noqa: E402
                    ubicacion, visualizacion)
 from pesca.escenario import Escenario  # noqa: E402
 
@@ -95,7 +95,7 @@ def f4_acopios() -> None:
     r4 = ubicacion.cargar_precalculado()
     res = ubicacion.resumen_viabilidad(r4["viabilidad"])
     fig, (a1, a2) = plt.subplots(1, 2, figsize=(12, 4.2), gridspec_kw={"width_ratios": [1.3, 1]})
-    nombres = ["San Miguel", "Puente Arimena", "Los tres"]
+    nombres = ["San Miguel", "La Cristalina", "Los tres"]
     for i, f in enumerate(res.itertuples()):
         a1.plot([f.vpn_p5 / 1e6, f.vpn_p95 / 1e6], [i, i], color=GRIS, lw=3)
         a1.plot(f.vpn_media / 1e6, i, "o", color=AZUL, ms=10)
@@ -106,13 +106,24 @@ def f4_acopios() -> None:
     a1.set_ylim(len(res) - 0.5, -0.7)
     a1.set_xlabel("VPN a 5 años (millones de COP): media e IC 90 %")
     a1.set_title("¿Vale la pena rehabilitar? (regla: VPN > 0 en ≥ 70 %)")
-    codo = [r for r in r4["pmediana"]["resultados"] if r["modo"] == "mover"]
-    a2.plot([r["p"] for r in codo], [r["costo_dia"] / 1e6 for r in codo], "o-", color=AZUL)
-    a2.axhline(r4["pmediana"]["costo_actuales_dia"] / 1e6, color=GRIS, ls="--", label="los 3 acopios de hoy")
-    a2.set_xlabel("número de acopios (p-mediana)")
-    a2.set_ylabel("pérdida + viaje (millones COP/día)")
-    a2.legend(frameon=False)
-    a2.set_title("Curva del codo")
+    # Reacomodo: p-mediana sobre los centros poblados del grafo (enumeracion = ILP = Teitz-Bart)
+    an = acopios.analizar()
+    curva = an["curva"]
+    a2.plot(curva["p"], curva["f"], "o-", color=AZUL, label="mejores pueblos (p-mediana)")
+    for fila in curva.itertuples():
+        if fila.p <= an["p_codo"]:
+            a2.annotate(" + ".join(an["grafo"].nodes[f"{j}:entra"]["nombre"] for j in fila.S), (fila.p, fila.f),
+                        xytext=(6, 8), textcoords="offset points", fontsize=8)
+    if len(curva) > an["p_codo"]:
+        a2.annotate("más pueblos: la pérdida no baja", (curva["p"].iloc[-1], curva["f"].iloc[-1]), xytext=(-150, 25),
+                    textcoords="offset points", fontsize=8, arrowprops={"arrowstyle": "->", "color": GRIS})
+    a2.axhline(an["f_actuales"], color=GRIS, ls="--", label="los 3 acopios de hoy")
+    a2.plot(1, an["f_centroide_p1"], "s", color=NARANJA, label="centroide (punto medio)")
+    a2.set_xticks(list(curva["p"]))
+    a2.set_xlabel("número de acopios p")
+    a2.set_ylabel("kg equivalentes perdidos por día")
+    a2.legend(frameon=False, fontsize=8)
+    a2.set_title("Reacomodo de acopios: curva del codo")
     for ax in (a1, a2):
         ax.spines[["top", "right"]].set_visible(False)
     _guardar(fig, "f4_acopios.png")
@@ -156,7 +167,7 @@ def f6_hoy_vs_propuesta() -> None:
         ax.set_title(texto)
         ax.spines[["top", "right"]].set_visible(False)
     ejes[0].legend(frameon=False)
-    fig.suptitle("Hoy vs propuesta (San Miguel + acopio nuevo, con el recomendador)", y=1.04)
+    fig.suptitle("Hoy vs propuesta (San Miguel + mejorar el desembarque, con el recomendador)", y=1.04)
     _guardar(fig, "f6_hoy_vs_propuesta.png")
 
 

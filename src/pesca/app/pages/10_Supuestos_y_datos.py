@@ -67,8 +67,10 @@ with tab_dist:
     for d in dist.itertuples():
         with st.expander(f"{d.id}: {d.origen} → {d.destino} por {d.modo}, {d.distancia_km} km"):
             ruta = config.ruta_evidencia(d.evidencia)
-            if ruta is not None:
+            if ruta is not None and ruta.suffix.lower() in (".png", ".jpg", ".jpeg"):
                 st.image(str(ruta), width="stretch")
+            elif ruta is not None:
+                st.info(f"Traza medida por el equipo en Google Earth: `{d.evidencia}`")
             else:
                 st.info(f"Captura disponible en el repositorio: `{d.evidencia}`")
 

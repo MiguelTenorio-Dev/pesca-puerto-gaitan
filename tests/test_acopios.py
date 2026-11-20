@@ -27,7 +27,7 @@ def test_cada_excluido_tiene_su_motivo():
     assert (tabla.loc[~tabla["candidato"], "motivo"].str.len() > 0).all()
     assert (tabla.loc[tabla["candidato"], "motivo"] == "").all()
     motivo = tabla.set_index("nombre")["motivo"]
-    assert "sin coordenadas" in motivo["Domo Planas"]
+    assert "sin coordenadas" in motivo["Puente Arimena"]
     assert "P_min" in motivo["Murujuy"]
 
 
@@ -41,7 +41,11 @@ def test_regla_de_candidatos_responde_a_p_min_y_al_acceso():
 
 def test_datos_por_confirmar_quedan_marcados():
     tabla = AN["tabla_candidatos"].set_index("id")
-    assert (tabla.loc[AN["candidatos"], "marca"] == "[CONFIRMAR]").all()
+    centros = CENTROS.set_index("id")
+    for j in AN["candidatos"]:
+        sin_confirmar = centros.at[j, "validado"] != "si" or "por_confirmar" in centros.loc[j, ["acceso_rio", "acceso_via", "energia"]].tolist()
+        assert (tabla.at[j, "marca"] == "[CONFIRMAR]") == sin_confirmar
+    assert tabla.at["CP02", "marca"] == ""  # La Cristalina: confirmada por el equipo
 
 
 # ---------------------------------------------------------------- c_ij y p-mediana (prueba 9)

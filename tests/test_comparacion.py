@@ -59,7 +59,8 @@ def test_partes_de_la_mejora_suman():
 def test_propuesta_viene_del_yaml():
     assert comparacion.portafolio_propuesta() == frozenset(config.parametro("propuesta.portafolio"))
     esc = comparacion.escenario_propuesta(BASE)
-    assert "A02" in esc.acopios_activos and esc.acopios_nuevos
+    assert "A02" in esc.acopios_activos
+    assert bool(esc.acopios_nuevos) == ("I4" in comparacion.portafolio_propuesta())
 
 
 @pytest.fixture(scope="module")

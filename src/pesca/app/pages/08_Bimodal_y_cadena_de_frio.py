@@ -47,7 +47,7 @@ st.markdown(
 st.header("1. ¿Por río a la plaza o por acopio + camión refrigerado?")
 st.markdown(
     "Para cada zona: la mejor venta **llevando el pescado por río hasta Puerto Gaitán** frente a la mejor **bimodal**: "
-    "río hasta el acopio más conveniente (San Miguel o Puente Arimena rehabilitados), transbordo y camión refrigerado."
+    "río hasta el acopio más conveniente (San Miguel rehabilitado; La Cristalina no tiene acceso por río), transbordo y camión refrigerado."
 )
 zonas = comparar_zonas(escenario)
 emb = st.radio("Embarcación", ["madera_remo", "madera_motor"], horizontal=True, key="emb_bimodal",
@@ -147,8 +147,8 @@ with st.expander("¿Qué hace cada medida en el modelo?"):
     st.dataframe(pd.DataFrame([
         {"código": "I1", "medida": "Cajas térmicas", "efecto": "Todo pescador con nevera buena: el hielo dura 48 h en vez de 12 h"},
         {"código": "I2", "medida": "Fábrica de hielo", "efecto": "Hielo a bordo: el pescado va a 4 °C en el río (exige I1)"},
-        {"código": "I3a / I3b", "medida": "Rehabilitar San Miguel / Puente Arimena", "efecto": "Acopio con cuarto frío; sigue por carretera"},
-        {"código": "I4", "medida": "Acopio nuevo", "efecto": f"Cuarto frío en el mejor punto de R4 ({frio_bimodal.acopio_nuevo_r4()})"},
+        {"código": "I3a / I3b", "medida": "Rehabilitar San Miguel / La Cristalina", "efecto": "Acopio con cuarto frío; sigue por carretera. La Cristalina no tiene acceso por río"},
+        {"código": "I4", "medida": "Acopio nuevo", "efecto": frio_bimodal.texto_acopio_nuevo()},
         {"código": "I5:N", "medida": "Camión refrigerado con ruta", "efecto": "Lleva lo de los acopios a 4 °C y recoge en los desembarques cada N días: la espera baja de ~6 días a (N+1)/2"},
         {"código": "I6", "medida": "Subsidio de motor", "efecto": "La mitad del motor para parte de los botes a remo; el pescador paga la gasolina"},
         {"código": "I7", "medida": "Mejorar el desembarque", "efecto": "Donde la señora: todo cabe en el congelador y no hay cortes de luz"},

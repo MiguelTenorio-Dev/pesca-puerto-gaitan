@@ -103,14 +103,17 @@ def test_la_perdida_no_aumenta_con_k(reubicacion):
 def test_modo_agregar_mantiene_los_actuales(reubicacion):
     for r in reubicacion["resultados"]:
         if r["modo"] == "agregar":
-            assert set(ub.ACTUALES) <= set(r["abiertos"])
-            assert len(r["abiertos"]) == 3 + r["k"]
+            # los acopios de hoy que estan sobre el rio (La Cristalina no tiene acceso por rio)
+            actuales = ub.actuales_en_rio()
+            assert set(actuales) <= set(r["abiertos"])
+            assert len(r["abiertos"]) == len(actuales) + r["k"]
 
 
 def test_propuesta_se_usa_en_el_recomendador(reubicacion):
     propuesta = next(r for r in reubicacion["resultados"] if r["modo"] == "agregar" and r["k"] == 1)
     esc = ub.escenario_con_propuesta(BASE, propuesta["acopios"])
-    assert esc.acopios_nuevos and {"A01", "A02", "A03"} <= esc.acopios_activos
+    # La Cristalina (A03) no tiene acceso por rio: la p-mediana sobre el rio no la activa
+    assert esc.acopios_nuevos and {"A01", "A02"} <= esc.acopios_activos
     nuevo = next(iter(esc.acopios_nuevos))
     origen = next(i for i, j in propuesta["asignacion"].items() if j == red.clave(nuevo, red.CAPA_RIO))
     rec = asg.recomendar(origen, "madera_motor", 20, esc, "buena")

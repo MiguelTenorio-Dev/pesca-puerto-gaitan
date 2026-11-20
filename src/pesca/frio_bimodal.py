@@ -7,8 +7,9 @@ y para cada presupuesto se recomienda el de mayor VPN entre los que caben.
 
 - I1 cajas termicas: todo pescador con nevera buena.
 - I2 fabrica de hielo (exige I1): hielo a bordo, el rio va a 4 °C.
-- I3a / I3b: rehabilitar San Miguel / Puente Arimena (costos de R4).
-- I4: acopio nuevo en el mejor punto k = 1 de la p-mediana de R4.
+- I3a / I3b: rehabilitar San Miguel / La Cristalina (antes Puente Arimena; costos de R4).
+- I4: acopio nuevo en el mejor centro poblado que todavia no es acopio (p-mediana sobre pueblos, modo agregar k = 1).
+  Si todos los pueblos candidatos ya son acopio, I4 no esta disponible y no entra a los portafolios.
 - I5:N: camion refrigerado que lleva los acopios y recoge en los desembarques cada N dias.
 - I6: subsidio de motor para parte de los botes a remo.
 - I7: desembarque de la señora mejorado (todo cabe en el congelador y no hay cortes de luz).
@@ -18,6 +19,7 @@ from __future__ import annotations
 
 import itertools
 import json
+from functools import cache
 
 import networkx as nx
 import numpy as np
@@ -30,7 +32,7 @@ NOMBRE_MEDIDA = {
     "I1": "Cajas térmicas con hielo",
     "I2": "Fábrica de hielo (hielo a bordo)",
     "I3a": "Rehabilitar San Miguel",
-    "I3b": "Rehabilitar Puente Arimena",
+    "I3b": "Rehabilitar La Cristalina",
     "I4": "Acopio nuevo (R4)",
     "I5": "Camión refrigerado con ruta",
     "I6": "Subsidio de motor",
@@ -66,6 +68,8 @@ def validar(portafolio: frozenset[str]) -> None:
     for m in portafolio:
         if m not in conocidas and not m.startswith("I5:"):
             raise ValueError(f"Medida desconocida: {m}")
+    if "I4" in portafolio and acopio_nuevo() is None:
+        raise ValueError("I4 (acopio nuevo) no está disponible: no hay un centro poblado candidato que no sea acopio")
     if "I2" in portafolio and "I1" not in portafolio:
         raise ValueError("I2 (fábrica de hielo) exige I1 (cajas térmicas): sin cajas el hielo no dura")
     ciclo_camion(portafolio)
@@ -96,7 +100,7 @@ def enumerar_portafolios() -> list[frozenset[str]]:
     """Todas las combinaciones validas: I2 solo con I1 y a lo sumo un ciclo de camion."""
     opciones_hielo = [(), ("I1",), ("I1", "I2")]
     opciones_camion = [()] + [(codigo_camion(n),) for n in config.parametro("inversiones.ciclos_camion_dias")]
-    binarias = ["I3a", "I3b", "I4", "I6", "I7"]
+    binarias = ["I3a", "I3b", *(["I4"] if acopio_nuevo() else []), "I6", "I7"]
     portafolios = []
     for hielo in opciones_hielo:
         for camion in opciones_camion:
@@ -108,7 +112,8 @@ def enumerar_portafolios() -> list[frozenset[str]]:
 
 def medidas_solas() -> list[frozenset[str]]:
     """Cada medida sola (I2 va con I1, que exige) y cada ciclo del camion."""
-    solas = [frozenset({"I1"}), frozenset({"I1", "I2"}), frozenset({"I3a"}), frozenset({"I3b"}), frozenset({"I4"})]
+    solas = [frozenset({"I1"}), frozenset({"I1", "I2"}), frozenset({"I3a"}), frozenset({"I3b"})]
+    solas += [frozenset({"I4"})] if acopio_nuevo() else []
     solas += [frozenset({codigo_camion(n)}) for n in config.parametro("inversiones.ciclos_camion_dias")]
     return solas + [frozenset({"I6"}), frozenset({"I7"})]
 
@@ -116,13 +121,38 @@ def medidas_solas() -> list[frozenset[str]]:
 # ---------------------------------------------------------------- efecto en el escenario
 
 
-def acopio_nuevo_r4() -> str:
-    """Punto del rio del mejor acopio nuevo (modo 'agregar', k = 1) de la p-mediana precalculada de R4."""
-    datos = ubicacion.cargar_precalculado()
-    if datos is None:
-        raise RuntimeError("Falta el precalculado de R4: corre `python scripts/correr_todo.py --solo r4`")
-    k1 = next(r for r in datos["pmediana"]["resultados"] if r["modo"] == "agregar" and r["k"] == 1)
-    return next(a["lugar"] for a in k1["acopios"] if not a["actual"])
+@cache
+def pueblo_nuevo() -> str | None:
+    """Mejor centro poblado que todavia no es acopio (p-mediana sobre pueblos, modo agregar k = 1), o None."""
+    from pesca import acopios
+
+    an = acopios.analizar()
+    if not len(an["agregar"]):
+        return None
+    k1 = an["agregar"].set_index("k").loc[1]
+    # solo si agregar ese pueblo baja de verdad la perdida (con un empate no hay a donde poner el acopio)
+    if k1["f"] >= an["f_actuales"] * (1 - config.parametro("acopios_grafo.umbral_codo")):
+        return None
+    return next(j for j in k1["S"] if j not in an["actuales"])
+
+
+@cache
+def acopio_nuevo() -> str | None:
+    """Punto del rio de la red v3.1 frente al pueblo nuevo de I4 (o None si no hay pueblo candidato nuevo)."""
+    pueblo = pueblo_nuevo()
+    if pueblo is None:
+        return None
+    c = config.cargar_centros_poblados().set_index("id").loc[pueblo]
+    return red.separar(red.nodo_rio_mas_cercano(c["lat"], c["lon"]))[0]
+
+
+def texto_acopio_nuevo() -> str:
+    pueblo = pueblo_nuevo()
+    if pueblo is None:
+        return ("No disponible: ningún pueblo candidato que no sea acopio baja la pérdida (San Pedro de Arimena y El Porvenir "
+                "quedan lejos río abajo; La Cristalina y Domo Planas no tienen acceso por río)")
+    nombre = config.cargar_centros_poblados().set_index("id").at[pueblo, "nombre"]
+    return f"Cuarto frío en {nombre}, el mejor pueblo nuevo de la p-mediana sobre centros poblados"
 
 
 def escenario_con(base: Escenario, portafolio: frozenset[str]) -> Escenario:
@@ -130,7 +160,7 @@ def escenario_con(base: Escenario, portafolio: frozenset[str]) -> Escenario:
     validar(portafolio)
     ciclo = ciclo_camion(portafolio)
     acopios = set(base.acopios_activos) | {ACOPIO_DE[m] for m in portafolio if m in ACOPIO_DE}
-    nuevos = set(base.acopios_nuevos) | ({acopio_nuevo_r4()} if "I4" in portafolio else set())
+    nuevos = set(base.acopios_nuevos) | ({acopio_nuevo()} if "I4" in portafolio else set())
     return base.con(
         acopios_activos=frozenset(acopios),
         acopios_nuevos=frozenset(nuevos),
@@ -162,6 +192,8 @@ def km_ruta_camion(escenario: Escenario, grafo: nx.DiGraph | None = None) -> flo
 
     def entrada(lugar: str) -> tuple[str, float]:
         """Nodo vial de la parada y km de acceso estimado si no esta sobre una via (acopio nuevo)."""
+        if red.clave(lugar, red.CAPA_RIO) not in grafo:  # acopio solo por carretera (La Cristalina)
+            return red.clave(lugar, red.CAPA_VIA), 0.0
         return red.acceso_vial(red.clave(lugar, red.CAPA_RIO), grafo)
 
     def km(a: str, b: str) -> float:
@@ -343,7 +375,7 @@ def resumen_montecarlo(tabla: pd.DataFrame) -> pd.DataFrame:
 def unimodal_vs_bimodal(escenario: Escenario, embarcaciones: tuple[str, ...] = ("madera_remo", "madera_motor")) -> pd.DataFrame:
     """Por zona y embarcacion: la mejor venta por rio a la plaza frente al mejor acopio + camion refrigerado.
 
-    El lado bimodal activa San Miguel y Puente Arimena con camion refrigerado sobre el escenario dado.
+    El lado bimodal activa San Miguel y La Cristalina con camion refrigerado sobre el escenario dado.
     """
     bimodal = escenario.con(acopios_activos=frozenset(escenario.acopios_activos | {"A02", "A03"}), camion_refrigerado=True)
     kg = config.parametro("poblacion.kg_por_faena")

@@ -60,7 +60,7 @@ def test_desembarques_segun_el_sitio():
     pob = _poblacion(desembarque="D01c")
     assert set(pob.loc[pob["sitio"] == "senora", "desembarque"]) == {"D01c"}
     assert set(pob.loc[pob["sitio"] == "malecon", "desembarque"]) == {"D_MALECON"}
-    assert set(pob.loc[pob["sitio"] == "vichada", "desembarque"]) <= {"V01", "V02", "A03"}
+    assert set(pob.loc[pob["sitio"] == "vichada", "desembarque"]) <= {"V01", "V02", "V03"}
 
 
 def test_mezcla_de_embarcaciones():
