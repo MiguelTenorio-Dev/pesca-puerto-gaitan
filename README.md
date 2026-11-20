@@ -11,11 +11,11 @@ rutas, acopios, rutas bimodales río + carretera e inversión en frío, con graf
 
 Todas las cifras, con su intervalo del 90 % y su etiqueta, están en [`outputs/resumen_resultados.md`](outputs/resumen_resultados.md).
 
-- **La espera pesa más que el río**: en prácticamente todas las corridas de Monte Carlo (99,8 % en aguas bajas, 100 % en aguas altas) y con las 4 ubicaciones posibles del desembarque informal.
-- **Reacomodo de acopios** (p-mediana sobre los centros poblados del grafo, resuelta por enumeración, ILP y búsqueda local): bastan **Puerto Gaitán y San Miguel**. La Cristalina no tiene acceso por río y ningún pescador llega a ella con su bote.
+- **La espera pesa más que el río**: en el 100 % de las corridas de Monte Carlo y con las 4 ubicaciones posibles del desembarque informal.
+- **Reacomodo de acopios** (p-mediana sobre los centros poblados del grafo, resuelta por enumeración, ILP y búsqueda local): **San Miguel y Puerto Gaitán**. San Miguel es el acopio clave: atiende las zonas del Meta, que en aguas altas no pueden remontar a Puerto Gaitán a remo. La Cristalina no tiene acceso por río y ningún pescador llega a ella con su bote.
 - Con solo seguir el **recomendador** ("¿A dónde llevo mi pescado?") la flota pierde cerca de 40 % menos, sin invertir nada.
-- La **propuesta final**: rehabilitar el cuarto frío de **San Miguel** y mejorar el desembarque informal (65 M COP de inversión). Con ella el valor perdido baja de ≈ 47 % a ≈ 15 % en aguas bajas.
-  - Su VPN es positivo en el 69 % de las corridas, a un punto de la regla del 70 %: es una apuesta con riesgo, no una certeza.
+- La **propuesta final**: rehabilitar el cuarto frío de **San Miguel** y mejorar el desembarque informal (65 M COP de inversión). Con ella el valor perdido baja de ≈ 47 % a ≈ 16 % en aguas bajas.
+  - Su VPN es positivo en el 71 % de las corridas: pasa la regla del 70 %, pero por poco.
 
 ## Pantallas
 
@@ -35,8 +35,8 @@ Todas las cifras, con su intervalo del 90 % y su etiqueta, están en [`outputs/r
 9. **Mapa de la red, Toda la flota, Bimodal y cadena de frío, Hoy vs propuesta.** Red, reparto de la flota, medidas I1–I7 con frontera de Pareto y cartilla de rutas (PDF y CSV).
 10. **Supuestos y datos.** Todos los parámetros, con su etiqueta y su fuente.
 
-El grafo usa por ahora un **esqueleto SIMULADO** que reproduce las rutas medidas; para cambiarlo por las trazas reales,
-se dejan los KML en `src/pesca/datos/grafo/kml/` y se corre `python scripts/kml_a_grafo.py`.
+El grafo usa las rutas que el equipo trazó en Google Earth (el Meta desde Puerto Gaitán hasta El Porvenir y las vías a
+San Pedro de Arimena, El Porvenir, La Cristalina y Domo Planas) y trazas aproximadas para el Meta alto, el Yucao y los caños.
 
 ## Instalar y abrir (Python 3.12)
 

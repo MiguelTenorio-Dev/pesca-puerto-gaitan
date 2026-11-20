@@ -1,4 +1,4 @@
-"""Cada cifra del informe debe estar en outputs/resumen_resultados.md o en la especificacion."""
+"""Cada cifra del informe debe estar en outputs/resumen_resultados.md, en la especificacion o en el estado del arte."""
 
 import re
 
@@ -22,6 +22,10 @@ def _normalizar(token: str) -> float:
 # El informe y la especificacion son documentos personales: estan en el PC del equipo, no en el repo publico
 INFORME = config.DIR_REPO / "docs" / "informe" / "informe.md" if config.DIR_REPO else None
 FUENTES = [config.DIR_REPO / "outputs" / "resumen_resultados.md", config.DIR_REPO / "docs" / "ESPECIFICACION.md"] if config.DIR_REPO else []
+# El estado del arte del equipo (copia en texto del .docx) respalda las cifras de los antecedentes
+ESTADO_DEL_ARTE = config.DIR_REPO / "docs" / "informe" / "estado_del_arte.md" if config.DIR_REPO else None
+if ESTADO_DEL_ARTE is not None and ESTADO_DEL_ARTE.is_file():
+    FUENTES.append(ESTADO_DEL_ARTE)
 
 
 @pytest.mark.skipif(INFORME is None or not all(p.is_file() for p in [INFORME, *FUENTES]),

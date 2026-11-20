@@ -20,13 +20,28 @@ def test_reproduce_lo_medido(fila):
         capa, red.clave(fila["origen"], fila["modo"]), red.clave(fila["destino"], fila["modo"]),
         lambda u, v, d: d["distancia_km"],
     )
-    assert r.costo == pytest.approx(fila["km_medido"], rel=TOLERANCIA)
+    manda = red.calibracion(G).set_index("id").at[fila["id"], "manda"]
+    if manda == "KML":
+        # toda la ruta va por la traza KML del equipo: manda la traza (la diferencia solo se reporta)
+        assert r.costo == pytest.approx(fila["km_medido"], rel=0.03)
+    else:
+        assert r.costo == pytest.approx(fila["km_medido"], rel=TOLERANCIA)
 
 
 def test_tabla_de_calibracion():
     cal = red.calibracion(G)
     assert set(cal["id"]) == {"M01", "M02", "M03", "M04"}
-    assert (cal["error_pct"].abs() <= 100 * TOLERANCIA).all()
+    medicion = cal[cal["manda"] == "medición"]
+    assert (medicion["error_pct"].abs() <= 100 * TOLERANCIA).all()
+    assert cal.set_index("id").at["M04", "manda"] == "KML"
+
+
+def test_misma_geometria_que_el_grafo_oficial():
+    """La red de simulacion y el grafo oficial usan las mismas trazas: M04 casi igual en las dos."""
+    from pesca import grafo
+
+    oficial = grafo.calibrar(grafo.construir_grafo()).set_index("id").at["M04", "km_grafo"]
+    assert red.calibracion(G).set_index("id").at["M04", "km_grafo"] == pytest.approx(oficial, abs=0.5)
 
 
 def test_sin_rio_entre_cuencas():

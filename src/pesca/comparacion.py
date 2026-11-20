@@ -295,26 +295,12 @@ def texto_resumen() -> str:
               "Etiquetas: **MEDIDO** (Google Earth/KML), **OFICIAL** (SEPEC, SIPSA), **SIMULADO** (supuestos del proyecto, en `src/pesca/datos/parametros.yaml`). "
               "Las cifras con Monte Carlo se dan como media e intervalo del 90 %.", ""]
 
-    # R1
+    # R1: el grafo oficial (con su calibracion y la comparacion de algoritmos) esta en la seccion del grafo
     g = red.construir_red()
-    cal = red.calibracion(g)
-    lineas += ["## R1. Red y calibración [MEDIDO → CALIBRADO]", "", "| ruta | modo | km medidos | km del grafo | error |", "|---|---|---|---|---|"]
-    lineas += [f"| {c.id} | {c.modo} | {_n(c.km_medido, 2)} | {_n(c.km_grafo, 2)} | {_n(c.error_pct, 3)} % |" for c in cal.itertuples()]
-    s = g.graph["sinuosidad"]
-    lineas += ["", f"Sinuosidad calibrada: río {_n(s['rio'], 2)}, carretera {_n(s['via'], 2)}. "
-               f"Grafo: {g.number_of_nodes()} nodos, {g.number_of_edges()} aristas.", ""]
-    perfil = transporte.Perfil.desde_escenario(Escenario.base(), EMBARCACION_ALGORITMOS)
-    comp = busqueda.comparar(g, busqueda.pares_comparacion(), perfil)
-    lineas += [f"Dijkstra vs A* vs BFS ({TEXTO_BOTE[EMBARCACION_ALGORITMOS].lower()}, aguas bajas, peso = pérdida de calidad):", "",
-               "| ruta | algoritmo | nodos explorados | tramos | % peor que Dijkstra |", "|---|---|---|---|---|"]
-    for c in comp.itertuples():
-        lineas.append(f"| {c.par} | {TEXTO_ALGORITMO[c.algoritmo]} | {c.nodos_explorados} | {c.tramos} | {_n(max(c.pct_peor_que_dijkstra, 0.0), 1)} % |")
-    total = comp.groupby("algoritmo")["nodos_explorados"].sum()
-    peor = comp[comp["algoritmo"] == "bfs"]["pct_peor_que_dijkstra"]
-    lineas += ["", f"Nodos explorados en total: Dijkstra {total['dijkstra']}, A* {total['a_estrella']} "
-               f"({_n(100 * (1 - total['a_estrella'] / total['dijkstra']), 0)} % menos), BFS {total['bfs']}. "
-               f"A* da siempre el mismo costo que Dijkstra; BFS (menos tramos) queda en promedio {_n(peor.mean(), 1)} % peor "
-               f"(máximo {_n(peor.max(), 1)} %).", ""]
+    lineas += ["## R1. Red, calibración y búsqueda", "",
+               "El grafo oficial, su calibración con M01–M10 y la comparación Dijkstra / A* / BFS están en la sección "
+               "«Grafo y acopios». Las simulaciones de R2 a R6 usan una red de trabajo con la misma geometría (las mismas "
+               f"trazas KML del equipo y las mismas trazas aproximadas): {g.number_of_nodes()} nodos y {g.number_of_edges()} aristas.", ""]
 
     # R2
     r2 = cadena_actual.cargar_precalculado()

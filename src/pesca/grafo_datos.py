@@ -513,12 +513,15 @@ def lineas_kml_rutas() -> tuple[list[Linea], list[Linea]]:
     agua, tierra = [], []
     for linea in leer_lineas_kml(ruta):
         (agua if "agua" in _normalizar(linea.nombre) else tierra).append((linea.nombre, linea.coords))
+    def pueblo(nombre: str) -> str:
+        return " ".join(w if w in ("de", "del", "la") else w.capitalize() for w in nombre.split("-")[0].strip().split())
+
     rio = [
         # trazadas del pueblo hacia Puerto Gaitan, es decir aguas arriba: se invierten para que vayan aguas abajo
-        Linea(f"río Meta (traza KML de {n.split('-')[0].strip()})", c[::-1], f"MEDIDO: {KML_RUTAS}", ESQUELETO_CUENCA)
+        Linea(f"río Meta bajo (traza KML hacia {pueblo(n)})", c[::-1], f"MEDIDO: {KML_RUTAS}", ESQUELETO_CUENCA)
         for n, c in _sin_superposicion(agua)
     ]
-    via = [Linea(f"vía {n.split('-')[0].strip()}–Puerto Gaitán (traza KML)", c, f"MEDIDO: {KML_RUTAS}") for n, c in _sin_superposicion(tierra)]
+    via = [Linea(f"vía Puerto Gaitán–{pueblo(n)} (traza KML)", c, f"MEDIDO: {KML_RUTAS}") for n, c in _sin_superposicion(tierra)]
     return rio, via
 
 
@@ -557,7 +560,10 @@ def esqueleto_simulado(centros: pd.DataFrame | None = None) -> tuple[pd.DataFram
             simuladas_rio.append(_linea_de_traza(rios, t, "rios.csv"))
         else:
             primero = rios.loc[rios["traza"] == t].sort_values("orden")["id_nodo"].dropna().iloc[0]
-            simuladas_rio.append(_linea_de_traza(rios, t, "rios.csv", primero, hasta))
+            linea = _linea_de_traza(rios, t, "rios.csv", primero, hasta)
+            if t == "meta":
+                linea.nombre = "río Meta alto"  # de aqui hacia abajo, el Meta es la traza KML
+            simuladas_rio.append(linea)
     simuladas_via = [_linea_de_traza(vias, t, "vias.csv") for t in ESQUELETO_VIAS]
     _empalmar(simuladas_rio, kml_rio, (-1,))
     _empalmar(simuladas_via, kml_via, (0, -1))

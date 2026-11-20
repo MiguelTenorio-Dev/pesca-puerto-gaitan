@@ -182,18 +182,27 @@ def _vuelta_cache(g, origen, cond, mercado) -> float:
     return _CACHE_VUELTA[clave]
 
 
+def _temporadas(temporada: str | None) -> list[tuple[str, float]]:
+    """Una temporada, o las dos ponderadas por fraccion_aguas_altas: un acopio se ubica para todo el año."""
+    if temporada is not None:
+        return [(temporada, 1.0)]
+    altas = config.parametro("economia.fraccion_aguas_altas")
+    return [("aguas_altas", altas), ("aguas_bajas", 1 - altas)]
+
+
 def matriz_costos(g: nx.DiGraph, cands: list[str], temporada: str | None = None, bote: str | None = None) -> pd.DataFrame:
     """c_ij: fraccion del lote que se pierde si la zona i entrega en j y el lote sigue a la plaza.
 
-    Promedio ponderado sobre la flota y las neveras (o un solo bote si se pide). Tope 1 (se pierde todo).
+    Promedio ponderado sobre la flota, las neveras y las dos temporadas (o un solo bote o una sola temporada si se
+    pide). En aguas altas un bote a remo no remonta el Meta: por eso la temporada pesa en donde va un acopio.
+    Tope 1 (se pierde todo).
     """
-    temporada = temporada or config.parametro("escenario_base.temporada")
     tope = config.parametro("acopios_grafo.costo_sin_destino")
-    combos = [(b, n, w) for b, n, w in _combinaciones() if bote is None or b == bote]
+    combos = [(b, n, t, w * wt) for b, n, w in _combinaciones() if bote is None or b == bote for t, wt in _temporadas(temporada)]
     total = sum(w for *_, w in combos)
     c = pd.DataFrame(0.0, index=zonas(g), columns=cands)
-    for b, nevera, peso_combo in combos:
-        cond = pesos.Condiciones(bote=b, temporada=temporada, nevera=nevera)
+    for b, nevera, temporada_combo, peso_combo in combos:
+        cond = pesos.Condiciones(bote=b, temporada=temporada_combo, nevera=nevera)
         for i in c.index:
             tramos = tramos_costo(g, i, cands, cond)
             for j in cands:
@@ -491,7 +500,8 @@ def montecarlo_viabilidad(abiertos, n: int | None = None, semilla: int | None = 
                           "vpn": vpn(inversion, flujo, p("economia.horizonte_anios"), p("economia.tasa_descuento"))})
         return filas
 
-    return pd.DataFrame([fila for filas in montecarlo.correr(corrida, n, semilla) for fila in filas])
+    columnas = ["corrida", "acopio", "temporada", "perdida_evitada_kg_dia", "vpn"]
+    return pd.DataFrame([fila for filas in montecarlo.correr(corrida, n, semilla) for fila in filas], columns=columnas)
 
 
 # ---------------------------------------------------------------- sensibilidad (§4.8)

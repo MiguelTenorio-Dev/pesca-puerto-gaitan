@@ -1,57 +1,59 @@
 id,origen,destino,tipo,modo,distancia_km,sentido,clase_via,fuente,validado,notas
-T001,R001,R002,rio,rio,7.8307,1,,MEDIDO: rutas que faltan .kml,no,río Meta (traza KML de el porvenir): suma de haversine sobre 64 vértices
-T002,R002,R003,rio,rio,4.1267,1,,MEDIDO: rutas que faltan .kml,no,río Meta (traza KML de el porvenir): suma de haversine sobre 30 vértices
-T003,R003,R004,rio,rio,20.5428,1,,MEDIDO: rutas que faltan .kml,no,río Meta (traza KML de el porvenir): suma de haversine sobre 85 vértices
-T004,R004,R005,rio,rio,7.9841,1,,MEDIDO: rutas que faltan .kml,no,río Meta (traza KML de el porvenir): suma de haversine sobre 29 vértices
-T005,R005,R006,rio,rio,27.8854,1,,MEDIDO: rutas que faltan .kml,no,río Meta (traza KML de el porvenir): suma de haversine sobre 86 vértices
-T006,R006,R007,rio,rio,32.4961,1,,MEDIDO: rutas que faltan .kml,no,río Meta (traza KML de el porvenir): suma de haversine sobre 138 vértices
-T007,R006,R008,rio,rio,3.8965,1,,MEDIDO: rutas que faltan .kml,no,río Meta (traza KML de San Pedro de Arimena): suma de haversine sobre 26 vértices
-T008,R009,R003,rio,rio,2.9763,1,,"SIMULADO: esqueleto (rios.csv, traza aproximada)",no,caño Canalete: suma de haversine sobre 3 vértices; km × 1.074 (sinuosidad común de M02)
-T009,R010,R011,rio,rio,6.5514,1,,"SIMULADO: esqueleto (rios.csv, traza aproximada)",no,caño Cañomorroco: suma de haversine sobre 2 vértices; km × 1.074 (sinuosidad común de M02)
-T010,R012,R004,rio,rio,1.6627,1,,"SIMULADO: esqueleto (rios.csv, traza aproximada)",no,caño Chayva: suma de haversine sobre 3 vértices; km × 1.074 (sinuosidad común de M02)
-T011,R013,R014,rio,rio,7.2596,1,,"SIMULADO: esqueleto (rios.csv, traza aproximada)",no,caño Guiva: suma de haversine sobre 2 vértices; km × 1.074 (sinuosidad común de M02)
-T012,R015,R016,rio,rio,5.1325,1,,"SIMULADO: esqueleto (rios.csv, traza aproximada)",no,caño Maiciana: suma de haversine sobre 2 vértices; km × 1.074 (sinuosidad común de M02)
-T013,R017,R016,rio,rio,3.7265,1,,"SIMULADO: esqueleto (rios.csv, traza aproximada)",no,río Manacacías: suma de haversine sobre 2 vértices; km × 1.074 (sinuosidad común de M02)
-T014,R016,R011,rio,rio,11.0,1,,"SIMULADO: esqueleto (rios.csv, traza aproximada)",no,río Manacacías: suma de haversine sobre 3 vértices; km × 1.074 (sinuosidad común de M02)
-T015,R011,R001,rio,rio,5.2338,1,,"SIMULADO: esqueleto (rios.csv, traza aproximada)",no,río Manacacías: suma de haversine sobre 2 vértices; km × 1.074 (sinuosidad común de M02)
-T016,R018,R014,rio,rio,5.3868,1,,"SIMULADO: esqueleto (rios.csv, traza aproximada)",no,río Meta: suma de haversine sobre 2 vértices; km × 1.074 (sinuosidad común de M02)
-T017,R014,R019,rio,rio,5.3869,1,,"SIMULADO: esqueleto (rios.csv, traza aproximada)",no,río Meta: suma de haversine sobre 2 vértices; km × 1.074 (sinuosidad común de M02)
-T018,R019,R002,rio,rio,9.5494,1,,"SIMULADO: esqueleto (rios.csv, traza aproximada)",no,río Meta: suma de haversine sobre 4 vértices; km × 1.074 (cierra M02)
-T019,R020,R019,rio,rio,12.1282,1,,"SIMULADO: esqueleto (rios.csv, traza aproximada)",no,río Yucao: suma de haversine sobre 4 vértices; km × 1.074 (sinuosidad común de M02)
-T020,V001,V002,via,via,42.1279,0,por_confirmar,MEDIDO: rutas que faltan .kml,no,vía doma planas–Puerto Gaitán (traza KML): suma de haversine sobre 823 vértices
-T021,V002,V003,via,via,33.8271,0,por_confirmar,MEDIDO: rutas que faltan .kml,no,vía doma planas–Puerto Gaitán (traza KML): suma de haversine sobre 138 vértices
-T022,V003,V004,via,via,33.8271,0,por_confirmar,MEDIDO: rutas que faltan .kml,no,vía doma planas–Puerto Gaitán (traza KML): suma de haversine sobre 112 vértices
-T023,V004,V005,via,via,7.2605,0,por_confirmar,MEDIDO: rutas que faltan .kml,no,vía doma planas–Puerto Gaitán (traza KML): suma de haversine sobre 103 vértices
-T024,V006,V007,via,via,32.9179,0,por_confirmar,MEDIDO: rutas que faltan .kml,no,vía el porvenir–Puerto Gaitán (traza KML): suma de haversine sobre 389 vértices
-T025,V007,V008,via,via,29.2509,0,por_confirmar,MEDIDO: rutas que faltan .kml,no,vía el porvenir–Puerto Gaitán (traza KML): suma de haversine sobre 60 vértices
-T026,V008,V004,via,via,29.2509,0,por_confirmar,MEDIDO: rutas que faltan .kml,no,vía el porvenir–Puerto Gaitán (traza KML): suma de haversine sobre 66 vértices
-T027,V009,V007,via,via,1.7482,0,por_confirmar,MEDIDO: rutas que faltan .kml,no,vía San Pedro de Arimena–Puerto Gaitán (traza KML): suma de haversine sobre 63 vértices
-T028,V010,V005,via,via,15.1168,0,por_confirmar,"SIMULADO: esqueleto (vias.csv, traza aproximada)",no,vía Puerto Gaitán–Yucao: suma de haversine sobre 4 vértices; km × 1.466 (cierra M01)
-T029,V005,V011,via,via,38.8764,0,por_confirmar,"SIMULADO: esqueleto (vias.csv, traza aproximada)",no,vía Puerto Gaitán–San Miguel: suma de haversine sobre 4 vértices; km × 1.159 (cierra M03)
-T030,R001,E_CP01,acceso,rio,-0.0,0,,MEDIDO: rutas que faltan .kml,no,El embarcadero queda sobre el punto del río más cercano al pueblo
-T031,E_CP01,CP01,transbordo,interno,-0.0,0,,SIMULADO: esqueleto (arco interno (d = 0); el tiempo sale de parametros.yaml),no,
-T032,CP01,V005,via,via,0.0233,0,por_confirmar,SIMULADO: esqueleto (línea recta del pueblo al punto de la vía más cercano),no,
-T033,CP01,MER_CP01,venta,interno,-0.0,0,,SIMULADO: esqueleto (arco interno (d = 0); el tiempo sale de parametros.yaml),no,
-T034,CP02,V002,via,via,0.1776,0,por_confirmar,SIMULADO: esqueleto (línea recta del pueblo al punto de la vía más cercano),no,
-T035,R005,E_CP03,acceso,rio,-0.0,0,,MEDIDO: rutas que faltan .kml,no,El embarcadero queda sobre el punto del río más cercano al pueblo
-T036,E_CP03,CP03,transbordo,interno,-0.0,0,,SIMULADO: esqueleto (arco interno (d = 0); el tiempo sale de parametros.yaml),no,
-T037,CP03,V011,via,via,0.0005,0,por_confirmar,SIMULADO: esqueleto (línea recta del pueblo al punto de la vía más cercano),no,
-T038,CP04,V001,via,via,-0.0,0,por_confirmar,SIMULADO: esqueleto (línea recta del pueblo al punto de la vía más cercano),no,
-T039,R008,E_CP05,acceso,rio,-0.0,0,,MEDIDO: rutas que faltan .kml,no,El embarcadero queda sobre el punto del río más cercano al pueblo
-T040,E_CP05,CP05,transbordo,interno,-0.0,0,,SIMULADO: esqueleto (arco interno (d = 0); el tiempo sale de parametros.yaml),no,
-T041,CP05,V009,via,via,0.4537,0,por_confirmar,SIMULADO: esqueleto (línea recta del pueblo al punto de la vía más cercano),no,
-T042,R007,E_CP06,acceso,rio,-0.0,0,,MEDIDO: rutas que faltan .kml,no,El embarcadero queda sobre el punto del río más cercano al pueblo
-T043,E_CP06,CP06,transbordo,interno,-0.0,0,,SIMULADO: esqueleto (arco interno (d = 0); el tiempo sale de parametros.yaml),no,
-T044,CP06,V006,via,via,0.3926,0,por_confirmar,SIMULADO: esqueleto (línea recta del pueblo al punto de la vía más cercano),no,
-T045,R019,E_C01,acceso,rio,-0.0,0,,"SIMULADO: esqueleto (rios.csv, traza aproximada)",no,El embarcadero queda sobre el punto del río más cercano al pueblo
-T046,E_C01,C01,transbordo,interno,-0.0,0,,SIMULADO: esqueleto (arco interno (d = 0); el tiempo sale de parametros.yaml),no,
-T047,C01,V010,via,via,-0.0,0,por_confirmar,SIMULADO: esqueleto (línea recta del pueblo al punto de la vía más cercano),no,
-T048,P01,R018,acceso,rio,-0.0,0,,SIMULADO: esqueleto (línea recta al punto del río más cercano),no,
-T049,P02,R012,acceso,rio,4.9608,0,,SIMULADO: esqueleto (línea recta al punto del río más cercano),no,
-T050,P03,R017,acceso,rio,-0.0,0,,SIMULADO: esqueleto (línea recta al punto del río más cercano),no,
-T051,P04,R020,acceso,rio,-0.0,0,,SIMULADO: esqueleto (línea recta al punto del río más cercano),no,
-T052,P08,R009,acceso,rio,-0.0,0,,SIMULADO: esqueleto (línea recta al punto del río más cercano),no,
-T053,P09,R010,acceso,rio,-0.0,0,,SIMULADO: esqueleto (línea recta al punto del río más cercano),no,
-T054,P10,R015,acceso,rio,-0.0,0,,SIMULADO: esqueleto (línea recta al punto del río más cercano),no,
-T055,P11,R013,acceso,rio,-0.0,0,,SIMULADO: esqueleto (línea recta al punto del río más cercano),no,
-T056,P12,R012,acceso,rio,-0.0,0,,SIMULADO: esqueleto (línea recta al punto del río más cercano),no,
+T001,R001,R002,rio,rio,7.8307,1,,MEDIDO: rutas que faltan .kml,no,río Meta bajo (traza KML hacia El Porvenir): suma de haversine sobre 64 vértices
+T002,R002,R003,rio,rio,4.1267,1,,MEDIDO: rutas que faltan .kml,no,río Meta bajo (traza KML hacia El Porvenir): suma de haversine sobre 30 vértices
+T003,R003,R004,rio,rio,16.3072,1,,MEDIDO: rutas que faltan .kml,no,río Meta bajo (traza KML hacia El Porvenir): suma de haversine sobre 70 vértices
+T004,R004,R005,rio,rio,4.2357,1,,MEDIDO: rutas que faltan .kml,no,río Meta bajo (traza KML hacia El Porvenir): suma de haversine sobre 16 vértices
+T005,R005,R006,rio,rio,7.9841,1,,MEDIDO: rutas que faltan .kml,no,río Meta bajo (traza KML hacia El Porvenir): suma de haversine sobre 29 vértices
+T006,R006,R007,rio,rio,27.8854,1,,MEDIDO: rutas que faltan .kml,no,río Meta bajo (traza KML hacia El Porvenir): suma de haversine sobre 86 vértices
+T007,R007,R008,rio,rio,32.4961,1,,MEDIDO: rutas que faltan .kml,no,río Meta bajo (traza KML hacia El Porvenir): suma de haversine sobre 138 vértices
+T008,R007,R009,rio,rio,3.8965,1,,MEDIDO: rutas que faltan .kml,no,río Meta bajo (traza KML hacia San Pedro de Arimena): suma de haversine sobre 26 vértices
+T009,R010,R004,rio,rio,2.6564,1,,"SIMULADO: esqueleto (rios.csv, traza aproximada)",no,acceso a la zona Meta bajo: suma de haversine sobre 2 vértices; km × 1.075 (sinuosidad común de M02)
+T010,R011,R003,rio,rio,2.8278,1,,"SIMULADO: esqueleto (rios.csv, traza aproximada)",no,caño Canalete: suma de haversine sobre 2 vértices; km × 1.075 (sinuosidad común de M02)
+T011,R012,R013,rio,rio,6.5591,1,,"SIMULADO: esqueleto (rios.csv, traza aproximada)",no,caño Cañomorroco: suma de haversine sobre 2 vértices; km × 1.075 (sinuosidad común de M02)
+T012,R014,R005,rio,rio,0.6974,1,,"SIMULADO: esqueleto (rios.csv, traza aproximada)",no,caño Chayva: suma de haversine sobre 2 vértices; km × 1.075 (sinuosidad común de M02)
+T013,R015,R016,rio,rio,7.2682,1,,"SIMULADO: esqueleto (rios.csv, traza aproximada)",no,caño Guiva: suma de haversine sobre 2 vértices; km × 1.075 (sinuosidad común de M02)
+T014,R017,R018,rio,rio,5.1385,1,,"SIMULADO: esqueleto (rios.csv, traza aproximada)",no,caño Maiciana: suma de haversine sobre 2 vértices; km × 1.075 (sinuosidad común de M02)
+T015,R019,R018,rio,rio,3.7309,1,,"SIMULADO: esqueleto (rios.csv, traza aproximada)",no,río Manacacías: suma de haversine sobre 2 vértices; km × 1.075 (sinuosidad común de M02)
+T016,R018,R013,rio,rio,11.013,1,,"SIMULADO: esqueleto (rios.csv, traza aproximada)",no,río Manacacías: suma de haversine sobre 3 vértices; km × 1.075 (sinuosidad común de M02)
+T017,R013,R001,rio,rio,5.24,1,,"SIMULADO: esqueleto (rios.csv, traza aproximada)",no,río Manacacías: suma de haversine sobre 2 vértices; km × 1.075 (sinuosidad común de M02)
+T018,R020,R016,rio,rio,5.3932,1,,"SIMULADO: esqueleto (rios.csv, traza aproximada)",no,río Meta alto: suma de haversine sobre 2 vértices; km × 1.075 (sinuosidad común de M02)
+T019,R016,R021,rio,rio,5.3933,1,,"SIMULADO: esqueleto (rios.csv, traza aproximada)",no,río Meta alto: suma de haversine sobre 2 vértices; km × 1.075 (sinuosidad común de M02)
+T020,R021,R002,rio,rio,9.5494,1,,"SIMULADO: esqueleto (rios.csv, traza aproximada)",no,río Meta alto: suma de haversine sobre 3 vértices; km × 1.075 (cierra M02)
+T021,R022,R021,rio,rio,12.1425,1,,"SIMULADO: esqueleto (rios.csv, traza aproximada)",no,río Yucao: suma de haversine sobre 4 vértices; km × 1.075 (sinuosidad común de M02)
+T022,V001,V002,via,via,42.1279,0,por_confirmar,MEDIDO: rutas que faltan .kml,no,vía Puerto Gaitán–Doma Planas (traza KML): suma de haversine sobre 823 vértices
+T023,V002,V003,via,via,33.8271,0,por_confirmar,MEDIDO: rutas que faltan .kml,no,vía Puerto Gaitán–Doma Planas (traza KML): suma de haversine sobre 138 vértices
+T024,V003,V004,via,via,33.8271,0,por_confirmar,MEDIDO: rutas que faltan .kml,no,vía Puerto Gaitán–Doma Planas (traza KML): suma de haversine sobre 112 vértices
+T025,V004,V005,via,via,7.2605,0,por_confirmar,MEDIDO: rutas que faltan .kml,no,vía Puerto Gaitán–Doma Planas (traza KML): suma de haversine sobre 103 vértices
+T026,V006,V007,via,via,32.9179,0,por_confirmar,MEDIDO: rutas que faltan .kml,no,vía Puerto Gaitán–El Porvenir (traza KML): suma de haversine sobre 389 vértices
+T027,V007,V008,via,via,29.2509,0,por_confirmar,MEDIDO: rutas que faltan .kml,no,vía Puerto Gaitán–El Porvenir (traza KML): suma de haversine sobre 60 vértices
+T028,V008,V004,via,via,29.2509,0,por_confirmar,MEDIDO: rutas que faltan .kml,no,vía Puerto Gaitán–El Porvenir (traza KML): suma de haversine sobre 66 vértices
+T029,V009,V007,via,via,1.7482,0,por_confirmar,MEDIDO: rutas que faltan .kml,no,vía Puerto Gaitán–San Pedro de Arimena (traza KML): suma de haversine sobre 63 vértices
+T030,V010,V005,via,via,15.1168,0,por_confirmar,"SIMULADO: esqueleto (vias.csv, traza aproximada)",no,vía Puerto Gaitán–Yucao: suma de haversine sobre 4 vértices; km × 1.466 (cierra M01)
+T031,V005,V011,via,via,38.8764,0,por_confirmar,"SIMULADO: esqueleto (vias.csv, traza aproximada)",no,vía Puerto Gaitán–San Miguel: suma de haversine sobre 4 vértices; km × 1.159 (cierra M03)
+T032,R001,E_CP01,acceso,rio,-0.0,0,,MEDIDO: rutas que faltan .kml,no,El embarcadero queda sobre el punto del río más cercano al pueblo
+T033,E_CP01,CP01,transbordo,interno,-0.0,0,,SIMULADO: esqueleto (arco interno (d = 0); el tiempo sale de parametros.yaml),no,
+T034,CP01,V005,via,via,0.0233,0,por_confirmar,SIMULADO: esqueleto (línea recta del pueblo al punto de la vía más cercano),no,
+T035,CP01,MER_CP01,venta,interno,-0.0,0,,SIMULADO: esqueleto (arco interno (d = 0); el tiempo sale de parametros.yaml),no,
+T036,CP02,V002,via,via,0.1776,0,por_confirmar,SIMULADO: esqueleto (línea recta del pueblo al punto de la vía más cercano),no,
+T037,R006,E_CP03,acceso,rio,-0.0,0,,MEDIDO: rutas que faltan .kml,no,El embarcadero queda sobre el punto del río más cercano al pueblo
+T038,E_CP03,CP03,transbordo,interno,-0.0,0,,SIMULADO: esqueleto (arco interno (d = 0); el tiempo sale de parametros.yaml),no,
+T039,CP03,V011,via,via,0.0005,0,por_confirmar,SIMULADO: esqueleto (línea recta del pueblo al punto de la vía más cercano),no,
+T040,CP04,V001,via,via,-0.0,0,por_confirmar,SIMULADO: esqueleto (línea recta del pueblo al punto de la vía más cercano),no,
+T041,R009,E_CP05,acceso,rio,-0.0,0,,MEDIDO: rutas que faltan .kml,no,El embarcadero queda sobre el punto del río más cercano al pueblo
+T042,E_CP05,CP05,transbordo,interno,-0.0,0,,SIMULADO: esqueleto (arco interno (d = 0); el tiempo sale de parametros.yaml),no,
+T043,CP05,V009,via,via,0.4537,0,por_confirmar,SIMULADO: esqueleto (línea recta del pueblo al punto de la vía más cercano),no,
+T044,R008,E_CP06,acceso,rio,-0.0,0,,MEDIDO: rutas que faltan .kml,no,El embarcadero queda sobre el punto del río más cercano al pueblo
+T045,E_CP06,CP06,transbordo,interno,-0.0,0,,SIMULADO: esqueleto (arco interno (d = 0); el tiempo sale de parametros.yaml),no,
+T046,CP06,V006,via,via,0.3926,0,por_confirmar,SIMULADO: esqueleto (línea recta del pueblo al punto de la vía más cercano),no,
+T047,R021,E_C01,acceso,rio,-0.0,0,,"SIMULADO: esqueleto (rios.csv, traza aproximada)",no,El embarcadero queda sobre el punto del río más cercano al pueblo
+T048,E_C01,C01,transbordo,interno,-0.0,0,,SIMULADO: esqueleto (arco interno (d = 0); el tiempo sale de parametros.yaml),no,
+T049,C01,V010,via,via,-0.0,0,por_confirmar,SIMULADO: esqueleto (línea recta del pueblo al punto de la vía más cercano),no,
+T050,P01,R020,acceso,rio,-0.0,0,,SIMULADO: esqueleto (línea recta al punto del río más cercano),no,
+T051,P02,R010,acceso,rio,-0.0,0,,SIMULADO: esqueleto (línea recta al punto del río más cercano),no,
+T052,P03,R019,acceso,rio,-0.0,0,,SIMULADO: esqueleto (línea recta al punto del río más cercano),no,
+T053,P04,R022,acceso,rio,-0.0,0,,SIMULADO: esqueleto (línea recta al punto del río más cercano),no,
+T054,P08,R011,acceso,rio,-0.0,0,,SIMULADO: esqueleto (línea recta al punto del río más cercano),no,
+T055,P09,R012,acceso,rio,-0.0,0,,SIMULADO: esqueleto (línea recta al punto del río más cercano),no,
+T056,P10,R017,acceso,rio,-0.0,0,,SIMULADO: esqueleto (línea recta al punto del río más cercano),no,
+T057,P11,R015,acceso,rio,-0.0,0,,SIMULADO: esqueleto (línea recta al punto del río más cercano),no,
+T058,P12,R014,acceso,rio,-0.0,0,,SIMULADO: esqueleto (línea recta al punto del río más cercano),no,

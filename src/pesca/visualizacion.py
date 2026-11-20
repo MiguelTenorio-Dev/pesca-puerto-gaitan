@@ -12,7 +12,7 @@ from pesca.busqueda import ResultadoBusqueda
 COLOR_ETIQUETA = {"MEDIDO": "#1a9850", "CALIBRADO": "#d4a017", "SIMULADO": "#f46d43"}
 COLOR_TRANSBORDO = "#7b3294"
 TEXTO_GRUPO = {
-    "MEDIDO": "🟢 Medido (M01–M04, repartido por tramo)",
+    "MEDIDO": "🟢 Medido (trazas KML del equipo y rutas M01–M04)",
     "CALIBRADO": "🟡 Calibrado (sinuosidad de lo medido)",
     "SIMULADO": "🟠 Simulado (accesos estimados)",
 }

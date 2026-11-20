@@ -143,6 +143,7 @@ class Tramo:
     etiqueta: str = "CALIBRADO"
     fuente: str = ""
     rutas: list[str] = field(default_factory=list)
+    fijo: bool = False  # todos sus vertices vienen de una traza KML del equipo: no se escala
 
     def __post_init__(self) -> None:
         self.crudo_km = longitud_km(self.coords)
@@ -154,16 +155,18 @@ def _tramos_de(trazas: pd.DataFrame, modo: str) -> list[Tramo]:
         filas = filas.sort_values("orden")
         cuenca = filas["cuenca"].iloc[0] if "cuenca" in filas else None
         nombre_traza = filas["nombre"].iloc[0]
-        desde, coords = None, []
+        desde, coords, fuentes = None, [], []
         for f in filas.itertuples():
             # En las vias cada vertice es un nodo; en los rios, solo los que tienen id
             id_nodo = f.id_nodo if isinstance(f.id_nodo, str) else (f"{traza}_{f.orden}" if modo == CAPA_VIA else None)
             coords.append((f.lat, f.lon))
+            fuentes.append(str(f.fuente))
             if id_nodo is None:
                 continue
             if desde is not None:
-                tramos.append(Tramo(modo, traza, nombre_traza, cuenca, desde, id_nodo, coords))
-            desde, coords = id_nodo, [(f.lat, f.lon)]
+                fijo = all(x.startswith("KML medido") for x in fuentes)
+                tramos.append(Tramo(modo, traza, nombre_traza, cuenca, desde, id_nodo, coords, fijo=fijo))
+            desde, coords, fuentes = id_nodo, [(f.lat, f.lon)], [str(f.fuente)]
     return tramos
 
 
@@ -177,12 +180,19 @@ def _calibrar(tramos: list[Tramo], objetivos: pd.DataFrame, escala_sinuosidad: f
         for i, t in enumerate(propios):
             g.add_edge(t.desde, t.hasta, crudo=t.crudo_km, indice=i)
 
-        caminos = {}
+        # Los tramos de trazas KML (fijos) no se escalan: se descuentan de lo medido. Una ruta que va toda por
+        # tramos fijos no se calibra (manda la traza KML; la diferencia con la medicion a mano solo se reporta).
+        caminos, objetivo = {}, {}
         for m in medidas.itertuples():
             nodos = nx.shortest_path(g, m.origen, m.destino, weight="crudo")
-            caminos[m.id] = [g.edges[a, b]["indice"] for a, b in zip(nodos, nodos[1:])]
-            for i in caminos[m.id]:
+            indices = [g.edges[a, b]["indice"] for a, b in zip(nodos, nodos[1:])]
+            for i in indices:
                 propios[i].rutas.append(m.id)
+            libres = [i for i in indices if not propios[i].fijo]
+            if libres:
+                caminos[m.id] = libres
+                objetivo[m.id] = m.km_medido - sum(propios[i].crudo_km for i in indices if propios[i].fijo)
+        medidas = medidas[medidas["id"].isin(caminos)].assign(km_medido=lambda d: d["id"].map(objetivo))
         uso = Counter(i for camino in caminos.values() for i in camino)
 
         crudo_rutas = sum(propios[i].crudo_km for camino in caminos.values() for i in camino)
@@ -207,7 +217,10 @@ def _calibrar(tramos: list[Tramo], objetivos: pd.DataFrame, escala_sinuosidad: f
             )
 
         for i, t in enumerate(propios):
-            if uso[i] == 0:
+            if t.fijo:
+                t.factor, t.etiqueta = 1.0, "MEDIDO"
+                t.fuente = "traza KML del equipo (rutas que faltan .kml)"
+            elif uso[i] == 0:
                 t.factor, t.etiqueta = s * escala_sinuosidad, "CALIBRADO"
                 t.fuente = f"línea recta × sinuosidad calibrada con {ids}"
             elif uso[i] > 1:
@@ -343,9 +356,12 @@ def _tabla_calibracion(g: nx.DiGraph, objetivos: pd.DataFrame) -> pd.DataFrame:
     for m in objetivos.itertuples():
         capa = g.edge_subgraph([(u, v) for u, v, d in g.edges(data=True) if d["modo"] == m.modo])
         km = nx.shortest_path_length(capa, clave(m.origen, m.modo), clave(m.destino, m.modo), weight="distancia_km")
+        ruta = nx.shortest_path(capa, clave(m.origen, m.modo), clave(m.destino, m.modo), weight="distancia_km")
+        tramos = [capa.edges[u, v] for u, v in zip(ruta, ruta[1:]) if capa.edges[u, v]["distancia_km"] > 0]
+        manda = "KML" if tramos and all(d["etiqueta"] == "MEDIDO" and d["fuente"].startswith("traza KML") for d in tramos) else "medición"
         filas.append(
             {"id": m.id, "modo": m.modo, "origen": m.origen, "destino": m.destino, "km_medido": m.km_medido,
-             "km_grafo": km, "error_pct": 100 * (km - m.km_medido) / m.km_medido, "fuente": m.fuente}
+             "km_grafo": km, "error_pct": 100 * (km - m.km_medido) / m.km_medido, "fuente": m.fuente, "manda": manda}
         )
     return pd.DataFrame(filas)
 

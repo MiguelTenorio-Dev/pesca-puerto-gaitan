@@ -2,12 +2,14 @@ id,nombre,tipo,cuenca,lat,lon,validado,fuente,notas
 A01,"Puerto Gaitán, plaza de mercado",acopio,meta,4.3136,-72.0825,no,estimado por Claude (Fase 0),"Centro del pueblo, confianza alta; la plaza exacta ±1 km. Unos 8 negocios con refrigeracion"
 D_MALECON,Malecón de Puerto Gaitán,desembarque,meta,4.3150,-72.0790,no,estimado desde captura M02,Desembarque formal monitoreado por el SEPEC. Transbordo corto a la plaza
 A02,San Miguel,acopio,meta,4.5000,-71.8800,no,estimado desde captura M04,"Confianza media-baja. Rio abajo de Puerto Gaitan (41,65 km por rio). Cuarto frio de 4 m3 sin uso"
-A03,La Cristalina,acopio,meta,4.2625,-71.6358,si,KML medido (rutas que faltan .kml),Acopio que antes se ubicaba en Puente Arimena. Coordenada del inicio de la ruta KML del equipo (MEDIDO). Sin acceso por río: solo por vía. Cuarto frío pequeño sin uso. Cuenca [CONFIRMAR]
+A03,La Cristalina,acopio,meta,4.262538,-71.635823,si,KML medido (rutas que faltan .kml),Acopio que antes se ubicaba en Puente Arimena. Coordenada del inicio de la ruta KML del equipo (MEDIDO). Sin acceso por río: solo por vía. Cuarto frío pequeño sin uso. Cuenca [CONFIRMAR]
 V03,Puente Arimena (cruce de la vía con el Muco),punto_via,vichada,4.1300,-71.5000,no,estimado por Claude (Fase 0),Confianza baja [CONFIRMAR]. Antes era el acopio A03; queda como cruce de la vía y desembarque de la zona del Muco
+J02,río Meta frente a la zona Meta bajo,confluencia,meta,4.440061,-71.940074,no,"KML medido (rutas que faltan .kml), proyección","Punto del río donde llegan los pescadores de la zona Meta bajo (P02), que queda a 2,5 km del cauce"
+V04,"Puerto Gaitán, salida de la vía a La Cristalina",punto_via,meta,4.310411,-72.076666,no,KML medido (rutas que faltan .kml),Fin de la ruta KML del equipo en Puerto Gaitán
 C01,pueblo Yucao,comunidad,meta,4.3490,-72.1620,no,estimado desde captura M02,"Confianza media. Comunidad pescadora, no es acopio"
-X01,boca del Manacacías,confluencia,meta,4.3600,-72.1190,no,estimado desde captura M02,Confianza media. Union del Manacacias con el Meta
-D01a,Desembarque de la señora: boca del Manacacías,desembarque,meta,4.3580,-72.1150,no,estimado por Claude (Fase 0),"Candidata D10, confianza media. Escenario base"
-D01b,Desembarque de la señora: Meta bajo (La Virginia),desembarque,meta,4.3940,-72.0200,no,estimado desde captura M04,"Candidata D10, confianza baja"
+X01,boca del Manacacías,confluencia,meta,4.360810,-72.083439,no,"KML medido (rutas que faltan .kml), proyección",Confianza media. Union del Manacacias con el Meta Llevado a la traza KML del Meta del equipo (19 nov).
+D01a,Desembarque de la señora: boca del Manacacías,desembarque,meta,4.358857,-72.081690,no,"KML medido (rutas que faltan .kml), proyección","Candidata D10, confianza media. Escenario base Llevado a la traza KML del Meta del equipo (19 nov)."
+D01b,Desembarque de la señora: Meta bajo (La Virginia),desembarque,meta,4.390271,-72.020609,no,"KML medido (rutas que faltan .kml), proyección","Candidata D10, confianza baja Llevado a la traza KML del Meta del equipo (19 nov)."
 D01c,Desembarque de la señora: orilla de Yucao,desembarque,meta,4.3500,-72.1630,no,estimado desde captura M02,"Candidata D10, confianza media"
 D01d,Desembarque de la señora: Manacacías arriba,desembarque,meta,4.2400,-72.1300,no,estimado por Claude (Fase 0),"Candidata D10, confianza baja. Unos 10 km arriba de Puerto Gaitan"
 P01,Meta alto,zona_pesca,meta,4.3700,-72.2500,no,estimado por el equipo con imágenes (aceptado 19 nov),Confianza baja. Arriba de Puerto Gaitan
@@ -24,8 +26,8 @@ P11,caño Guiva,zona_pesca,meta,4.4200,-72.2000,no,estimado por el equipo con im
 P12,caño Chayva,zona_pesca,meta,4.4700,-71.9200,no,estimado por el equipo con imágenes (aceptado 19 nov),Posicion de relleno. Cuenca por defecto Meta (D5)
 V01,cruce de la vía con el Planas,punto_via,vichada,4.2769,-71.9660,no,estimado por Claude (Fase 1),Confianza baja. Donde el Planas cruza la via a Puente Arimena [CONFIRMAR]
 V02,cruce de la vía con el Guarrojo,punto_via,vichada,4.2034,-71.7330,no,estimado por Claude (Fase 1),Confianza baja. Donde el Guarrojo cruza la via a Puente Arimena [CONFIRMAR]
-K08,boca del caño Canalete,confluencia,meta,4.3820,-72.0550,no,estimado por Claude (Fase 1),Posicion de relleno sobre el Meta (D5)
+K08,boca del caño Canalete,confluencia,meta,4.376869,-72.051509,no,"KML medido (rutas que faltan .kml), proyección",Posicion de relleno sobre el Meta (D5) Llevado a la traza KML del Meta del equipo (19 nov).
 K09,boca del caño Cañomorroco,confluencia,meta,4.2775,-72.1045,no,estimado por Claude (Fase 1),Posicion de relleno sobre el Manacacias (D5)
 K10,boca del caño Maiciana,confluencia,meta,4.2040,-72.1600,no,estimado por Claude (Fase 1),Posicion de relleno sobre el Manacacias (D5)
 K11,boca del caño Guiva,confluencia,meta,4.3595,-72.2060,no,estimado por Claude (Fase 1),Posicion de relleno sobre el Meta (D5)
-K12,boca del caño Chayva,confluencia,meta,4.4750,-71.9200,no,estimado por Claude (Fase 1),Posicion de relleno sobre el Meta (D5)
+K12,boca del caño Chayva,confluencia,meta,4.468760,-71.913708,no,"KML medido (rutas que faltan .kml), proyección",Posicion de relleno sobre el Meta (D5) Llevado a la traza KML del Meta del equipo (19 nov).
